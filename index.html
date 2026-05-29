@@ -546,30 +546,55 @@
             });
         }
 
-        function filterRecordTable() {
-            const filterValue = document.getElementById('table-search-input').value.trim();
-            const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-            const tbody = document.getElementById('record-table-body');
-            tbody.innerHTML = '';
+        function loadRecordTable() {
+    const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+    const tbody = document.getElementById('record-table-body');
+    if (!tbody) return; // সেফটি চেক
+    tbody.innerHTML = '';
 
-            if (!filterValue) {
-                loadRecordTable();
-                return;
+    // পারফরম্যান্স অপ্টিমাইজেশন: প্রথম ৫০০ রেকর্ড লোড করবে স্পীড বাড়ানোর জন্য
+    const keys = Object.keys(db);
+    const previewKeys = keys.slice(0, 500);
+
+    previewKeys.forEach(key => {
+        const tr = document.createElement('tr');
+        
+        let locationValue = db[key] || '';
+        // 'nan' লেখা থাকলে বা খালি থাকলে "লোকেশন পাওয়া যায়নি" দেখাবে
+        let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
+        
+        tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function filterRecordTable() {
+    const filterValue = document.getElementById('table-search-input')?.value || '';
+    const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+    const tbody = document.getElementById('record-table-body');
+    if (!tbody) return; // সেফটি চেক
+    tbody.innerHTML = '';
+
+    if (!filterValue) {
+        loadRecordTable();
+        return;
+    }
+
+    let count = 0;
+    Object.keys(db).forEach(key => {
+        if (key.includes(filterValue)) {
+            if (count < 300) { // ব্রাউজার ল্যাগ রোধ করতে লিমিট ৩০০
+                const tr = document.createElement('tr');
+                let locationValue = db[key] || '';
+                let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
+                
+                tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
+                tbody.appendChild(tr);
+                count++;
             }
-
-            let matchingRows = [];
-            let otherRows = [];
-            let count = 0;
-
-            Object.keys(db).forEach(key => {
-                if (key.includes(filterValue)) {
-                    if (count < 300) { // ব্রাউজার ল্যাগ রোধ করতে লিমিট করা হয়েছে
-                        matchingRows.push({ num: key, loc: db[key] });
-                        count++;
-                    }
-                }
-            });
-
+        }
+    });
+}
             matchingRows.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.style.backgroundColor = "rgba(39, 174, 96, 0.15)";
