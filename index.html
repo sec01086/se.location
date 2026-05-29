@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="bn" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Tracker Pro (Cloud Build)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2b579a;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #cccccc;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --border-color: #444444;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* RTL (Right to Left) Specific Styles for Arabic */
+        body[dir="rtl"] {
+            text-align: right;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lang-select, .icon-btn {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid white;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .lang-select option {
+            color: black;
+        }
+
+        .icon-btn {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: none;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 20px auto 80px auto;
+            padding: 15px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        body[dir="rtl"] .input-group label {
+            text-align: right;
+        }
+
+        input[type="text"], input[type="number"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            padding: 12px 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+        }
+
+        .btn-map { background-color: #2b579a; }
+        .btn-copy { background-color: #27ae60; }
+        .btn-share { background-color: #e67e22; }
+
+        .map-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+            display: none;
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            display: flex;
+            box-shadow: 0 -2px 10px var(--shadow);
+            border-top: 1px solid var(--border-color);
+            z-index: 999;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px 0;
+            cursor: pointer;
+            font-weight: bold;
+            color: #888888;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .file-input { display: none; }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+            z-index: 10000;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .stats-box {
+            background-color: rgba(43, 87, 154, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px dashed var(--primary-color);
+        }
+
+        .cloud-sync-box {
+            background-color: #e8f4fd;
+            border: 1px solid #bce0fd;
+            color: #1d6fa5;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        [data-theme="dark"] .cloud-sync-box {
+            background-color: #1a2635;
+            border-color: #243b53;
+            color: #64b5f6;
+        }
+
+        .table-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        body[dir="rtl"] .record-table {
+            text-align: right;
+        }
+
+        .record-table th, .record-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .record-table th {
+            background-color: var(--primary-color);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .btn-delete-row {
+            background-color: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
+
+        .badge {
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white;
+        }
+        .badge-active { background-color: #27ae60; }
+        .badge-suspended { background-color: #c0392b; }
+        .action-link { color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 12px; font-weight: bold; }
+        
+        .suspended-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: #121212; color: #ff4d4d; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 99999; text-align: center; padding: 20px; box-sizing: border-box; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="block-screen" class="suspended-screen" style="display: none;">
+        <h1 style="font-size: 48px; margin-bottom: 10px;">🚫 Access Denied</h1>
+        <h2 id="lbl-block-title">আপনার এই ডিভাইসটি সাসপেন্ড করা হয়েছে!</h2>
+        <p id="lbl-block-desc" style="color: #bbb; max-width: 400px; margin-top: 10px;">দয়া করে আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।</p>
+    </div>
+
+    <header>
+        <h1 id="app-title">Subscription Tracker Pro</h1>
+        <div class="header-controls">
+            <select class="lang-select" id="lang-change" onchange="changeLanguage(this.value)">
+                <option value="bn">বাংলা</option>
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+            </select>
+            <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="search-screen" class="screen active">
+            <div class="cloud-sync-box">
+                <span id="cloud-status">☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি</span>
+                <button class="btn" style="width:auto; margin:0; padding:5px 10px; font-size:12px;" id="btn-sync-action" onclick="syncWithGitHub()">🔄 সিঙ্ক</button>
+            </div>
+
+            <div class="card">
+                <h2 id="lbl-search-title">সাবস্ক্রিপশন লোকেশন খুঁজুন</h2>
+                <div class="input-group">
+                    <input type="number" id="search-input" placeholder="সাবস্ক্রিপশন নাম্বারটি লিখুন..." pattern="[0-9]*" inputmode="numeric">
+                </div>
+                <button class="btn" id="btn-search" onclick="searchLocation()">🔍 সার্চ করুন</button>
+
+                <div id="result-box" class="card" style="display:none; margin-top:20px; border-left: 5px solid var(--primary-color); padding: 15px;">
+                    <p><strong id="lbl-res-num">📌 সাবস্ক্রিপশন নং:</strong> <span id="res-num"></span></p>
+                    <p><strong id="lbl-res-loc">📍 লোকেশন:</strong> <span id="res-loc"></span></p>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-map" id="btn-map" onclick="openMap()">🗺️ ম্যাপ</button>
+                        <button class="btn-copy" id="btn-copy" onclick="copyLocation()">📋 কপি</button>
+                        <button class="btn-share" id="btn-share" onclick="shareLocation()">🔗 শেয়ার</button>
+                    </div>
+
+                    <div id="map-area" class="map-container">
+                        <iframe id="map-frame" src="" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+                <p id="not-found" style="text-align:center; color:red; display:none; margin-top:15px;"></p>
+            </div>
+        </div>
+
+        <div id="add-screen" class="screen">
+            <div class="card">
+                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন (লোকাল)</h2>
+                <div class="input-group">
+                    <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)</label>
+                    <input type="number" id="sub-number" placeholder="উদা: 12301001" pattern="[0-9]*" inputmode="numeric">
+                </div>
+                <div class="input-group">
+                    <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
+                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 23.8103, 90.4125)">
+                </div>
+                <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
+                <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveData()">💾 লোকেশন সেভ করুন</button>
+            </div>
+        </div>
+
+        <div id="auth-screen" class="screen">
+            <div class="card">
+                <h2 id="lbl-auth-title">🔐 এডমিন ভেরিফিকেশন</h2>
+                <div class="input-group">
+                    <input type="password" id="admin-password" placeholder="পাসওয়ার্ড লিখুন...">
+                </div>
+                <button class="btn" onclick="verifyAdminPassword()" id="btn-auth-confirm">🔓 প্রবেশ করুন</button>
+                <button class="btn btn-outline" onclick="switchScreen('search-screen', 'nav-search')" id="btn-auth-cancel">বাতিল করুন</button>
+            </div>
+        </div>
+
+        <div id="settings-screen" class="screen">
+            <div class="card">
+                <h2 id="lbl-settings-title">⚙️ সেটিংস ও ক্লাউড কনফিগারেশন</h2>
+                
+                <div class="stats-box" id="stats-box">📊 মোট রেকর্ডকৃত ডাটা: 0 টি</div>
+
+                <div style="background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color)">
+                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Raw URL Base Path</h4>
+                    <input type="text" id="github-url-input" placeholder="https://raw.githubusercontent.com/username/repo/main/" style="font-size:12px; padding:8px;">
+                    <button class="btn" style="padding:6px; font-size:12px; margin-top:5px;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব লিংক আপডেট করুন</button>
+                </div>
+
+                <div class="input-group" style="margin-top:10px;">
+                    <label id="lbl-table-search">🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ</label>
+                    <input type="number" id="table-search-input" placeholder="সাবস্ক্রিপশন নাম্বার দিয়ে..." oninput="filterRecordTable()" pattern="[0-9]*" inputmode="numeric">
+                </div>
+                <div class="table-container">
+                    <table class="record-table">
+                        <thead>
+                            <tr>
+                                <th id="th-sub">সাবস্ক্রিপশন নং</th>
+                                <th id="th-loc">লোকেশন</th>
+                                <th id="th-action" style="width: 70px; text-align: center;">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="record-table-body"></tbody>
+                    </table>
+                </div>
+
+                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
+                <h3 id="lbl-user-manage-title" style="font-size:14px; color:var(--primary-color);">👥 ডিভাইস কন্ট্রোল</h3>
+                <div class="table-container" style="max-height: 150px;">
+                    <table class="record-table" style="font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th id="th-dev-id">ডিভাইস আইডি</th>
+                                <th id="th-dev-status">স্ট্যাটাস</th>
+                                <th id="th-dev-action">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body"></tbody>
+                    </table>
+                </div>
+                
+                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
+                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 ব্যাকআপ ডাটা এক্সপোর্ট (JSON)</button>
+                <button class="btn" id="btn-import-trigger" style="background-color:#27ae60; margin-top:10px;" onclick="document.getElementById('import-file').click()">📂 লোকাল ফাইল ইম্পোর্ট (.xlsx / .json)</button>
+                <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.cvs,.xls" onchange="handleFileImport(event)">
+                <button class="btn" id="btn-clear-mem" style="background-color:#c0392b; margin-top:10px;" onclick="clearMemory()">🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div id="nav-search" class="nav-item active" onclick="switchScreen('search-screen', 'nav-search')">🔍 সার্চ</div>
+        <div id="nav-add" class="nav-item" onclick="switchScreen('add-screen', 'nav-add')">➕ নতুন সেট</div>
+        <div id="nav-settings" class="nav-item" onclick="handleSettingsNavigation()">⚙️ সেটিংস</div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ৫ লাখ রো ডেটা ফেচ করার ৫টি জেসন ফাইল পার্টস অ্যারে
+        const githubParts = ['part1.json', 'part2.json', 'part3.json', 'part4.json', 'part5.json'];
+        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/yourusername/yourrepo/main/";
+
+        const languages = {
+            bn: {
+                title: "Subscription Tracker Pro", searchTitle: "সাবস্ক্রিপশন লোকেশন খুঁজুন", searchBtn: "🔍 সার্চ করুন",
+                resNum: "📌 সাবস্ক্রিপশন নং:", resLoc: "📍 লোকেশন:", btnMap: "🗺️ ম্যাপ", btnCopy: "📋 কপি",
+                btnShare: "🔗 শেয়ার", notFound: "এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!", addTitle: "নতুন লোকেশন সেট করুন (লোকাল)",
+                subNumField: "সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)", locField: "লোকেশন / ঠিকানা", currentLocBtn: "📍 আমার কারেন্ট লোকেশন নিন",
+                saveBtn: "💾 লোকেশন সেভ করুন", settingsTitle: "⚙️ সেটিংস ও ক্লাউড কনফিগারেশন", navSearch: "🔍 সার্চ",
+                navAdd: "➕ নতুন সেট", navSettings: "⚙️ সেটিংস", emptyAlert: "দয়া করে ফিল্ড পূরণ করুন!", saveAlert: "সফলভাবে সংরক্ষিত হয়েছে!",
+                copyAlert: "লোকেশন কপি করা হয়েছে!", clearAlert: "সব ডাটা মুছে ফেলা হয়েছে!", importAlert: "ডাটা সফলভাবে ইম্পোর্ট হয়েছে!",
+                invalidAlert: "ভুল ফাইল ফরম্যাট!", authTitle: "🔐 এডমিন ভেরিফিকেশন", adminPasswordPlace: "পাসওয়ার্ড লিখুন...",
+                authConfirm: "🔓 প্রবেশ করুন", authCancel: "বাতিল করুন", wrongPass: "ভুল পাসওয়ার্ড!",
+                statsText: "📊 মোট রেকর্ডকৃত ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে...",
+                lblTableSearch: "🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন", thAction: "অ্যাকশন",
+                userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
+                cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
+                btnSync: "🔄 সিঙ্ক", blockTitle: "আপনার এই ডিভাইসটি সাসপেন্ড করা হয়েছে!", blockDesc: "দয়া করে আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।",
+                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
+            },
+            en: {
+                title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
+                resNum: "📌 Sub No:", resLoc: "📍 Location:", btnMap: "🗺️ Map", btnCopy: "📋 Copy",
+                btnShare: "🔗 Share", notFound: "No location found!", addTitle: "Set New Location (Local)",
+                subNumField: "Subscription Number", locField: "Location / Address", currentLocBtn: "📍 Use Current Location",
+                saveBtn: "💾 Save Location", settingsTitle: "⚙️ Settings & Cloud Config", navSearch: "🔍 Search",
+                navAdd: "➕ Add New", navSettings: "⚙️ Settings", emptyAlert: "Please fill fields!", saveAlert: "Saved successfully!",
+                copyAlert: "Copied!", clearAlert: "All data cleared!", importAlert: "Imported!",
+                invalidAlert: "Invalid format!", authTitle: "🔐 Admin Verification", adminPasswordPlace: "Enter password...",
+                authConfirm: "🔓 Enter", authCancel: "Cancel", wrongPass: "Wrong password!",
+                statsText: "📊 Total Records: ", tableSearchPlaceholder: "Search by subscription...",
+                lblTableSearch: "🔎 Saved Records Live Search", thSub: "Sub No", thLoc: "Location", thAction: "Action",
+                userManageTitle: "👥 Device Control", deleteBtn: "Delete", deleteConfirm: "Are you sure you want to delete?", deleteAlert: "Deleted!",
+                cloudReady: "☁️ GitHub Cloud DB Ready", cloudSyncing: "⏳ Syncing data...", cloudSuccess: "✅ Sync Successful!", cloudFailed: "❌ Sync Failed! Check Link.", cloudStatusUp: "☁️ GitHub Cloud: Up-to-date", cloudStatusFail: "⚠️ Cloud Sync Failed",
+                btnSync: "🔄 Sync", blockTitle: "Your device has been suspended!", blockDesc: "Please contact your system administrator.",
+                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 Update GitHub Link", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action"
+            },
+            ar: {
+                title: "متابع الاشتراكات برو", searchTitle: "البحث عن موقع الاشتراك", searchBtn: "🔍 بحث",
+                resNum: "📌 رقم الاشتراك:", resLoc: "📍 الموقع:", btnMap: "🗺️ الخريطة", btnCopy: "📋 نسخ",
+                btnShare: "🔗 مشاركة", notFound: "لم يتم العثور على موقع لهذا الرقم!", addTitle: "تعيين موقع جديد (محلي)",
+                subNumField: "رقم الاشتراك (أرقام فقط)", locField: "الموقع / العنوان", currentLocBtn: "📍 خذ موقعي الحالي",
+                saveBtn: "💾 حفظ الموقع", settingsTitle: "⚙️ الإعدادات وتكوين السحابة", navSearch: "🔍 بحث",
+                navAdd: "➕ إضافة جديد", navSettings: "⚙️ الإعدادات", emptyAlert: "يرجى ملء الحقول!", saveAlert: "تم الحفظ بنجاح!",
+                copyAlert: "تم نسخ الموقع!", clearAlert: "تم مسح جميع البيانات!", importAlert: "تم استيراد البيانات بنجاح!",
+                invalidAlert: "صيغة الملف خاطئة!", authTitle: "🔐 التحقق من المسؤول", adminPasswordPlace: "أدخل كلمة المرور...",
+                authConfirm: "🔓 الدخول", authCancel: "إلغاء", wrongPass: "كلمة المرور خاطئة!",
+                statsText: "📊 إجمالي السجلات: ", tableSearchPlaceholder: "ابحث برقم الاشتراك...",
+                lblTableSearch: "🔎 بحث مباشر في السجلات المحفوظة", thSub: "رقم الاشتراك", thLoc: "الموقع", thAction: "الإجراء",
+                userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف؟", deleteAlert: "تم حذف البيانات!",
+                cloudReady: "☁️ قاعدة بيانات GitHub جاهزة", cloudSyncing: "⏳ جاري مزامنة البيانات...", cloudSuccess: "✅ تمت المزامنة بنجاح!", cloudFailed: "❌ فشلت المزامنة! تحقق من الرابط.", cloudStatusUp: "☁️ سحابة GitHub: محدثة", cloudStatusFail: "⚠️ فشلت المزامنة السحابية",
+                btnSync: "🔄 مزامنة", blockTitle: "تم تعليق جهازك هذا!", blockDesc: "يرجى الاتصال بمسؤول النظام الخاص بك.",
+                gitPathTitle: "⚙️ مسار عنوان URL الخام لـ GitHub", btnGitUpdate: "💾 تحديث رابط GitHub", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء"
+            }
+        };
+
+        let currentLang = 'bn';
+        let isAdminAuthenticated = false;
+        let myDeviceId = "";
+
+        if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
+        if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
+
+        // ডিভাইস ফিঙ্গারপ্রিন্ট জেনারেশন ও কন্ট্রোল লজিক
+        function generateDeviceFingerprint() {
+            let id = localStorage.getItem('myTrackerDeviceId');
+            if (!id) {
+                id = "DEV-" + window.screen.width + "x" + window.screen.height + "-" + (Math.floor(Math.random() * 9000) + 1000);
+                localStorage.setItem('myTrackerDeviceId', id);
+            }
+            myDeviceId = id;
+            let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            if (!userDb[id]) { 
+                userDb[id] = "Active"; 
+                localStorage.setItem('userControlDatabase', JSON.stringify(userDb)); 
+            }
+            checkSuspensionStatus();
+        }
+
+        function checkSuspensionStatus() {
+            let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            if (userDb[myDeviceId] === "Suspended") {
+                document.getElementById('block-screen').style.display = "flex";
+            } else {
+                document.getElementById('block-screen').style.display = "none";
+            }
+        }
+
+        // GitHub ৫টি খন্ড থেকে ৫ লাখ বা ততোধিক ডাটা ব্যাকগ্রাউন্ড ফেচিং মেকানিজম
+        async function syncWithGitHub() {
+            const l = languages[currentLang];
+            showToast(l.cloudSyncing);
+            document.getElementById('cloud-status').innerText = l.cloudSyncing;
+            
+            let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            let successCount = 0;
+
+            for (let part of githubParts) {
+                try {
+                    let response = await fetch(githubBaseUrl + part + '?t=' + new Date().getTime());
+                    if (response.ok) {
+                        let remoteData = await response.json();
+                        Object.assign(localDb, remoteData);
+                        successCount++;
+                    }
+                } catch (e) {
+                    console.error("Error fetching chunk part: " + part, e);
+                }
+            }
+
+            localStorage.setItem('locationDatabase', JSON.stringify(localDb));
+            updateDataStats();
+            
+            if (successCount > 0) {
+                showToast(`${l.cloudSuccess} (${successCount} Parts)`);
+                document.getElementById('cloud-status').innerText = l.cloudStatusUp;
+            } else {
+                showToast(l.cloudFailed);
+                document.getElementById('cloud-status').innerText = l.cloudStatusFail;
+            }
+        }
+
+        function saveGithubSettings() {
+            let inputUrl = document.getElementById('github-url-input').value.trim();
+            if (inputUrl) {
+                if (!inputUrl.endsWith('/')) inputUrl += '/';
+                localStorage.setItem('githubBaseUrl', inputUrl);
+                githubBaseUrl = inputUrl;
+                showToast(currentLang === 'ar' ? "تم حفظ الرابط!" : (currentLang === 'en' ? "GitHub Link Saved!" : "গিটহাব লিংক সংরক্ষিত!"));
+            }
+        }
+
+        // ৩টি ভাষার রূপান্তর লজিক এবং আরবির জন্য RTL অরিয়েন্টেশন টগল
+        function changeLanguage(lang) {
+            currentLang = lang; 
+            const l = languages[lang] || languages['bn'];
+            
+            // RTL ওরিয়েন্টেশন সেটআপ শুধুমাত্র আরবির জন্য
+            if (lang === 'ar') {
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.body.setAttribute('dir', 'rtl');
+            } else {
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.body.setAttribute('dir', 'ltr');
+            }
+
+            document.getElementById('app-title').innerText = l.title;
+            document.getElementById('lbl-search-title').innerText = l.searchTitle;
+            document.getElementById('btn-search').innerText = l.searchBtn;
+            document.getElementById('search-input').placeholder = l.tableSearchPlaceholder;
+            document.getElementById('lbl-res-num').innerText = l.resNum;
+            document.getElementById('lbl-res-loc').innerText = l.resLoc;
+            document.getElementById('btn-map').innerText = l.btnMap;
+            document.getElementById('btn-copy').innerText = l.btnCopy;
+            document.getElementById('btn-share').innerText = l.btnShare;
+            document.getElementById('lbl-add-title').innerText = l.addTitle;
+            document.getElementById('lbl-sub-num-field').innerText = l.subNumField;
+            document.getElementById('lbl-loc-field').innerText = l.locField;
+            document.getElementById('btn-current-loc').innerText = l.currentLocBtn;
+            document.getElementById('btn-save').innerText = l.saveBtn;
+            document.getElementById('lbl-settings-title').innerText = l.settingsTitle;
+            
+            document.getElementById('nav-search').innerText = l.navSearch;
+            document.getElementById('nav-add').innerText = l.navAdd;
+            document.getElementById('nav-settings').innerText = l.navSettings;
+            
+            document.getElementById('lbl-table-search').innerText = l.lblTableSearch;
+            document.getElementById('table-search-input').placeholder = l.tableSearchPlaceholder;
+            document.getElementById('th-sub').innerText = l.thSub;
+            document.getElementById('th-loc').innerText = l.thLoc;
+            document.getElementById('th-action').innerText = l.thAction;
+
+            document.getElementById('lbl-block-title').innerText = l.blockTitle;
+            document.getElementById('lbl-block-desc').innerText = l.blockDesc;
+            document.getElementById('btn-sync-action').innerText = l.btnSync;
+            document.getElementById('lbl-git-path-title').innerText = l.gitPathTitle;
+            document.getElementById('btn-git-update').innerText = l.btnGitUpdate;
+            
+            document.getElementById('lbl-auth-title').innerText = l.authTitle;
+            document.getElementById('admin-password').placeholder = l.adminPasswordPlace;
+            document.getElementById('btn-auth-confirm').innerText = l.authConfirm;
+            document.getElementById('btn-auth-cancel').innerText = l.authCancel;
+            document.getElementById('lbl-user-manage-title').innerText = l.userManageTitle;
+            
+            document.getElementById('th-dev-id').innerText = l.thDevId;
+            document.getElementById('th-dev-status').innerText = l.thDevStatus;
+            document.getElementById('th-dev-action').innerText = l.thDevAction;
+
+            document.getElementById('btn-clear-mem').innerText = currentLang === 'ar' ? "🗑️ مسح الذاكرة بالكامل" : (currentLang === 'en' ? "🗑️ Clear All Memory" : "🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন");
+
+            // ক্লাউড টেক্সট আপডেট
+            let currentCloudText = document.getElementById('cloud-status').innerText;
+            if (currentCloudText.includes('রেডি') || currentCloudText.includes('Ready') || currentCloudText.includes('جاهزة')) {
+                document.getElementById('cloud-status').innerText = l.cloudReady;
+            }
+
+            updateDataStats();
+            if (document.getElementById('settings-screen').classList.contains('active')) {
+                loadRecordTable();
+                loadUserControlPanel();
+            }
+        }
+
+        function switchScreen(screenId, navId) {
+            checkSuspensionStatus();
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if(navId) document.getElementById(navId).classList.add('active');
+            if (screenId === 'settings-screen') {
+                document.getElementById('github-url-input').value = githubBaseUrl;
+                updateDataStats(); 
+                loadRecordTable(); 
+                loadUserControlPanel();
+            }
+        }
+
+        function handleSettingsNavigation() { 
+            if (isAdminAuthenticated) switchScreen('settings-screen', 'nav-settings'); 
+            else switchScreen('auth-screen', 'nav-settings'); 
+        }
+        
+        function verifyAdminPassword() {
+            if (document.getElementById('admin-password').value === 'admin123') {
+                isAdminAuthenticated = true; 
+                switchScreen('settings-screen', 'nav-settings');
+            } else { 
+                alert(languages[currentLang].wrongPass); 
+            }
+        }
+
+        function updateDataStats() {
+            const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
+            const totalRecords = Object.keys(db).length;
+            const suffix = currentLang === 'bn' ? ' টি' : '';
+            document.getElementById('stats-box').innerText = `${languages[currentLang].statsText}${totalRecords.toLocaleString()}${suffix}`;
+        }
+
+        // ডাটাবেজ ডিলিট ও রেন্ডারিং টেবিল অপারেশন
+        function loadRecordTable() {
+            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            const tbody = document.getElementById('record-table-body'); 
+            tbody.innerHTML = '';
+            
+            // পারফরম্যান্স অপ্টিমাইজড ভিউয়ার: রেন্ডারিং লোড কমাতে প্রথম ৩০০টি ডাটা প্রদর্শিত হবে
+            Object.keys(db).slice(0, 300).forEach(key => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${key}</strong></td><td>${db[key]}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key}')">${languages[currentLang].deleteBtn}</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteRecord(key) {
+            if (confirm(languages[currentLang].deleteConfirm)) {
+                let db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+                delete db[key]; 
+                localStorage.setItem('locationDatabase', JSON.stringify(db));
+                showToast(languages[currentLang].deleteAlert); 
+                updateDataStats(); 
+                loadRecordTable();
+            }
+        }
+
+        function filterRecordTable() {
+            const val = document.getElementById('table-search-input').value.trim();
+            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            const tbody = document.getElementById('record-table-body'); 
+            tbody.innerHTML = '';
+            if (!val) { loadRecordTable(); return; }
+            Object.keys(db).filter(k => k.includes(val)).slice(0, 100).forEach(key => {
+                const tr = document.createElement('tr'); 
+                tr.style.backgroundColor = "rgba(39,174,96,0.1)";
+                tr.innerHTML = `<td><strong>${key}</strong></td><td>${db[key]}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key}')">${languages[currentLang].deleteBtn}</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ডিভাইস ম্যানেজমেন্ট প্যানেল লজিক কন্ট্রোল
+        function loadUserControlPanel() {
+            let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            let tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = "";
+            
+            Object.keys(userDb).forEach(id => {
+                let status = userDb[id];
+                let isMe = (id === myDeviceId);
+                let badgeClass = (status === "Active") ? "badge-active" : "badge-suspended";
+                let actionText = (status === "Active") ? (currentLang === 'ar' ? "تعليق" : (currentLang === 'en' ? "Suspend" : "সাসপেন্ড")) : (currentLang === 'ar' ? "تنشيط" : (currentLang === 'en' ? "Activate" : "অ্যাক্টিভ"));
+                
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${id} ${isMe ? '<small style="color:blue">(You)</small>' : ''}</td>
+                    <td><span class="badge ${badgeClass}">${status}</span></td>
+                    <td><span class="action-link" onclick="toggleDeviceStatus('${id}')">${actionText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleDeviceStatus(id) {
+            let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            if (userDb[id] === "Active") {
+                userDb[id] = "Suspended";
+            } else {
+                userDb[id] = "Active";
+            }
+            localStorage.setItem('userControlDatabase', JSON.stringify(userDb));
+            loadUserControlPanel();
+            checkSuspensionStatus();
+        }
+
+        // কোর সার্চ ও জিপিএস ট্র্যাকিং মেকানিজম
+        let currentActiveLocation = "";
+        function searchLocation() {
+            const searchInput = document.getElementById('search-input').value.trim();
+            const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
+
+            if (!searchInput) { showToast(languages[currentLang].emptyAlert); return; }
+
+            if (db[searchInput]) {
+                currentActiveLocation = db[searchInput];
+                document.getElementById('res-num').innerText = searchInput;
+                document.getElementById('res-loc').innerText = currentActiveLocation;
+                document.getElementById('result-box').style.display = 'block';
+                document.getElementById('not-found').style.display = 'none';
+                document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}&t=m&z=14&output=embed`;
+                document.getElementById('map-area').style.display = 'block';
+            } else {
+                document.getElementById('result-box').style.display = 'none';
+                document.getElementById('not-found').innerText = languages[currentLang].notFound;
+                document.getElementById('not-found').style.display = 'block';
+            }
+        }
+
+        function saveData() {
+            const num = document.getElementById('sub-number').value.trim();
+            const loc = document.getElementById('sub-location').value.trim();
+            if (!num || !loc) { showToast(languages[currentLang].emptyAlert); return; }
+            const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
+            db[num] = loc; 
+            localStorage.setItem('locationDatabase', JSON.stringify(db));
+            showToast(languages[currentLang].saveAlert); 
+            switchScreen('search-screen', 'nav-search');
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                showToast(currentLang === 'bn' ? "লোকেশন খোঁজা হচ্ছে..." : (currentLang === 'ar' ? "جاري جلب الموقع..." : "Fetching location..."));
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById('sub-location').value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                });
+            }
+        }
+
+        function openMap() { 
+            if (currentActiveLocation) window.open(`https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}`, '_blank'); 
+        }
+        
+        function copyLocation() {
+            const num = document.getElementById('res-num').innerText;
+            const mapLink = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}`;
+            const txt = `Subscription No: ${num}\nLocation: ${currentActiveLocation}\nMap Link: ${mapLink}`;
+            const el = document.createElement("textarea"); 
+            el.value = txt; 
+            document.body.appendChild(el); 
+            el.select(); 
+            document.execCommand('copy'); 
+            document.body.removeChild(el);
+            showToast(languages[currentLang].copyAlert);
+        }
+        
+        function shareLocation() {
+            const num = document.getElementById('res-num').innerText;
+            const mapLink = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}`;
+            const txt = `Sub No: ${num} | Location: ${currentActiveLocation} | Link: ${mapLink}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let currentDb = JSON.parse(localStorage.getItem('locationDatabase')) || {};
+                if (file.name.endsWith('.json')) {
+                    let remoteData = JSON.parse(e.target.result);
+                    Object.assign(currentDb, remoteData.locations || remoteData);
+                }
+                localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
+                showToast(languages[currentLang].importAlert); 
+                updateDataStats(); 
+                loadRecordTable();
+            };
+            reader.readAsText(file);
+        }
+
+        function exportData() {
+            const blob = new Blob([localStorage.getItem('locationDatabase')], { type: "application/json" });
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob); 
+            a.download = `backup.json`; 
+            a.click();
+        }
+
+        function clearMemory() { 
+            if (confirm(languages[currentLang].clearAlert)) { 
+                localStorage.removeItem('locationDatabase'); 
+                location.reload(); 
+            } 
+        }
+        
+        function showToast(msg) { 
+            const t = document.getElementById('toast'); 
+            t.innerText = msg; 
+            t.style.display = 'block'; 
+            setTimeout(() => t.style.display = 'none', 2500); 
+        }
+        
+        function toggleTheme() { 
+            const current = document.documentElement.getAttribute('data-theme'); 
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); 
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { 
+            generateDeviceFingerprint(); 
+            changeLanguage('bn'); 
+        });
+    </script>
+</body>
+</html>
