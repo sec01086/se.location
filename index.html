@@ -530,6 +530,17 @@
 
             previewKeys.forEach(key => {
                 const tr = document.createElement('tr');
+                let locationValue = db[key] || '';
+        // যদি লোকেশনে 'nan' লেখা থাকে বা খালি থাকে, তবে সুন্দর বার্তা দেখাবে
+        let locationToShow = (locationValue && !locationValue.includes('nan')) ? locationValue : "লোকেশন পাওয়া যায়নি";
+        
+        // এখানে ${db[key]} এর জায়গায় ${locationToShow} ব্যবহার করা হয়েছে
+        tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
+        /* ======================================================== */
+        
+        tbody.appendChild(tr);
+    });
+        }
                 tr.innerHTML = `<td><strong>${key}</strong></td><td>${db[key]}</td>`;
                 tbody.appendChild(tr);
             });
