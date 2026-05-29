@@ -285,10 +285,7 @@
             <select class="lang-select" id="lang-change" onchange="changeLanguage(this.value)">
                 <option value="bn">বাংলা</option>
                 <option value="en">English</option>
-                <option value="ar">العربية</option>
-                <option value="hi">हिन्दी</option>
             </select>
-            <button class="icon-btn" onclick="toggleTheme()" title="Theme">🌙</button>
         </div>
     </header>
 
@@ -328,7 +325,7 @@
                 </div>
                 <div class="input-group">
                     <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
-                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 23.8103, 90.4125)">
+                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 24.70352, 46.71595)">
                 </div>
                 <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
                 <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveData()">💾 লোকেশন সেভ করুন</button>
@@ -382,7 +379,7 @@
                 <div class="input-group">
                     <label style="color:#27ae60;">📥 সরাসরি এক্সেল বা জেসন ইম্পোর্ট (Import XLSX / JSON)</label>
                     <button class="btn" style="background-color:#27ae60;" onclick="document.getElementById('import-file').click()">📂 এক্সেল (.xlsx) বা .json ফাইল বাছুন</button>
-                    <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.cvs,.xls" onchange="handleFileImport(event)">
+                    <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.xls" onchange="handleFileImport(event)">
                 </div>
 
                 <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
@@ -437,6 +434,7 @@
 
         let currentLang = 'bn';
         let isAdminAuthenticated = false;
+        let currentActiveLocation = "";
 
         if (!localStorage.getItem('locationDatabase')) {
             localStorage.setItem('locationDatabase', JSON.stringify({}));
@@ -445,7 +443,6 @@
         function changeLanguage(lang) {
             currentLang = lang;
             const l = languages[lang] || languages['bn'];
-            document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
             document.getElementById('app-title').innerText = l.title;
             document.getElementById('lbl-search-title').innerText = l.searchTitle;
             document.getElementById('btn-search').innerText = l.searchBtn;
@@ -520,60 +517,49 @@
         }
 
         function loadRecordTable() {
-    consfunction loadRecordTable() {
-    const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-    const tbody = document.getElementById('record-table-body');
-    if (!tbody) return; // সেফটি চেক
-    tbody.innerHTML = '';
+            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            const tbody = document.getElementById('record-table-body');
+            if (!tbody) return; 
+            tbody.innerHTML = '';
 
-    // পারফরম্যান্স অপ্টিমাইজেশন: প্রথম ৫০০ রেকর্ড লোড করবে স্পীড বাড়ানোর জন্য
-    const keys = Object.keys(db);
-    const previewKeys = keys.slice(0, 500);
+            const keys = Object.keys(db);
+            const previewKeys = keys.slice(0, 500);
 
-    previewKeys.forEach(key => {
-        const tr = document.createElement('tr');
-        
-        let locationValue = db[key] || '';
-        // 'nan' লেখা থাকলে বা খালি থাকলে "লোকেশন পাওয়া যায়নি" দেখাবে
-        let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
-        
-        tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
-        tbody.appendChild(tr);
-    });
-}
-
-function filterRecordTable() {
-    const filterValue = document.getElementById('table-search-input')?.value || '';
-    const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-    const tbody = document.getElementById('record-table-body');
-    if (!tbody) return; // সেফটি চেক
-    tbody.innerHTML = '';
-
-    if (!filterValue) {
-        loadRecordTable();
-        return;
-    }
-
-    let count = 0;
-    Object.keys(db).forEach(key => {
-        if (key.includes(filterValue)) {
-            if (count < 300) { // ব্রাউজার ল্যাগ রোধ করতে লিমিট ৩০০
+            previewKeys.forEach(key => {
                 const tr = document.createElement('tr');
                 let locationValue = db[key] || '';
                 let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
                 
                 tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
                 tbody.appendChild(tr);
-                count++;
-            }
+            });
         }
-    });
-}
-            matchingRows.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.style.backgroundColor = "rgba(39, 174, 96, 0.15)";
-                tr.innerHTML = `<td><strong>${item.num}</strong></td><td>${item.loc}</td>`;
-                tbody.appendChild(tr);
+
+        function filterRecordTable() {
+            const filterValue = document.getElementById('table-search-input')?.value || '';
+            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            const tbody = document.getElementById('record-table-body');
+            if (!tbody) return; 
+            tbody.innerHTML = '';
+
+            if (!filterValue) {
+                loadRecordTable();
+                return;
+            }
+
+            let count = 0;
+            Object.keys(db).forEach(key => {
+                if (key.includes(filterValue)) {
+                    if (count < 300) { 
+                        const tr = document.createElement('tr');
+                        let locationValue = db[key] || '';
+                        let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
+                        
+                        tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
+                        tbody.appendChild(tr);
+                        count++;
+                    }
+                }
             });
         }
 
@@ -602,10 +588,6 @@ function filterRecordTable() {
                         
                         if (subNum && lat && lng) {
                             let cleanSub = String(subNum).trim();
-                            // যদি শুরুতে অপ্রয়োজনীয় সংখ্যা (যেমন '11') থাকে তবে তা বাদ দিয়ে ফিল্টার করতে পারেন
-                            if(cleanSub.startsWith('11') && cleanSub.length > 6) {
-                                cleanSub = cleanSub.substring(2);
-                            }
                             currentDb[cleanSub] = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
                         }
                     });
@@ -624,13 +606,8 @@ function filterRecordTable() {
                         const importedObj = JSON.parse(e.target.result);
                         const currentDb = JSON.parse(localStorage.getItem('locationDatabase')) || {};
                         
-                        // ক্লিন ও মার্জ অপারেশন
                         Object.keys(importedObj).forEach(key => {
-                            let cleanKey = key.trim();
-                            if(cleanKey.startsWith('11') && cleanKey.length > 6) {
-                                cleanKey = cleanKey.substring(2);
-                            }
-                            currentDb[cleanKey] = importedObj[key];
+                            currentDb[key.trim()] = importedObj[key];
                         });
 
                         localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
@@ -648,7 +625,6 @@ function filterRecordTable() {
             }
         }
 
-        let currentActiveLocation = "";
         function searchLocation() {
             const searchInput = document.getElementById('search-input').value.trim();
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
@@ -660,16 +636,23 @@ function filterRecordTable() {
 
             if (db[searchInput]) {
                 currentActiveLocation = db[searchInput];
+                
+                let locationToShow = (currentActiveLocation && !currentActiveLocation.includes('nan') && currentActiveLocation.trim() !== ',') ? currentActiveLocation : "লোকেশন পাওয়া যায়নি";
+                
                 document.getElementById('res-num').innerText = searchInput;
-                document.getElementById('res-loc').innerText = currentActiveLocation;
+                document.getElementById('res-loc').innerText = locationToShow;
                 document.getElementById('result-box').style.display = 'block';
                 document.getElementById('not-found').style.display = 'none';
 
                 const mapArea = document.getElementById('map-area');
                 const mapFrame = document.getElementById('map-frame');
-                // আইফ্রেমের জন্য এনকোডিং বাগ ফিক্স করা হয়েছে
-                mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}&t=m&z=14&output=embed&iwloc=near`;
-                mapArea.style.display = 'block';
+                
+                if (locationToShow !== "লোকেশন পাওয়া যায়নি") {
+                    mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}&t=m&z=14&output=embed`;
+                    mapArea.style.display = 'block';
+                } else {
+                    mapArea.style.display = 'none';
+                }
             } else {
                 document.getElementById('result-box').style.display = 'none';
                 document.getElementById('not-found').innerText = languages[currentLang].notFound;
@@ -706,19 +689,31 @@ function filterRecordTable() {
         }
 
         function openMap() { 
-            if (currentActiveLocation) window.open(`https://maps.google.com/?q=${encodeURIComponent(currentActiveLocation)}`, '_blank'); 
+            if (currentActiveLocation && !currentActiveLocation.includes('nan')) {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`, '_blank'); 
+            } else {
+                showToast("বৈধ লোকেশন পাওয়া যায়নি!");
+            }
         }
         
         function copyLocation() {
             const num = document.getElementById('res-num').innerText;
-            const txt = `সাবস্ক্রিপশন নং: ${num}\nলোকেশন: ${currentActiveLocation}\nম্যাপ: https://maps.google.com/?q=${encodeURIComponent(currentActiveLocation)}`;
+            if (!currentActiveLocation || currentActiveLocation.includes('nan')) {
+                showToast("লোকেশন খালি!");
+                return;
+            }
+            const txt = `সাবস্ক্রিপশন নং: ${num}\nলোকেশন: ${currentActiveLocation}\nম্যাপ: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`;
             const el = document.createElement("textarea"); el.value = txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
             showToast(languages[currentLang].copyAlert);
         }
 
         function shareLocation() {
             const num = document.getElementById('res-num').innerText;
-            const txt = `সাবস্ক্রিপশন নং: ${num} | লোকেশন: ${currentActiveLocation} | ম্যাপ: https://maps.google.com/?q=${encodeURIComponent(currentActiveLocation)}`;
+            if (!currentActiveLocation || currentActiveLocation.includes('nan')) {
+                showToast("লোকেশন খালি!");
+                return;
+            }
+            const txt = `সাবস্ক্রিপশন নং: ${num} | লোকেশন: ${currentActiveLocation} | ম্যাপ: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
         }
 
@@ -733,16 +728,14 @@ function filterRecordTable() {
 
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); }
-        changeLanguage('bn');
-                function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
-        function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); }
-        changeLanguage('bn');
+        
         // ৫টি পার্ট থেকে ডাটা সিঙ্ক করার চূড়ান্ত ইঞ্জিন
         window.addEventListener('DOMContentLoaded', () => {
+            changeLanguage('bn');
             const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
             if (Object.keys(db).length > 500) {
                 updateDataStats();
-                if(typeof loadRecordTable === 'function') loadRecordTable();
+                loadRecordTable();
                 return; 
             }
 
@@ -772,7 +765,7 @@ function filterRecordTable() {
                         localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
                         
                         updateDataStats();
-                        if(typeof loadRecordTable === 'function') loadRecordTable();
+                        loadRecordTable();
                         
                         if (successfullyLoaded === files.length) {
                             showToast("✅ সবকটি পার্টের ডাটা সফলভাবে সংযুক্ত হয়েছে!");
