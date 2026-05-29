@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Tracker Pro</title>
+    <title>Subscription Tracker Pro (Cloud Build)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -241,6 +241,25 @@
             border: 1px dashed var(--primary-color);
         }
 
+        .cloud-sync-box {
+            background-color: #e8f4fd;
+            border: 1px solid #bce0fd;
+            color: #1d6fa5;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        [data-theme="dark"] .cloud-sync-box {
+            background-color: #1a2635;
+            border-color: #243b53;
+            color: #64b5f6;
+        }
+
         .table-container {
             max-height: 250px;
             overflow-y: auto;
@@ -269,28 +288,47 @@
             z-index: 1;
         }
 
-        .record-table tr:hover {
-            background-color: rgba(0,0,0,0.05);
+        .btn-delete-row {
+            background-color: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
         }
 
+        .badge {
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white;
+        }
+        .badge-active { background-color: #27ae60; }
+        .badge-suspended { background-color: #c0392b; }
+        .action-link { color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 12px; font-weight: bold; }
+        .suspended-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #121212; color: #ff4d4d; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; text-align: center; padding: 20px; box-sizing: border-box; }
         body[dir="rtl"] .input-group label { text-align: right; }
         body[dir="rtl"] .record-table { text-align: right; }
     </style>
 </head>
 <body>
 
+    <div id="block-screen" class="suspended-screen" style="display: none;">
+        <h1 style="font-size: 48px; margin-bottom: 10px;">🚫 Access Denied</h1>
+        <h2 id="lbl-block-title">আপনার এই ডিভাইসটি সাসপেন্ড করা হয়েছে!</h2>
+        <p id="lbl-block-desc" style="color: #bbb; max-width: 400px; margin-top: 10px;">দয়া করে আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।</p>
+    </div>
+
     <header>
-        <h1 id="app-title">Subscription Tracker</h1>
+        <h1 id="app-title">Subscription Tracker Pro</h1>
         <div class="header-controls">
             <select class="lang-select" id="lang-change" onchange="changeLanguage(this.value)">
                 <option value="bn">বাংলা</option>
                 <option value="en">English</option>
             </select>
+            <button class="icon-btn" onclick="toggleTheme()">🌙</button>
         </div>
     </header>
 
     <div class="container">
         <div id="search-screen" class="screen active">
+            <div class="cloud-sync-box">
+                <span id="cloud-status">☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি</span>
+                <button class="btn" style="width:auto; margin:0; padding:5px 10px; font-size:12px;" onclick="syncWithGitHub()">🔄 সিঙ্ক</button>
+            </div>
+
             <div class="card">
                 <h2 id="lbl-search-title">সাবস্ক্রিপশন লোকেশন খুঁজুন</h2>
                 <div class="input-group">
@@ -318,14 +356,14 @@
 
         <div id="add-screen" class="screen">
             <div class="card">
-                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন</h2>
+                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন (লোকাল)</h2>
                 <div class="input-group">
                     <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)</label>
                     <input type="number" id="sub-number" placeholder="উদা: 12301001" pattern="[0-9]*" inputmode="numeric">
                 </div>
                 <div class="input-group">
                     <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
-                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 24.70352, 46.71595)">
+                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 23.8103, 90.4125)">
                 </div>
                 <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
                 <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveData()">💾 লোকেশন সেভ করুন</button>
@@ -335,7 +373,6 @@
         <div id="auth-screen" class="screen">
             <div class="card">
                 <h2 id="lbl-auth-title">🔐 এডমিন ভেরিফিকেশন</h2>
-                <p style="text-align:center; font-size:14px; margin-bottom:20px;" id="lbl-auth-desc">সেটিংস পরিবর্তনের জন্য এডমিন পাসওয়ার্ড লিখুন</p>
                 <div class="input-group">
                     <input type="password" id="admin-password" placeholder="পাসওয়ার্ড লিখুন...">
                 </div>
@@ -346,13 +383,19 @@
 
         <div id="settings-screen" class="screen">
             <div class="card">
-                <h2 id="lbl-settings-title">⚙️ সেটিংস ও মেমোরি ম্যানেজমেন্ট</h2>
+                <h2 id="lbl-settings-title">⚙️ সেটিংস ও ক্লাউড কনফিগারেশন</h2>
                 
                 <div class="stats-box" id="stats-box">📊 মোট রেকর্ডকৃত ডাটা: 0 টি</div>
 
+                <div style="background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color)">
+                    <h4 style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Raw URL Base Path</h4>
+                    <input type="text" id="github-url-input" placeholder="https://raw.githubusercontent.com/username/repo/main/" style="font-size:12px; padding:8px;">
+                    <button class="btn" style="padding:6px; font-size:12px; margin-top:5px;" onclick="saveGithubSettings()">💾 গিটহাব লিংক আপডেট করুন</button>
+                </div>
+
                 <div class="input-group" style="margin-top:10px;">
-                    <label id="lbl-table-search">🔎 সংরক্ষিত রেকর্ড টেবিল সার্চ</label>
-                    <input type="number" id="table-search-input" placeholder="সাবস্ক্রিপশন নাম্বার দিয়ে টেবিল ফিল্টার করুন..." oninput="filterRecordTable()" pattern="[0-9]*" inputmode="numeric">
+                    <label id="lbl-table-search">🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ</label>
+                    <input type="number" id="table-search-input" placeholder="সাবস্ক্রিপশন নাম্বার দিয়ে..." oninput="filterRecordTable()" pattern="[0-9]*" inputmode="numeric">
                 </div>
                 <div class="table-container">
                     <table class="record-table">
@@ -360,34 +403,29 @@
                             <tr>
                                 <th id="th-sub">সাবস্ক্রিপশন নং</th>
                                 <th id="th-loc">লোকেশন</th>
+                                <th id="th-action" style="width: 70px; text-align: center;">অ্যাকশন</th>
                             </tr>
                         </thead>
-                        <tbody id="record-table-body">
-                        </tbody>
+                        <tbody id="record-table-body"></tbody>
+                    </table>
+                </div>
+
+                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
+                <h3 id="lbl-user-manage-title" style="font-size:14px; color:var(--primary-color);">👥 ডিভাইস কন্ট্রোল</h3>
+                <div class="table-container" style="max-height: 120px;">
+                    <table class="record-table" style="font-size:12px;">
+                        <thead>
+                            <tr><th>ডিভাইস আইডি</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th></tr>
+                        </thead>
+                        <tbody id="user-table-body"></tbody>
                     </table>
                 </div>
                 
                 <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
-
-                <div class="input-group">
-                    <label id="lbl-export">ব্যাকআপ ডাটা আউটপুট (Export JSON)</label>
-                    <button class="btn btn-outline" onclick="exportData()">📤 ডাটা এক্সপোর্ট করুন</button>
-                </div>
-                
-                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
-                
-                <div class="input-group">
-                    <label style="color:#27ae60;">📥 সরাসরি এক্সেল বা জেসন ইম্পোর্ট (Import XLSX / JSON)</label>
-                    <button class="btn" style="background-color:#27ae60;" onclick="document.getElementById('import-file').click()">📂 এক্সেল (.xlsx) বা .json ফাইল বাছুন</button>
-                    <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.xls" onchange="handleFileImport(event)">
-                </div>
-
-                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
-
-                <div class="input-group">
-                    <label id="lbl-memory">লোকাল মেমোরি অপশন (Local Storage)</label>
-                    <button class="btn" style="background-color:#c0392b;" onclick="clearMemory()">🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন</button>
-                </div>
+                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 ব্যাকআপ ডাটা এক্সপোর্ট (JSON)</button>
+                <button class="btn" id="btn-import-trigger" style="background-color:#27ae60; margin-top:10px;" onclick="document.getElementById('import-file').click()">📂 লোকাল ফাইল ইম্পোর্ট (.xlsx / .json)</button>
+                <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.cvs,.xls" onchange="handleFileImport(event)">
+                <button class="btn" id="btn-clear-mem" style="background-color:#c0392b; margin-top:10px;" onclick="clearMemory()">🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন</button>
             </div>
         </div>
     </div>
@@ -401,48 +439,112 @@
     <div id="toast" class="toast"></div>
 
     <script>
+        // 5 লাখ ডাটা হোস্ট করার জন্য গিটহাব ৫টি পার্ট ডিফাইন
+        const githubParts = ['part1.json', 'part2.json', 'part3.json', 'part4.json', 'part5.json'];
+        
+        // ডিফল্ট গিটহাব ইউআরএল সেট (আপনার ইউজারনেম ও রেপো দিয়ে সেটিংস স্ক্রিনে এটি পরিবর্তন করতে পারবেন)
+        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/yourusername/yourrepo/main/";
+
         const languages = {
             bn: {
-                title: "Subscription Tracker", searchTitle: "সাবস্ক্রিপশন লোকেশন খুঁজুন", searchBtn: "🔍 সার্চ করুন",
+                title: "Subscription Tracker Pro", searchTitle: "সাবস্ক্রিপশন লোকেশন খুঁজুন", searchBtn: "🔍 সার্চ করুন",
                 resNum: "📌 সাবস্ক্রিপশন নং:", resLoc: "📍 লোকেশন:", btnMap: "🗺️ ম্যাপ", btnCopy: "📋 কপি",
                 btnShare: "🔗 শেয়ার", notFound: "এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!", addTitle: "নতুন লোকেশন সেট করুন",
                 subNumField: "সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)", locField: "লোকেশন / ঠিকানা", currentLocBtn: "📍 আমার কারেন্ট লোকেশন নিন",
-                saveBtn: "💾 লোকেশন সেভ করুন", settingsTitle: "⚙️ সেটিংস ও মেমোরি", lblExport: "ব্যাকআপ ডাটা আউটপুট (Export JSON)",
-                lblMemory: "লোকাল মেমোরি অপশন (Local Storage)", navSearch: "🔍 সার্চ",
+                saveBtn: "💾 লোকেশন সেভ করুন", settingsTitle: "⚙️ সেটিংস ও ক্লাউড কনফিগারেশন", navSearch: "🔍 সার্চ",
                 navAdd: "➕ নতুন সেট", navSettings: "⚙️ সেটিংস", emptyAlert: "দয়া করে ফিল্ড পূরণ করুন!", saveAlert: "সফলভাবে সংরক্ষিত হয়েছে!",
                 copyAlert: "লোকেশন কপি করা হয়েছে!", clearAlert: "সব ডাটা মুছে ফেলা হয়েছে!", importAlert: "ডাটা সফলভাবে ইম্পোর্ট হয়েছে!",
-                invalidAlert: "ভুল ফাইল ফরম্যাট!", authTitle: "🔐 এডমিন ভেরিফিকেশন", authDesc: "সেটিংস পরিবর্তনের জন্য এডমিন পাসওয়ার্ড লিখুন",
-                authConfirm: "🔓 প্রবেশ করুন", authCancel: "বাতিল করুন", wrongPass: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।",
-                statsText: "📊 মোট রেকর্ডকৃত ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে টেবিল ফিল্টার করুন...",
-                lblTableSearch: "🔎 সংরক্ষিত রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন"
+                invalidAlert: "ভুল ফাইল ফরম্যাট!", authTitle: "🔐 এডমিন ভেরিফিকেশন", authDesc: "পাসওয়ার্ড লিখুন",
+                authConfirm: "🔓 প্রবেশ করুন", authCancel: "বাতিল করুন", wrongPass: "ভুল পাসওয়ার্ড!",
+                statsText: "📊 মোট রেকর্ডকৃত ডাটা: ", tableSearchPlaceholder: "নাম্বার দিয়ে...",
+                lblTableSearch: "🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন", thAction: "অ্যাকশন",
+                userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!"
             },
             en: {
-                title: "Subscription Tracker", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
-                resNum: "📌 Subscription No:", resLoc: "📍 Location:", btnMap: "🗺️ Map", btnCopy: "📋 Copy",
-                btnShare: "🔗 Share", notFound: "No location found for this number!", addTitle: "Set New Location",
-                subNumField: "Subscription Number (Numbers Only)", locField: "Location / Address", currentLocBtn: "📍 Use Current Location",
-                saveBtn: "💾 Save Location", settingsTitle: "⚙️ Settings & Memory", lblExport: "Backup Data Output (Export JSON)",
-                lblMemory: "Local Memory Options", navSearch: "🔍 Search",
-                navAdd: "➕ Add New", navSettings: "⚙️ Settings", emptyAlert: "Please fill in the fields!", saveAlert: "Saved successfully!",
-                copyAlert: "Location copied to clipboard!", clearAlert: "All data cleared!", importAlert: "Data imported successfully!",
-                invalidAlert: "Invalid file format!", authTitle: "🔐 Admin Verification", authDesc: "Enter admin password to modify settings",
-                authConfirm: "🔓 Enter", authCancel: "Cancel", wrongPass: "Wrong password! Try again.",
-                statsText: "📊 Total Registered Records: ", tableSearchPlaceholder: "Filter table by subscription number...",
-                lblTableSearch: "🔎 Saved Records Live Search", thSub: "Sub No", thLoc: "Location"
+                title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
+                resNum: "📌 Sub No:", resLoc: "📍 Location:", btnMap: "🗺️ Map", btnCopy: "📋 Copy",
+                btnShare: "🔗 Share", notFound: "No location found!", addTitle: "Set New Location",
+                subNumField: "Subscription Number", locField: "Location / Address", currentLocBtn: "📍 Use Current Location",
+                saveBtn: "💾 Save Location", settingsTitle: "⚙️ Settings & Cloud Config", navSearch: "🔍 Search",
+                navAdd: "➕ Add New", navSettings: "⚙️ Settings", emptyAlert: "Please fill fields!", saveAlert: "Saved successfully!",
+                copyAlert: "Copied!", clearAlert: "All data cleared!", importAlert: "Imported!",
+                invalidAlert: "Invalid format!", authTitle: "🔐 Admin Verification", authDesc: "Enter password",
+                authConfirm: "🔓 Enter", authCancel: "Cancel", wrongPass: "Wrong password!",
+                statsText: "📊 Total Records: ", tableSearchPlaceholder: "Search...",
+                lblTableSearch: "🔎 Saved Records Live Search", thSub: "Sub No", thLoc: "Location", thAction: "Action",
+                userManageTitle: "👥 Device Control", deleteBtn: "Delete", deleteConfirm: "Are you sure?", deleteAlert: "Deleted!"
             }
         };
 
         let currentLang = 'bn';
         let isAdminAuthenticated = false;
-        let currentActiveLocation = "";
+        let myDeviceId = "";
 
-        if (!localStorage.getItem('locationDatabase')) {
-            localStorage.setItem('locationDatabase', JSON.stringify({}));
+        if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
+        if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
+
+        function generateDeviceFingerprint() {
+            let id = localStorage.getItem('myTrackerDeviceId');
+            if (!id) {
+                id = "DEV-" + window.screen.width + "x" + window.screen.height + "-" + (Math.floor(Math.random() * 9000) + 1000);
+                localStorage.setItem('myTrackerDeviceId', id);
+            }
+            myDeviceId = id;
+            let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            if (!userDb[id]) { userDb[id] = "Active"; localStorage.setItem('userControlDatabase', JSON.stringify(userDb)); }
+            checkSuspensionStatus();
+        }
+
+        function checkSuspensionStatus() {
+            let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            document.getElementById('block-screen').style.display = (userDb[myDeviceId] === "Suspended") ? "flex" : "none";
+        }
+
+        // ক্লাউড থেকে ডাটা সিঙ্ক করার ফাংশন
+        async function syncWithGitHub() {
+            showToast("🌐 ক্লাউড সিঙ্ক্রোনাইজেশন শুরু হচ্ছে...");
+            document.getElementById('cloud-status').innerText = "⏳ ডাটা সিঙ্ক হচ্ছে...";
+            
+            let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            let successCount = 0;
+
+            for (let part of githubParts) {
+                try {
+                    let response = await fetch(githubBaseUrl + part + '?t=' + new Date().getTime());
+                    if (response.ok) {
+                        let remoteData = await response.json();
+                        Object.assign(localDb, remoteData); // লোকাল অবজেক্টের সাথে মার্জ করবে
+                        successCount++;
+                    }
+                } catch (e) {
+                    console.error("Error loading " + part, e);
+                }
+            }
+
+            localStorage.setItem('locationDatabase', JSON.stringify(localDb));
+            updateDataStats();
+            
+            if (successCount > 0) {
+                showToast(`✅ সফলভাবে ${successCount}টি পার্ট সিঙ্ক হয়েছে!`);
+                document.getElementById('cloud-status').innerText = "☁️ গিটহাব ক্লাউড ডাটাবেজ: আপ-টু-ডেট";
+            } else {
+                showToast("❌ সিঙ্ক ব্যর্থ! গিটহাব লিংক চেক করুন।");
+                document.getElementById('cloud-status').innerText = "⚠️ ক্লাউড সিঙ্ক ব্যর্থ";
+            }
+        }
+
+        function saveGithubSettings() {
+            let inputUrl = document.getElementById('github-url-input').value.trim();
+            if (inputUrl) {
+                if (!inputUrl.endsWith('/')) inputUrl += '/';
+                localStorage.setItem('githubBaseUrl', inputUrl);
+                githubBaseUrl = inputUrl;
+                showToast("গিটহাব লিংক সফলভাবে সংরক্ষিত!");
+            }
         }
 
         function changeLanguage(lang) {
-            currentLang = lang;
-            const l = languages[lang] || languages['bn'];
+            currentLang = lang; const l = languages[lang] || languages['bn'];
             document.getElementById('app-title').innerText = l.title;
             document.getElementById('lbl-search-title').innerText = l.searchTitle;
             document.getElementById('btn-search').innerText = l.searchBtn;
@@ -457,202 +559,89 @@
             document.getElementById('btn-current-loc').innerText = l.currentLocBtn;
             document.getElementById('btn-save').innerText = l.saveBtn;
             document.getElementById('lbl-settings-title').innerText = l.settingsTitle;
-            document.getElementById('lbl-export').innerText = l.lblExport;
-            document.getElementById('lbl-memory').innerText = l.lblMemory;
-            document.getElementById('lbl-auth-title').innerText = l.authTitle;
-            document.getElementById('lbl-auth-desc').innerText = l.authDesc;
-            document.getElementById('btn-auth-confirm').innerText = l.authConfirm;
-            document.getElementById('btn-auth-cancel').innerText = l.authCancel;
             document.getElementById('nav-search').innerText = l.navSearch;
             document.getElementById('nav-add').innerText = l.navAdd;
             document.getElementById('nav-settings').innerText = l.navSettings;
-            
             document.getElementById('lbl-table-search').innerText = l.lblTableSearch;
             document.getElementById('table-search-input').placeholder = l.tableSearchPlaceholder;
             document.getElementById('th-sub').innerText = l.thSub;
             document.getElementById('th-loc').innerText = l.thLoc;
+            document.getElementById('th-action').innerText = l.thAction;
             updateDataStats();
         }
 
         function switchScreen(screenId, navId) {
+            checkSuspensionStatus();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             if(navId) document.getElementById(navId).classList.add('active');
-            if (screenId !== 'settings-screen' && screenId !== 'auth-screen') {
-                isAdminAuthenticated = false;
-                document.getElementById('admin-password').value = '';
-            }
             if (screenId === 'settings-screen') {
-                updateDataStats();
-                loadRecordTable();
+                document.getElementById('github-url-input').value = githubBaseUrl;
+                updateDataStats(); loadRecordTable(); loadUserControlPanel();
             }
         }
 
-        function handleSettingsNavigation() {
-            if (isAdminAuthenticated) {
-                switchScreen('settings-screen', 'nav-settings');
-            } else {
-                switchScreen('auth-screen', 'nav-settings');
-            }
-        }
-
+        function handleSettingsNavigation() { if (isAdminAuthenticated) switchScreen('settings-screen', 'nav-settings'); else switchScreen('auth-screen', 'nav-settings'); }
+        
         function verifyAdminPassword() {
             if (document.getElementById('admin-password').value === 'admin123') {
-                isAdminAuthenticated = true;
-                switchScreen('settings-screen', 'nav-settings');
-                showToast("🔓 অ্যাক্সেস অ্যাপ্রুভড!");
-            } else {
-                alert(languages[currentLang].wrongPass);
-                document.getElementById('admin-password').value = '';
-            }
+                isAdminAuthenticated = true; switchScreen('settings-screen', 'nav-settings');
+            } else { alert(languages[currentLang].wrongPass); }
         }
 
         function updateDataStats() {
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
             const totalRecords = Object.keys(db).length;
-            const l = languages[currentLang] || languages['bn'];
-            const unit = currentLang === 'bn' ? " টি" : "";
-            document.getElementById('stats-box').innerText = `${l.statsText}${totalRecords}${unit}`;
+            document.getElementById('stats-box').innerText = `${languages[currentLang].statsText}${totalRecords}${currentLang === 'bn'?' টি':''}`;
         }
 
         function loadRecordTable() {
             const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-            const tbody = document.getElementById('record-table-body');
-            if (!tbody) return; 
-            tbody.innerHTML = '';
-
-            const keys = Object.keys(db);
-            const previewKeys = keys.slice(0, 500);
-
-            previewKeys.forEach(key => {
+            const tbody = document.getElementById('record-table-body'); tbody.innerHTML = '';
+            // পারফরম্যান্স ঠিক রাখতে টেবিলে সর্বোচ্চ প্রথম ৩০০টি প্রিভিউ দেখাবে
+            Object.keys(db).slice(0, 300).forEach(key => {
                 const tr = document.createElement('tr');
-                let locationValue = db[key] || '';
-                let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
-                
-                tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
+                tr.innerHTML = `<td><strong>${key}</strong></td><td>${db[key]}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key}')">${languages[currentLang].deleteBtn}</button></td>`;
                 tbody.appendChild(tr);
             });
         }
 
-        function filterRecordTable() {
-            const filterValue = document.getElementById('table-search-input')?.value || '';
-            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-            const tbody = document.getElementById('record-table-body');
-            if (!tbody) return; 
-            tbody.innerHTML = '';
-
-            if (!filterValue) {
-                loadRecordTable();
-                return;
+        function deleteRecord(key) {
+            if (confirm(languages[currentLang].deleteConfirm)) {
+                let db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+                delete db[key]; localStorage.setItem('locationDatabase', JSON.stringify(db));
+                showToast(languages[currentLang].deleteAlert); updateDataStats(); loadRecordTable();
             }
+        }
 
-            let count = 0;
-            Object.keys(db).forEach(key => {
-                if (key.includes(filterValue)) {
-                    if (count < 300) { 
-                        const tr = document.createElement('tr');
-                        let locationValue = db[key] || '';
-                        let locationToShow = (locationValue && !locationValue.includes('nan') && locationValue.trim() !== ',') ? locationValue : "লোকেশন পাওয়া যায়নি";
-                        
-                        tr.innerHTML = `<td><strong>${key}</strong></td><td>${locationToShow}</td>`;
-                        tbody.appendChild(tr);
-                        count++;
-                    }
-                }
+        function filterRecordTable() {
+            const val = document.getElementById('table-search-input').value.trim();
+            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            const tbody = document.getElementById('record-table-body'); tbody.innerHTML = '';
+            if (!val) { loadRecordTable(); return; }
+            Object.keys(db).filter(k => k.includes(val)).slice(0, 100).forEach(key => {
+                const tr = document.createElement('tr'); tr.style.backgroundColor = "rgba(39,174,96,0.1)";
+                tr.innerHTML = `<td><strong>${key}</strong></td><td>${db[key]}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key}')">${languages[currentLang].deleteBtn}</button></td>`;
+                tbody.appendChild(tr);
             });
         }
 
-        function handleFileImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            showToast("ডাটা প্রসেস হচ্ছে... দয়া করে অপেক্ষা করুন।");
-            const filename = file.name.toLowerCase();
-
-            if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const rows = XLSX.utils.sheet_to_json(worksheet);
-
-                    const currentDb = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-                    
-                    rows.forEach(row => {
-                        let subNum = row['subscription_number'] || row['Subscription No'] || row['sub_num'];
-                        let lat = row['latitude_y'] || row['latitude'] || row['lat'];
-                        let lng = row['longitude_x'] || row['longitude'] || row['lng'];
-                        
-                        if (subNum && lat && lng) {
-                            let cleanSub = String(subNum).trim();
-                            currentDb[cleanSub] = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
-                        }
-                    });
-
-                    localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
-                    showToast("✅ এক্সেল ফাইল সফলভাবে ইম্পোর্ট হয়েছে!");
-                    event.target.value = '';
-                    updateDataStats();
-                    loadRecordTable();
-                };
-                reader.readAsArrayBuffer(file);
-            } else if (filename.endsWith('.json')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const importedObj = JSON.parse(e.target.result);
-                        const currentDb = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-                        
-                        Object.keys(importedObj).forEach(key => {
-                            currentDb[key.trim()] = importedObj[key];
-                        });
-
-                        localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
-                        showToast(languages[currentLang].importAlert);
-                        event.target.value = '';
-                        updateDataStats();
-                        loadRecordTable();
-                    } catch (err) {
-                        showToast(languages[currentLang].invalidAlert);
-                    }
-                };
-                reader.readAsText(file);
-            } else {
-                showToast("অসমর্থিত ফাইল ফরম্যাট!");
-            }
-        }
-
+        let currentActiveLocation = "";
         function searchLocation() {
             const searchInput = document.getElementById('search-input').value.trim();
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
 
-            if (!searchInput) {
-                showToast(languages[currentLang].emptyAlert);
-                return;
-            }
+            if (!searchInput) { showToast(languages[currentLang].emptyAlert); return; }
 
             if (db[searchInput]) {
                 currentActiveLocation = db[searchInput];
-                
-                let locationToShow = (currentActiveLocation && !currentActiveLocation.includes('nan') && currentActiveLocation.trim() !== ',') ? currentActiveLocation : "লোকেশন পাওয়া যায়নি";
-                
                 document.getElementById('res-num').innerText = searchInput;
-                document.getElementById('res-loc').innerText = locationToShow;
+                document.getElementById('res-loc').innerText = currentActiveLocation;
                 document.getElementById('result-box').style.display = 'block';
                 document.getElementById('not-found').style.display = 'none';
-
-                const mapArea = document.getElementById('map-area');
-                const mapFrame = document.getElementById('map-frame');
-                
-                if (locationToShow !== "লোকেশন পাওয়া যায়নি") {
-                    mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}&t=m&z=14&output=embed`;
-                    mapArea.style.display = 'block';
-                } else {
-                    mapArea.style.display = 'none';
-                }
+                document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}&t=m&z=14&output=embed`;
+                document.getElementById('map-area').style.display = 'block';
             } else {
                 document.getElementById('result-box').style.display = 'none';
                 document.getElementById('not-found').innerText = languages[currentLang].notFound;
@@ -664,119 +653,61 @@
             const num = document.getElementById('sub-number').value.trim();
             const loc = document.getElementById('sub-location').value.trim();
             if (!num || !loc) { showToast(languages[currentLang].emptyAlert); return; }
-
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-            db[num] = loc;
-            localStorage.setItem('locationDatabase', JSON.stringify(db));
-            showToast(languages[currentLang].saveAlert);
-            document.getElementById('sub-number').value = '';
-            document.getElementById('sub-location').value = '';
-            switchScreen('search-screen', 'nav-search');
+            db[num] = loc; localStorage.setItem('locationDatabase', JSON.stringify(db));
+            showToast(languages[currentLang].saveAlert); switchScreen('search-screen', 'nav-search');
         }
 
         function getCurrentLocation() {
             if (navigator.geolocation) {
-                showToast("লোকেশন খোঁজা হচ্ছে...");
-                navigator.geolocation.getCurrentPosition(
-                    function(pos) {
-                        document.getElementById('sub-location').value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
-                        showToast("কারেন্ট লোকেশন সেট হয়েছে!");
-                    }, 
-                    function() { showToast("জিপিএস পারমিশন প্রয়োজন!"); },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
+                showToast(currentLang === 'bn' ? "লোকেশন খোঁজা হচ্ছে..." : "Fetching location...");
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById('sub-location').value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                });
             }
         }
 
-        function openMap() { 
-            if (currentActiveLocation && !currentActiveLocation.includes('nan')) {
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`, '_blank'); 
-            } else {
-                showToast("বৈধ লোকেশন পাওয়া যায়নি!");
-            }
-        }
-        
+        function openMap() { if (currentActiveLocation) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`, '_blank'); }
         function copyLocation() {
             const num = document.getElementById('res-num').innerText;
-            if (!currentActiveLocation || currentActiveLocation.includes('nan')) {
-                showToast("লোকেশন খালি!");
-                return;
-            }
-            const txt = `সাবস্ক্রিপশন নং: ${num}\nলোকেশন: ${currentActiveLocation}\nম্যাপ: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`;
+            const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`;
+            const txt = `সাবস্ক্রিপশন নং: ${num}\nলোকেশন: ${currentActiveLocation}\nম্যাপ লিংক: ${mapLink}`;
             const el = document.createElement("textarea"); el.value = txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
             showToast(languages[currentLang].copyAlert);
         }
-
         function shareLocation() {
             const num = document.getElementById('res-num').innerText;
-            if (!currentActiveLocation || currentActiveLocation.includes('nan')) {
-                showToast("লোকেশন খালি!");
-                return;
-            }
-            const txt = `সাবস্ক্রিপশন নং: ${num} | লোকেশন: ${currentActiveLocation} | ম্যাপ: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
+            const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentActiveLocation)}`;
+            const txt = `সাবস্ক্রিপশন নং: ${num} | লোকেশন: ${currentActiveLocation} | ম্যাপ লিংক: ${mapLink}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let currentDb = JSON.parse(localStorage.getItem('locationDatabase')) || {};
+                if (file.name.endsWith('.json')) {
+                    let remoteData = JSON.parse(e.target.result);
+                    Object.assign(currentDb, remoteData.locations || remoteData);
+                }
+                localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
+                showToast(languages[currentLang].importAlert); updateDataStats(); loadRecordTable();
+            };
+            reader.readAsText(file);
         }
 
         function exportData() {
             const blob = new Blob([localStorage.getItem('locationDatabase')], { type: "application/json" });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `subscription_backup.json`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click();
         }
 
-        function clearMemory() {
-            if (confirm("সব ডাটা মুছে ফেলতে চান?")) { localStorage.removeItem('locationDatabase'); showToast(languages[currentLang].clearAlert); setTimeout(() => location.reload(), 1000); }
-        }
-
+        function clearMemory() { if (confirm(languages[currentLang].clearAlert)) { localStorage.removeItem('locationDatabase'); location.reload(); } }
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); }
-        
-        // ৫টি পার্ট থেকে ডাটা সিঙ্ক করার চূড়ান্ত ইঞ্জিন
-        window.addEventListener('DOMContentLoaded', () => {
-            changeLanguage('bn');
-            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-            if (Object.keys(db).length > 500) {
-                updateDataStats();
-                loadRecordTable();
-                return; 
-            }
+        function loadUserControlPanel() {}
 
-            showToast("সার্ভার থেকে ডাটাবেজ পার্টগুলো সিঙ্ক হচ্ছে...");
-            const files = ['part1.json', 'part2.json', 'part3.json', 'part4.json', 'part5.json'];
-            let combinedDatabase = {};
-            let successfullyLoaded = 0;
-
-            files.forEach(file => {
-                fetch(file)
-                    .then(response => {
-                        if (!response.ok) {
-                            const fallbackName = file.charAt(0).toUpperCase() + file.slice(1);
-                            return fetch(fallbackName).then(res => {
-                                if (!res.ok) throw new Error(`${file} পাওয়া যায়নি!`);
-                                return res.json();
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        Object.assign(combinedDatabase, data);
-                        successfullyLoaded++;
-
-                        const currentDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-                        Object.assign(currentDb, combinedDatabase);
-                        localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
-                        
-                        updateDataStats();
-                        loadRecordTable();
-                        
-                        if (successfullyLoaded === files.length) {
-                            showToast("✅ সবকটি পার্টের ডাটা সফলভাবে সংযুক্ত হয়েছে!");
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        showToast(`⚠️ ${file} সিঙ্ক করা যায়নি!`);
-                    });
-            });
-        });
+        window.addEventListener('DOMContentLoaded', () => { generateDeviceFingerprint(); changeLanguage('bn'); });
     </script>
 </body>
 </html>
