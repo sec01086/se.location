@@ -724,17 +724,56 @@
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); }
         changeLanguage('bn');
+                function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
+        function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); }
+        changeLanguage('bn');
+        // ৫টি পার্ট থেকে ডাটা সিঙ্ক করার চূড়ান্ত ইঞ্জিন
         window.addEventListener('DOMContentLoaded', () => {
-    // গিটহাব পেজ লোড হওয়ার সাথে সাথে বড় ফাইলটি ব্যাকগ্রাউন্ডে কল হবে
-    fetch('data.json')
-        .then(response => response.json())
-        .then(largeData => {
-            localStorage.setItem('locationDatabase', JSON.stringify(largeData));
-            updateDataStats();
-            loadRecordTable();
-        })
-        .catch(error => console.error("ডাটা ফাইল লোড হতে সমস্যা হয়েছে:", error));
-});
+            const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+            if (Object.keys(db).length > 500) {
+                updateDataStats();
+                if(typeof loadRecordTable === 'function') loadRecordTable();
+                return; 
+            }
+
+            showToast("সার্ভার থেকে ডাটাবেজ পার্টগুলো সিঙ্ক হচ্ছে...");
+            const files = ['part1.json', 'part2.json', 'part3.json', 'part4.json', 'part5.json'];
+            let combinedDatabase = {};
+            let successfullyLoaded = 0;
+
+            files.forEach(file => {
+                fetch(file)
+                    .then(response => {
+                        if (!response.ok) {
+                            const fallbackName = file.charAt(0).toUpperCase() + file.slice(1);
+                            return fetch(fallbackName).then(res => {
+                                if (!res.ok) throw new Error(`${file} পাওয়া যায়নি!`);
+                                return res.json();
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Object.assign(combinedDatabase, data);
+                        successfullyLoaded++;
+
+                        const currentDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
+                        Object.assign(currentDb, combinedDatabase);
+                        localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
+                        
+                        updateDataStats();
+                        if(typeof loadRecordTable === 'function') loadRecordTable();
+                        
+                        if (successfullyLoaded === files.length) {
+                            showToast("✅ সবকটি পার্টের ডাটা সফলভাবে সংযুক্ত হয়েছে!");
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        showToast(`⚠️ ${file} সিঙ্ক করা যায়নি!`);
+                    });
+            });
+        });
     </script>
 </body>
 </html>
