@@ -724,6 +724,17 @@
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark'); }
         changeLanguage('bn');
+        window.addEventListener('DOMContentLoaded', () => {
+    // গিটহাব পেজ লোড হওয়ার সাথে সাথে বড় ফাইলটি ব্যাকগ্রাউন্ডে কল হবে
+    fetch('data.json')
+        .then(response => response.json())
+        .then(largeData => {
+            localStorage.setItem('locationDatabase', JSON.stringify(largeData));
+            updateDataStats();
+            loadRecordTable();
+        })
+        .catch(error => console.error("ডাটা ফাইল লোড হতে সমস্যা হয়েছে:", error));
+});
     </script>
 </body>
 </html>
