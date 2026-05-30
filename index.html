@@ -462,8 +462,29 @@
 
     <script>
         // ৫ লাখ রো ডেটা ফেচ করার ৫টি জেসন ফাইল পার্টস অ্যারে
-        const githubParts = ['part1.json', 'part2.json', 'part3.json', 'part4.json', 'part5.json'];
-        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/yourusername/yourrepo/main/";
+        const githubParts = [
+            "141.json", "143.json", "144.json", "145.json", "146.json", "147.json", "148.json", "149.json", "150.json", 
+            "151.json", "152.json", "153.json", "154.json", "155.json", "156.json", "157.json", "158.json", "159.json", 
+            "160.json", "161.json", "163.json", "165.json", "167.json", "169.json", "170.json", "171.json", "172.json", 
+            "173.json", "175.json", "400.json", "401.json", "402.json", "403.json", "404.json", "405.json", "406.json", 
+            "407.json", "408.json", "409.json", "410.json", "411.json", "412.json", "413.json", "414.json", "415.json", 
+            "417.json", "418.json", "419.json", "420.json", "421.json", "423.json", "424.json", "425.json", "427.json", 
+            "428.json", "434.json", "435.json", "436.json", "441.json", "442.json", "443.json", "444.json", "445.json", 
+            "446.json", "447.json", "448.json", "449.json", "450.json", "451.json", "453.json", "454.json", "455.json", 
+            "456.json", "457.json", "458.json", "459.json", "460.json", "461.json", "462.json", "463.json", "464.json", 
+            "465.json", "466.json", "467.json", "468.json", "469.json", "470.json", "471.json", "474.json", "475.json", 
+            "476.json", "477.json", "478.json", "479.json", "480.json", "481.json", "482.json", "483.json", "484.json", 
+            "485.json", "486.json", "487.json", "490.json", "494.json", "495.json", "497.json", "498.json", "499.json", 
+            "601.json", "602.json", "603.json", "604.json", "605.json", "606.json", "607.json", "608.json", "609.json", 
+            "610.json", "611.json", "612.json", "613.json", "614.json", "616.json", "617.json", "618.json", "619.json", 
+            "620.json", "621.json", "622.json", "623.json", "624.json", "625.json", "626.json", "627.json", "628.json", 
+            "640.json", "641.json", "642.json", "643.json", "644.json", "645.json", "646.json", "647.json", "648.json", 
+            "649.json", "650.json", "651.json", "652.json", "653.json", "654.json", "657.json", "699.json", "749.json", 
+            "750.json", "808.json", "884.json", "900.json", "906.json", "907.json", "908.json", "911.json", "912.json", 
+            "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json"
+        ];
+        
+        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/sec01086/se.location/main/";
 
         const languages = {
             bn: {
@@ -560,18 +581,54 @@
             let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
             let successCount = 0;
 
+            if (githubBaseUrl.includes("yourusername")) {
+                showToast("⚠️ দয়া করে সেটিংসে আপনার সঠিক গিটহাব লিংকটি দিন!");
+                document.getElementById('cloud-status').innerText = l.cloudStatusFail;
+                return;
+            }
+
             for (let part of githubParts) {
                 try {
                     let response = await fetch(githubBaseUrl + part + '?t=' + new Date().getTime());
                     if (response.ok) {
                         let remoteData = await response.json();
-                        Object.assign(localDb, remoteData);
-                        successCount++;
+                        
+                        if (remoteData) {
+                            // জেসনের বিভিন্ন স্ট্রাকচার (locations অবজেক্ট, অ্যারে বা নরমাল অবজেক্ট) হ্যান্ডেল করার ইউনিভার্সাল লজিক
+                            let extractedData = remoteData.locations || remoteData.Locations || remoteData;
+                            
+                            if (Array.isArray(extractedData)) {
+                                // ডাটা যদি লিস্ট বা অ্যারে ফরম্যাটে থাকে
+                                extractedData.forEach(item => {
+                                    if (item.subscription && item.location) {
+                                        localDb[item.subscription] = item.location;
+                                    } else if (typeof item === 'object') {
+                                        Object.assign(localDb, item);
+                                    }
+                                });
+                            } else if (typeof extractedData === 'object') {
+                                // ডাটা যদি সরাসরি অবজেক্ট { "key": "value" } ফরম্যাটে থাকে
+                                Object.assign(localDb, extractedData);
+                            }
+                            successCount++;
+                        }
                     }
                 } catch (e) {
-                    console.error("Error fetching chunk part: " + part, e);
+                    console.error("Error fetching file: " + part, e);
                 }
             }
+
+            localStorage.setItem('locationDatabase', JSON.stringify(localDb));
+            updateDataStats();
+            
+            if (successCount > 0) {
+                showToast(`${l.cloudSuccess} (${successCount}/${githubParts.length} Files)`);
+                document.getElementById('cloud-status').innerText = l.cloudStatusUp;
+            } else {
+                showToast(l.cloudFailed);
+                document.getElementById('cloud-status').innerText = l.cloudStatusFail;
+            }
+        }
 
             localStorage.setItem('locationDatabase', JSON.stringify(localDb));
             updateDataStats();
