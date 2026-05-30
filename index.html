@@ -461,7 +461,6 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ৫ লাখ রো ডেটা ফেচ করার ৫টি জেসন ফাইল পার্টস অ্যারে
         const githubParts = [
             "141.json", "143.json", "144.json", "145.json", "146.json", "147.json", "148.json", "149.json", "150.json", 
             "151.json", "152.json", "153.json", "154.json", "155.json", "156.json", "157.json", "158.json", "159.json", 
@@ -502,7 +501,7 @@
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
                 cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "আপনার এই ডিভাইসটি সাসপেন্ড করা হয়েছে!", blockDesc: "দয়া করে আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।",
-                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
+                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিвайস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
             },
             en: {
                 title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
@@ -547,7 +546,7 @@
         if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
         if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
 
-                // নতুন ডিভাইসের জন্য অটোমেটিক 'Waiting' এবং রেস্ট্রিকশন লজিক
+        // নতুন ডিভাইসের জন্য অটোমেটিক 'Waiting' স্ট্যাটাস সেটআপ
         function generateDeviceFingerprint() {
             let id = localStorage.getItem('myTrackerDeviceId');
             if (!id) {
@@ -558,7 +557,6 @@
             
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
             
-            // নতুন ডিভাইস হলে ডিফল্টভাবে স্ট্যাটাস 'Waiting' সেট হবে
             if (!userDb[id]) { 
                 userDb[id] = "Waiting"; 
                 localStorage.setItem('userControlDatabase', JSON.stringify(userDb)); 
@@ -570,11 +568,9 @@
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
             let currentStatus = userDb[myDeviceId];
 
-            // ডিভাইস যদি Active না থাকে (অর্থাৎ Suspended বা Waiting হয়), তবে স্ক্রিন ব্লক থাকবে
             if (currentStatus === "Suspended" || currentStatus === "Waiting") {
                 document.getElementById('block-screen').style.display = "flex";
                 
-                // স্ক্রিনে দেখানোর টেক্সট ল্যাঙ্গুয়েজ অনুযায়ী ডাইনামিক করা হলো
                 if (currentStatus === "Waiting") {
                     document.getElementById('lbl-block-title').innerText = currentLang === 'en' ? "⏳ Access Pending" : (currentLang === 'ar' ? "⏳ في انتظار التفعيل" : "⏳ ডিভাইসটি অনুমোদনের অপেক্ষায় আছে!");
                     document.getElementById('lbl-block-desc').innerText = currentLang === 'en' ? "Please wait until the admin approves your device." : (currentLang === 'ar' ? "يرجى الانتظار حتى يوافق المسؤول على جهازك." : "আপনার ডিভাইস আইডিটি এডমিন প্যানেল থেকে অ্যাক্টিভ করার জন্য অনুরোধ করুন।");
@@ -588,7 +584,7 @@
             }
         }
 
-        // GitHub ৫টি খন্ড থেকে ৫ লাখ বা ততোধিক ডাটা ব্যাকগ্রাউন্ড ফেচিং মেকানিজম
+        // ব্যাকগ্রাউন্ড গিটহাব ক্লাউড ডাটা সিঙ্কিং মেকানিজম
         async function syncWithGitHub() {
             const l = languages[currentLang];
             showToast(l.cloudSyncing);
@@ -610,11 +606,9 @@
                         let remoteData = await response.json();
                         
                         if (remoteData) {
-                            // জেসনের বিভিন্ন স্ট্রাকচার (locations অবজেক্ট, অ্যারে বা নরমাল অবজেক্ট) হ্যান্ডেল করার ইউনিভার্সাল লজিক
                             let extractedData = remoteData.locations || remoteData.Locations || remoteData;
                             
                             if (Array.isArray(extractedData)) {
-                                // ডাটা যদি লিস্ট বা অ্যারে ফরম্যাটে থাকে
                                 extractedData.forEach(item => {
                                     if (item.subscription && item.location) {
                                         localDb[item.subscription] = item.location;
@@ -623,7 +617,6 @@
                                     }
                                 });
                             } else if (typeof extractedData === 'object') {
-                                // ডাটা যদি সরাসরি অবজেক্ট { "key": "value" } ফরম্যাটে থাকে
                                 Object.assign(localDb, extractedData);
                             }
                             successCount++;
@@ -646,18 +639,6 @@
             }
         }
 
-            localStorage.setItem('locationDatabase', JSON.stringify(localDb));
-            updateDataStats();
-            
-            if (successCount > 0) {
-                showToast(`${l.cloudSuccess} (${successCount} Parts)`);
-                document.getElementById('cloud-status').innerText = l.cloudStatusUp;
-            } else {
-                showToast(l.cloudFailed);
-                document.getElementById('cloud-status').innerText = l.cloudStatusFail;
-            }
-        }
-
         function saveGithubSettings() {
             let inputUrl = document.getElementById('github-url-input').value.trim();
             if (inputUrl) {
@@ -668,12 +649,10 @@
             }
         }
 
-        // ৩টি ভাষার রূপান্তর লজিক এবং আরবির জন্য RTL অরিয়েন্টেশন টগল
         function changeLanguage(lang) {
             currentLang = lang; 
             const l = languages[lang] || languages['bn'];
             
-            // RTL ওরিয়েন্টেশন সেটআপ শুধুমাত্র আরবির জন্য
             if (lang === 'ar') {
                 document.documentElement.setAttribute('dir', 'rtl');
                 document.body.setAttribute('dir', 'rtl');
@@ -708,8 +687,6 @@
             document.getElementById('th-loc').innerText = l.thLoc;
             document.getElementById('th-action').innerText = l.thAction;
 
-            document.getElementById('lbl-block-title').innerText = l.blockTitle;
-            document.getElementById('lbl-block-desc').innerText = l.blockDesc;
             document.getElementById('btn-sync-action').innerText = l.btnSync;
             document.getElementById('lbl-git-path-title').innerText = l.gitPathTitle;
             document.getElementById('btn-git-update').innerText = l.btnGitUpdate;
@@ -726,13 +703,13 @@
 
             document.getElementById('btn-clear-mem').innerText = currentLang === 'ar' ? "🗑️ مسح الذاكرة بالكامل" : (currentLang === 'en' ? "🗑️ Clear All Memory" : "🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন");
 
-            // ক্লাউড টেক্সট আপডেট
             let currentCloudText = document.getElementById('cloud-status').innerText;
             if (currentCloudText.includes('রেডি') || currentCloudText.includes('Ready') || currentCloudText.includes('جاهزة')) {
                 document.getElementById('cloud-status').innerText = l.cloudReady;
             }
 
             updateDataStats();
+            checkSuspensionStatus();
             if (document.getElementById('settings-screen').classList.contains('active')) {
                 loadRecordTable();
                 loadUserControlPanel();
@@ -774,13 +751,11 @@
             document.getElementById('stats-box').innerText = `${languages[currentLang].statsText}${totalRecords.toLocaleString()}${suffix}`;
         }
 
-        // ডাটাবেজ ডিলিট ও রেন্ডারিং টেবিল অপারেশন
         function loadRecordTable() {
             const db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
             const tbody = document.getElementById('record-table-body'); 
             tbody.innerHTML = '';
             
-            // পারফরম্যান্স অপ্টিমাইজড ভিউয়ার: রেন্ডারিং লোড কমাতে প্রথম ৩০০টি ডাটা প্রদর্শিত হবে
             Object.keys(db).slice(0, 300).forEach(key => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td><strong>${key}</strong></td><td>${db[key]}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key}')">${languages[currentLang].deleteBtn}</button></td>`;
@@ -813,7 +788,6 @@
             });
         }
 
-        // ডিভাইস ম্যানেজমেন্ট প্যানেল লজিক কন্ট্রোল
         function loadUserControlPanel() {
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
             let tbody = document.getElementById('user-table-body');
@@ -822,8 +796,16 @@
             Object.keys(userDb).forEach(id => {
                 let status = userDb[id];
                 let isMe = (id === myDeviceId);
-                let badgeClass = (status === "Active") ? "badge-active" : "badge-suspended";
-                let actionText = (status === "Active") ? (currentLang === 'ar' ? "تعليق" : (currentLang === 'en' ? "Suspend" : "সাসপেন্ড")) : (currentLang === 'ar' ? "تنشيط" : (currentLang === 'en' ? "Activate" : "অ্যাক্টিভ"));
+                
+                let badgeClass = "badge-suspended";
+                if (status === "Active") badgeClass = "badge-active";
+                
+                let actionText = "";
+                if (status === "Active") {
+                    actionText = (currentLang === 'ar' ? "تعليق" : (currentLang === 'en' ? "Suspend" : "সাসপেন্ড"));
+                } else {
+                    actionText = (currentLang === 'ar' ? "تنشيط" : (currentLang === 'en' ? "Activate" : "অ্যাক্টিভ"));
+                }
                 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -847,7 +829,6 @@
             checkSuspensionStatus();
         }
 
-        // কোর সার্চ ও জিপিএস ট্র্যাকিং মেকানিজম
         let currentActiveLocation = "";
         function searchLocation() {
             const searchInput = document.getElementById('search-input').value.trim();
