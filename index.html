@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscription Tracker Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght=500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <style>
         :root {
             --primary-color: #2b579a;
@@ -199,6 +201,17 @@
             border: none;
         }
 
+        /* ৩D ম্যানুয়াল ম্যাপ কন্টেইনার স্টাইল */
+        .manual-map-wrapper {
+            width: 100%;
+            height: 250px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+            z-index: 1;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -390,7 +403,7 @@
 
         <div id="add-screen" class="screen">
             <div class="card">
-                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন (লোকাল)</h2>
+                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন (অনলাইন সিঙ্ক)</h2>
                 
                 <div class="input-group">
                     <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)</label>
@@ -407,7 +420,12 @@
                     <input type="text" id="sub-location" placeholder="address or coordinates (eg: 23.8103, 90.4125)">
                 </div>
                 <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
-                <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveData()">💾 লোকেশন সেভ করুন</button>
+                <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveDataAndPushToGitHub()">💾 সেভ এবং অনলাইনে আপলোড করুন</button>
+                
+                <div class="input-group" style="margin-top: 20px;">
+                    <label id="lbl-manual-map-title" style="font-size:12px; font-weight:bold; color:var(--primary-color)">🗺️ ৩D ম্যাপ থেকে ম্যানুয়ালি লোকেশন সিলেক্ট করুন:</label>
+                    <div id="manual-picker-map" class="manual-map-wrapper"></div>
+                </div>
             </div>
         </div>
 
@@ -426,16 +444,19 @@
             <div class="card">
                 <h2 id="lbl-settings-title">⚙️ Settings & Cloud Config</h2>
                 
-                <div class="stats-box" id="stats-box">📊 মোট রেকর্ডকৃত ডাটা: 0 টি</div>
-                <div class="stats-box" id="app-stats-box" style="background-color:rgba(39, 174, 96, 0.1); border-color:#27ae60; color:#27ae60;">📱 শুধুমাত্র অ্যাপে সেভ করা ডাটা: 0 টি</div>
+                <div class="stats-box" id="stats-box">📊 মোট গ্লোবাল ক্লাউড ডাটা: 0 টি</div>
+                <div class="stats-box" id="app-stats-box" style="background-color:rgba(39, 174, 96, 0.1); border-color:#27ae60; color:#27ae60;">📱 শুধুমাত্র লোকাল ইম্পোর্ট করা ডাটা: 0 টি</div>
 
                 <div style="background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color)">
-                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Raw URL Base Path</h4>
-                    <input type="text" id="github-url-input" placeholder="https://raw.githubusercontent.com/sec01086/..." style="font-size:12px; padding:8px; margin-bottom:5px;">
-                    <input type="password" id="github-token-input" placeholder="GitHub Personal Access Token (কোড পুশ করার জন্য)" style="font-size:12px; padding:8px; margin-bottom: 5px; display: none;">
+                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Cloud Configuration</h4>
                     
-                    <button class="btn" style="padding:12px; font-size:14px; margin-top:8px; background-color:#2b579a;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব লিংক আপডেট করুন</button>
-                    <button class="btn" style="padding:8px; font-size:12px; margin-top:8px; background-color:#e67e22; display: none;" id="btn-git-push" onclick="pushAppLocalDataToGitHub()">📤 নতুন ডাটা গিটহাবে পুশ করুন</button>
+                    <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px;">Repository API URL (Owner/Repo):</label>
+                    <input type="text" id="github-repo-input" placeholder="উদা: sec01086/se.location" style="font-size:12px; padding:8px; margin-bottom:8px;">
+                    
+                    <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px;">GitHub Personal Access Token (PAT):</label>
+                    <input type="password" id="github-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="font-size:12px; padding:8px; margin-bottom: 8px;">
+                    
+                    <button class="btn" style="padding:12px; font-size:14px; margin-top:8px; background-color:#2b579a;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব টোকেন ও রেপো সেভ করুন</button>
                 </div>
 
                 <div class="input-group" style="margin-top:10px;">
@@ -471,8 +492,8 @@
                 </div>
                 
                 <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
-                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 ব্যাকআপ ডাটা এক্সপোর্ট (সম্পূর্ণ JSON)</button>
-                <button class="btn" id="btn-export-app-only" style="background-color:#2b579a; margin-top:10px; color:white; display: none;" onclick="exportAppLocalDataOnly()">📱 শুধুমাত্র অ্যাপে সেভ করা ডাটা এক্সপোর্ট</button>
+                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 ব্যাকআপ ডাটা এক্সপোর্ট (সম্পূর্ণ ক্লাউড JSON)</button>
+                <button class="btn btn-outline" id="btn-export-local" style="border-color:#27ae60; color:#27ae60;" onclick="exportLocalAppEntries()">📤 শুধুমাত্র অ্যাপ লোকাল ডাটা এক্সপোর্ট (JSON)</button>
                 <button class="btn" id="btn-import-trigger" style="background-color:#27ae60; margin-top:10px;" onclick="document.getElementById('import-file').click()">📂 লোকাল ফাইল ইম্পোর্ট (.xlsx / .json)</button>
                 <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.cvs,.xls" onchange="handleFileImport(event)">
                 <button class="btn" id="btn-clear-mem" style="background-color:#c0392b; margin-top:10px;" onclick="clearMemory()">🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন</button>
@@ -489,89 +510,76 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const githubParts = [
-            "141.json", "143.json", "144.json", "145.json", "146.json", "147.json", "148.json", "149.json", "150.json", 
-            "151.json", "152.json", "153.json", "154.json", "155.json", "156.json", "157.json", "158.json", "159.json", 
-            "160.json", "161.json", "163.json", "165.json", "167.json", "169.json", "170.json", "171.json", "172.json", 
-            "173.json", "175.json", "400.json", "401.json", "402.json", "403.json", "404.json", "405.json", "406.json", 
-            "407.json", "408.json", "409.json", "410.json", "411.json", "412.json", "413.json", "414.json", "415.json", 
-            "417.json", "418.json", "419.json", "420.json", "421.json", "423.json", "424.json", "425.json", "427.json", 
-            "428.json", "434.json", "435.json", "436.json", "441.json", "442.json", "443.json", "444.json", "445.json", 
-            "446.json", "447.json", "448.json", "449.json", "450.json", "451.json", "453.json", "454.json", "455.json", 
-            "456.json", "457.json", "458.json", "459.json", "460.json", "461.json", "462.json", "463.json", "464.json", 
-            "465.json", "466.json", "467.json", "468.json", "469.json", "470.json", "471.json", "474.json", "475.json", 
-            "476.json", "477.json", "478.json", "479.json", "480.json", "481.json", "482.json", "483.json", "484.json", 
-            "485.json", "486.json", "487.json", "490.json", "494.json", "495.json", "497.json", "498.json", "499.json", 
-            "601.json", "602.json", "603.json", "604.json", "605.json", "606.json", "607.json", "608.json", "609.json", 
-            "610.json", "611.json", "612.json", "613.json", "614.json", "616.json", "617.json", "618.json", "619.json", 
-            "620.json", "621.json", "622.json", "623.json", "624.json", "625.json", "626.json", "627.json", "628.json", 
-            "640.json", "641.json", "642.json", "643.json", "644.json", "645.json", "646.json", "647.json", "648.json", 
-            "649.json", "650.json", "651.json", "652.json", "653.json", "654.json", "657.json", "699.json", "749.json", 
-            "750.json", "808.json", "884.json", "900.json", "906.json", "907.json", "908.json", "911.json", "912.json", 
-            "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json"
-        ];
-        
-        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/sec01086/se.location/main/";
+        let githubRepo = localStorage.getItem('githubRepo') || "sec01086/se.location";
         let githubToken = localStorage.getItem('githubToken') || "";
         let currentLang = 'bn';
         let isAdminAuthenticated = false;
         let myDeviceId = "";
+        
+        // ম্যাপের গ্লোবাল অবজেক্ট ভেরিয়েবল
+        let pickerMap;
+        let pickerMarker;
 
-        // ALL INTERFACE TEXT TRANSLATION OBJECT
         const languages = {
             bn: {
                 title: "Subscription Tracker Pro", searchTitle: "সাবস্ক্রিপশন লোকেশন খুঁজুন", searchBtn: "🔍 সার্চ করুন",
                 resNum: "📌 আইডি/সাবস্ক্রিপশন নং:", resLoc: "📍 লোকেশন:", btnMap: "🗺️ ম্যাপ", btnCopy: "📋 কপি",
-                btnShare: "🔗 শেয়ার", notFound: "এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!", addTitle: "নতুন লোকেশন সেট করুন (লোকাল)",
+                btnShare: "🔗 শেয়ার", notFound: "এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!", addTitle: "নতুন লোকেশন সেট করুন (অনлайн সিঙ্ক)",
                 subNumField: "সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)", locField: "লোকেশন / ঠিকানা", currentLocBtn: "📍 আমার কারেন্ট লোকেশন নিন",
-                saveBtn: "💾 লোকেশন সেভ করুন", settingsTitle: "⚙️ সেটিংস ও ক্লাউড কনফিগারেশন", navSearch: "🔍 সার্চ",
-                navAdd: "➕ নতুন সেট", navSettings: "⚙️ সেটিংস", emptyAlert: "দয়া করে ফিল্ড পূরণ করুন!", saveAlert: "সফলভাবে সংরক্ষিত হয়েছে!",
-                copyAlert: "লোকেশন কপি করা হয়েছে!", clearAlert: "সব ডাটা মুছে ফেলা হয়েছে!", importAlert: "ডাটা সফলভাবে ইম্পোর্ট হয়েছে!",
-                invalidAlert: "ভুল ফাইল ফরম্যাট!", authTitle: "🔐 এডমিন ভেরিফিকেশন", adminPasswordPlace: "পাসওয়ার্ড লিখুন...",
+                saveBtn: "💾 সেভ এবং অনলাইনে আপলোড করুন", settingsTitle: "⚙️ সেটিংস ও ক্লাউড কনফিগারেশন", navSearch: "🔍 সার্চ",
+                navAdd: "➕ নতুন সেট", navSettings: "⚙️ সেটিংস", emptyAlert: "দয়া করে ফিল্ড পূরণ করুন!", saveAlert: "সফলভাবে সংরক্ষিত এবং অনলাইনে আপলোড হয়েছে!",
+                copyAlert: "লোকেশন কপি করা হয়েছে!", clearAlert: "সব ডাটা মুছে ফেলা হয়েছে!", importAlert: "লোকাল ডিভাইসে ডাটা সফলভাবে ইম্পোর্ট হয়েছে! (অনলাইনে যাবে না)",
+                invalidAlert: "ভুল ফাইল ফরম্যাট!", authTitle: "🔐 Admin Verification", adminPasswordPlace: "পাসওয়ার্ড লিখুন...",
                 authConfirm: "🔓 প্রবেশ করুন", authCancel: "বাতিল করুন", wrongPass: "ভুল পাসওয়ার্ড!",
-                statsText: "📊 মোট রেকর্ডকৃত ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন বা স্টেশন দিয়ে...",
+                statsText: "📊 মোট গ্লোবাল ক্লাউড ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন বা স্টেশন দিয়ে...",
                 lblTableSearch: "🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন", thAction: "অ্যাকশন",
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
-                cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
+                cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! টোকেন বা রেপো লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "এই ডিভাইসটি এখনো একটিভ করা হয়নি!", blockDesc: "নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।",
-                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন",
-                searchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে..."
+                gitPathTitle: "⚙️ GitHub Cloud Configuration", btnGitUpdate: "💾 গিটহাব টোকেন ও রেপো সেভ করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন",
+                searchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে...",
+                lblManualMap: "🗺️ ৩D ম্যাপ থেকে ম্যানুয়ালি লোকেশন সিলেক্ট করুন:",
+                btnExportLocalText: "📤 শুধুমাত্র অ্যাপ লোকাল ডাটা এক্সপোর্ট (JSON)"
             },
             en: {
                 title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
                 resNum: "📌 ID/Sub No:", resLoc: "📍 Location:", btnMap: "🗺️ Map", btnCopy: "📋 Copy",
-                btnShare: "🔗 Share", notFound: "No location found!", addTitle: "Set New Location (Local)",
+                btnShare: "🔗 Share", notFound: "No location found!", addTitle: "Set New Location (Cloud Sync)",
                 subNumField: "Subscription Number (Digits Only)", locField: "Location / Address", currentLocBtn: "📍 Use Current Location",
-                saveBtn: "💾 Save Location", settingsTitle: "⚙️ Settings & Cloud Config", navSearch: "🔍 Search",
-                navAdd: "➕ Add New", navSettings: "⚙️ Settings", emptyAlert: "Please fill fields!", saveAlert: "Saved successfully!",
-                copyAlert: "Copied!", clearAlert: "All data cleared!", importAlert: "Imported!",
+                saveBtn: "💾 Save & Upload Online", settingsTitle: "⚙️ Settings & Cloud Config", navSearch: "🔍 Search",
+                navAdd: "➕ Add New", navSettings: "⚙️ Settings", emptyAlert: "Please fill fields!", saveAlert: "Saved and Uploaded Online!",
+                copyAlert: "Copied!", clearAlert: "All data cleared!", importAlert: "Imported Locally! (Will not sync online)",
                 invalidAlert: "Invalid format!", authTitle: "🔐 Admin Verification", adminPasswordPlace: "Enter password...",
                 authConfirm: "🔓 Enter", authCancel: "Cancel", wrongPass: "Wrong password!",
-                statsText: "📊 Total Records: ", tableSearchPlaceholder: "Search by subscription or station...",
+                statsText: "📊 Total Cloud Records: ", tableSearchPlaceholder: "Search by subscription or station...",
                 lblTableSearch: "🔎 Saved Records Live Search", thSub: "Subscription No", thLoc: "Location", thAction: "Action",
                 userManageTitle: "👥 Device Control", deleteBtn: "Delete", deleteConfirm: "Are you sure you want to delete?", deleteAlert: "Deleted!",
-                cloudReady: "☁️ GitHub Cloud DB Ready", cloudSyncing: "⏳ Syncing data...", cloudSuccess: "✅ Sync Successful!", cloudFailed: "❌ Sync Failed! Check Link.", cloudStatusUp: "☁️ GitHub Cloud: Up-to-date", cloudStatusFail: "⚠️ Cloud Sync Failed",
+                cloudReady: "☁️ GitHub Cloud DB Ready", cloudSyncing: "⏳ Syncing data...", cloudSuccess: "✅ Sync Successful!", cloudFailed: "❌ Sync Failed! Check Token/Repo.", cloudStatusUp: "☁️ GitHub Cloud: Up-to-date", cloudStatusFail: "⚠️ Cloud Sync Failed",
                 btnSync: "🔄 Sync", blockTitle: "Device is not activated yet!", blockDesc: "Click the button below and input the admin password to activate this device.",
-                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 Update GitHub Link", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action",
-                searchPlaceholder: "Enter Subscription Number..."
+                gitPathTitle: "⚙️ GitHub Cloud Configuration", btnGitUpdate: "💾 Save GitHub Settings", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action",
+                searchPlaceholder: "Enter Subscription Number...",
+                lblManualMap: "🗺️ Select Location Manually from 3D Map:",
+                btnExportLocalText: "📤 Export Local App Data Only (JSON)"
             },
             ar: {
                 title: "متابع الاشتراكات برو", searchTitle: "البحث عن موقع الاشتراك", searchBtn: "🔍 بحث",
                 resNum: "📌 رقم التعريف/الاشتراك:", resLoc: "📍 الموقع:", btnMap: "🗺️ الخريطة", btnCopy: "📋 نسخ",
-                btnShare: "🔗 مشاركة", notFound: "لم يتم العثور على موقع لهذا الرقم!", addTitle: "تعيين موقع جديد (محلي)",
+                btnShare: "🔗 مشاركة", notFound: "لم يتم العثور على موقع لهذا الرقم!", addTitle: "تعيين موقع جديد (مزامنة سحابية)",
                 subNumField: "رقم الاشتراك (أرقام فقط)", locField: "الموقع / العنوان", currentLocBtn: "📍 خذ موقعي الحالي",
-                saveBtn: "💾 حفظ الموقع", settingsTitle: "⚙️ الإعدادات وتكوين السحابة", navSearch: "🔍 بحث",
-                navAdd: "➕ إضافة جديد", navSettings: "⚙️ الإعدادات", emptyAlert: "يرجى ملء الحقول!", saveAlert: "تم الحفظ بنجاح!",
-                copyAlert: "تم نسخ الموقع!", clearAlert: "تم مسح جميع البيانات!", importAlert: "تم استيراد البيانات بنجاح!",
+                saveBtn: "💾 حفظ ورفع أونلاين", settingsTitle: "⚙️ الإعدادات وتكوين السحابة", navSearch: "🔍 بحث",
+                navAdd: "➕ إضافة جديد", navSettings: "⚙️ الإعدادات", emptyAlert: "يرجى ملء الحقول!", saveAlert: "تم الحفظ والرفع بنجاح!",
+                copyAlert: "تم نسخ الموقع!", clearAlert: "تم مسح جميع البيانات!", importAlert: "تم الاستيراد محلياً بنجاح! (لن يرتفع للسحابة)",
                 invalidAlert: "صيغة الملف خاطئة!", authTitle: "🔐 التحقق من المسؤول", adminPasswordPlace: "أدخل كلمة المرور...",
                 authConfirm: "🔓 الدخول", authCancel: "إلغاء", wrongPass: "كلمة المرور خاطئة!",
-                statsText: "📊 إجمالي السجلات: ", tableSearchPlaceholder: "ابحث برقم الاشتراك أو المحطة...",
+                statsText: "📊 إجمالي السجلات السحابية: ", tableSearchPlaceholder: "ابحث برقم الاشتراك أو المحطة...",
                 lblTableSearch: "🔎 بحث مباشر في السجلات المحفوظة", thSub: "رقم الاشتراك", thLoc: "الموقع", thAction: "الإجراء",
                 userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف؟", deleteAlert: "تم حذف البيانات!",
-                cloudReady: "☁️ قاعدة بيانات GitHub جاهزة", cloudSyncing: "⏳ جاري مزامنة البيانات...", cloudSuccess: "✅ تمت المزامنة بنجاح!", cloudFailed: "❌ فشلت المزامنة! تحقق من الرابط.", cloudStatusUp: "☁️ سحابة GitHub: محدثة", cloudStatusFail: "⚠️ فشلت المزامنة السحابية",
-                btnSync: "🔄 مزامنة", blockTitle: "تم تعليق جهازك هذا!", blockDesc: "يرجى الاتصال بمسؤول النظام الخاص بك.",
-                gitPathTitle: "⚙️ مسار عنوان URL لـ GitHub", btnGitUpdate: "💾 تحديث رابط جيت هاب", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء",
-                searchPlaceholder: "أدخل رقم الاشتراك..."
+                cloudReady: "☁️ قاعدة بيانات GitHub جاهزة", cloudSyncing: "⏳ جاري مزامنة البيانات...", cloudSuccess: "✅ تمت المزامنة بنجاح!", cloudFailed: "❌ فشلت المزامنة! تحقق من الإعدادات.", cloudStatusUp: "☁️ سحابة GitHub: محدثة", cloudStatusFail: "⚠️ فشلت المزامنة السحابية",
+                btnSync: "🔄 مزامنة", blockTitle: "تم تعليق جهازক هذا!", blockDesc: "يرجى الاتصال بمسؤول النظام الخاص بك.",
+                gitPathTitle: "⚙️ تكوين سحابة GitHub", btnGitUpdate: "💾 حفظ إعدادات جيت هاب", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء",
+                searchPlaceholder: "أدخل رقم الاشتراك...",
+                lblManualMap: "🗺️ حدد الموقع يدويًا من الخريطة ثلاثية الأبعاد:",
+                btnExportLocalText: "📤 تصدير بيانات التطبيق المحلية فقط (JSON)"
             }
         };
 
@@ -579,7 +587,7 @@
         if (!localStorage.getItem('appLocalDatabase')) localStorage.setItem('appLocalDatabase', JSON.stringify({}));
         if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
 
-        // ১. সাবস্ক্রিপশন অটো-ফরম্যাটার মেকানিজম (Accepts digits only + automatic formatting)
+        // ১. সাবস্ক্রিপশন অটো-ফরম্যাটার
         function formatSubscription(input) {
             let num = input.value.replace(/\D/g, ''); 
             if (num.length > 8) num = num.substr(0, 8); 
@@ -640,7 +648,7 @@
             switchScreen('search-screen', 'nav-search');
         }
 
-        // ৩. স্ক্রিন নেভিগেশন ও অটো-লক কন্ট্রোল
+        // ৩. স্ক্রিন নেভিগেশন
         function switchScreen(screenId, navId) {
             if (document.getElementById('settings-screen').classList.contains('active') && screenId !== 'settings-screen') {
                 isAdminAuthenticated = false; 
@@ -652,12 +660,58 @@
             if(navId) document.getElementById(navId).classList.add('active');
             
             if (screenId === 'settings-screen') {
-                document.getElementById('github-url-input').value = githubBaseUrl;
+                document.getElementById('github-repo-input').value = githubRepo;
                 document.getElementById('github-token-input').value = githubToken;
                 updateDataStats(); 
                 loadRecordTable(); 
                 loadUserControlPanel();
             }
+
+            // নতুন সেট স্ক্রিনে গেলে ইন্টারঅ্যাক্টিভ ৩D ম্যানুয়াল ম্যাপ লোড ও রিসাইজ করা
+            if (screenId === 'add-screen') {
+                setTimeout(initializeManualPickerMap, 200);
+            }
+        }
+
+        // ৩D ম্যানুয়াল লোকেশন পিকার ম্যাপ ইনিশিয়ালাইজেশন (ফিচার ১)
+        function initializeManualPickerMap() {
+            // যদি ম্যাপ আগে তৈরি না হয়ে থাকে তবে নতুন করে তৈরি হবে
+            if (!pickerMap) {
+                // ডিফল্ট কোঅর্ডিনেট (মিডল ইস্ট বা রিয়াদ রিজিয়ন ফোকাসড)
+                const defaultLat = 24.7136;
+                const defaultLng = 46.6753;
+                
+                pickerMap = L.map('manual-picker-map').setView([defaultLat, defaultLng], 11);
+                
+                // ইন্টারঅ্যাক্টিভ ৩D-স্টাইল স্যাটেলাইট/টপোগ্রাফি ফিল ডিশেপ টাইলস লোড
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(pickerMap);
+                
+                // ড্র্যাগেবল মার্কার সেটআপ
+                pickerMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(pickerMap);
+                
+                // মার্কার ড্র্যাগ করলে ইনপুট বক্সে কোঅর্ডিনেট আপডেট হবে
+                pickerMarker.on('dragend', function (e) {
+                    const position = pickerMarker.getLatLng();
+                    updateLocationInputField(position.lat, position.lng);
+                });
+                
+                // ম্যাপে যেকোনো জায়গায় ক্লিক করলে মার্কার সেখানে চলে যাবে ও ইনপুট আপডেট হবে
+                pickerMap.on('click', function (e) {
+                    pickerMarker.setLatLng(e.latlng);
+                    updateLocationInputField(e.latlng.lat, e.latlng.lng);
+                });
+            } else {
+                // ম্যাপ অলরেডি থাকলে ভিউ রিসাইজ করা হবে (ট্যাব সুইচিং ইস্যু ফিক্স করার জন্য)
+                pickerMap.invalidateSize();
+            }
+        }
+
+        function updateLocationInputField(lat, lng) {
+            // ৪ দশমিক স্থান পর্যন্ত সুবিন্যস্তভাবে স্থানাঙ্ক ইনপুট বক্সে সেট করা
+            document.getElementById('sub-location').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         }
 
         function handleSettingsNavigation() { 
@@ -678,7 +732,7 @@
             }
         }
 
-        // ৪. ইউজার ও ডিভাইস কন্ট্রোল প্যানেল
+        // ৪. ডিভাইস কন্ট্রোল প্যানেল
         function loadUserControlPanel() {
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
             let tbody = document.getElementById('user-table-body');
@@ -714,88 +768,96 @@
             checkSuspensionStatus();
         }
 
-        // ৫. গিটহাব গ্লোবাল সিঙ্ক মেকানিজম (১৬৫টি ফাইল)
+        // ৫. গিটহাব অল ডাটা ডাউনলোড/সিঙ্ক মেকানিজম
         async function syncWithGitHub() {
             const l = languages[currentLang] || languages['bn'];
             const statusText = document.getElementById('cloud-status');
-            const totalFiles = githubParts.length;
             
-            let completedFiles = 0;
-            let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-            
-            statusText.innerHTML = `${l.cloudSyncing} (<span id="sync-count">0</span>/${totalFiles})`;
+            statusText.innerHTML = l.cloudSyncing;
             showToast(l.cloudSyncing);
             
-            const fetchPromises = githubParts.map(async (part) => {
-                let isSuccess = false;
-                try {
-                    let fullUrl = githubBaseUrl + part + '?t=' + new Date().getTime();
-                    let response = await fetch(fullUrl);
-                    if (response.ok) {
-                        let remoteData = await response.json();
-                        if (remoteData) {
-                            let extractedData = remoteData.locations || remoteData.Locations || remoteData;
-                            if (Array.isArray(extractedData)) {
-                                extractedData.forEach(item => {
-                                    if (item.subscription && item.location) localDb[item.subscription] = item.location;
-                                    else if (typeof item === 'object') Object.assign(localDb, item);
-                                });
-                            } else if (typeof extractedData === 'object') {
-                                Object.assign(localDb, extractedData);
-                            }
-                            isSuccess = true;
-                        }
-                    }
-                } catch (e) { 
-                    try {
-                        let fallbackUrl = `https://raw.githubusercontent.com/sec01086/se.location/main/${part}`;
-                        let res = await fetch(fallbackUrl);
-                        if(res.ok) {
-                            let data = await res.json();
-                            Object.assign(localDb, data.locations || data);
-                            isSuccess = true;
-                        }
-                    } catch(err) { console.error("Error loading part: " + part); }
+            try {
+                let rawUrl = `https://raw.githubusercontent.com/${githubRepo}/main/all_data.json?t=${new Date().getTime()}`;
+                let response = await fetch(rawUrl);
+                if (response.ok) {
+                    let remoteData = await response.json();
+                    localStorage.setItem('locationDatabase', JSON.stringify(remoteData || {}));
+                    updateDataStats();
+                    showToast(l.cloudSuccess);
+                    statusText.innerHTML = `✅ ${l.cloudSuccess}`;
+                } else {
+                    throw new Error("ফাইল পাওয়া যায়নি");
                 }
-                
-                completedFiles++;
-                const countEl = document.getElementById('sync-count');
-                if (countEl) countEl.innerText = completedFiles;
-                
-                return isSuccess;
-            });
-
-            const results = await Promise.all(fetchPromises);
-            const successCount = results.filter(Boolean).length;
-
-            localStorage.setItem('locationDatabase', JSON.stringify(localDb));
-            updateDataStats();
-            
-            if (successCount > 0) {
-                showToast(`${l.cloudSuccess} (${successCount}/${totalFiles})`);
-                statusText.innerHTML = `✅ সফলভাবে সিঙ্ক হয়েছে! (${successCount}/${totalFiles})`;
-            } else {
+            } catch (e) {
+                console.error(e);
                 showToast(l.cloudFailed);
                 statusText.innerText = l.cloudStatusFail;
             }
         }
 
-        // ৬. গিটহাব সেটিংস সেভ মেকানিজম
+        // ৬. গিটহাব কনফিগারেশন সেভ
         function saveGithubSettings() {
-            let inputUrl = document.getElementById('github-url-input').value.trim();
+            let inputRepo = document.getElementById('github-repo-input').value.trim();
             let inputToken = document.getElementById('github-token-input').value.trim();
             
-            if (inputUrl) {
-                if (!inputUrl.endsWith('/')) inputUrl += '/';
-                localStorage.setItem('githubBaseUrl', inputUrl);
-                githubBaseUrl = inputUrl;
+            if (inputRepo) {
+                localStorage.setItem('githubRepo', inputRepo);
+                githubRepo = inputRepo;
             }
             localStorage.setItem('githubToken', inputToken);
             githubToken = inputToken;
             showToast(currentLang === 'en' ? "Configuration Saved!" : (currentLang === 'ar' ? "تم حفظ التكوين!" : "কনফিগারেশন সংরক্ষিত!"));
         }
 
-        // ৭. কোর সার্চ লজিক (সাবস্ক্রিপশন অথবা স্টেশন)
+        // ৭. গিটহাবে অটোমেটিক ডাটা পুশ ফাংশন
+        async function pushToGitHub(updatedDb) {
+            if (!githubToken) {
+                showToast(currentLang === 'en' ? "GitHub Token Missing!" : "গিটহাব টোকেন সেট করা নেই! সেটিংস দেখুন।");
+                return false;
+            }
+
+            const apiUrl = `https://api.github.com/repos/${githubRepo}/contents/all_data.json`;
+            
+            try {
+                let sha = "";
+                let getFile = await fetch(apiUrl, {
+                    headers: { "Authorization": `token ${githubToken}` }
+                });
+                
+                if (getFile.ok) {
+                    let fileData = await getFile.json();
+                    sha = fileData.sha;
+                }
+
+                let bodyContent = {
+                    message: "📌 Updated subscription data from App",
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedDb, null, 2)))), 
+                    sha: sha ? sha : undefined
+                };
+
+                let putFile = await fetch(apiUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${githubToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(bodyContent)
+                });
+
+                if (putFile.ok) {
+                    return true;
+                } else {
+                    let errRes = await putFile.json();
+                    console.error(errRes);
+                    return false;
+                }
+            } catch (error) {
+                console.error(error);
+                return false;
+            }
+        }
+
+        // ৮. কোর সার্চ লজিক
         let currentActiveLocation = "";
         function searchLocation() {
             const subInput = document.getElementById('search-input').value.trim();
@@ -828,8 +890,8 @@
             }
         }
 
-        // ৮. ডাটা সেভ লজিক
-        function saveData() {
+        // ৯. ম্যানুয়াল ডাটা সেভ এবং অটো অনলাইন পুশ মেকানিজম
+        async function saveDataAndPushToGitHub() {
             const num = document.getElementById('sub-number').value.trim();
             const station = document.getElementById('station-number').value.trim();
             const loc = document.getElementById('sub-location').value.trim();
@@ -842,49 +904,64 @@
             let key = num ? num : station; 
             
             let db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-            let appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
+            db[key] = loc; 
             
-            db[key] = loc;
-            appDb[key] = loc; 
+            showToast(currentLang === 'en' ? "Uploading to Cloud..." : "⏳ অনলাইনে আপলোড হচ্ছে...");
             
-            localStorage.setItem('locationDatabase', JSON.stringify(db));
-            localStorage.setItem('appLocalDatabase', JSON.stringify(appDb));
+            let isUploaded = await pushToGitHub(db);
             
-            showToast(languages[currentLang].saveAlert); 
-            
-            document.getElementById('sub-number').value = "";
-            document.getElementById('station-number').value = "";
-            document.getElementById('sub-location').value = "";
-            
-            switchScreen('search-screen', 'nav-search');
+            if (isUploaded) {
+                localStorage.setItem('locationDatabase', JSON.stringify(db));
+                showToast(languages[currentLang].saveAlert); 
+                
+                document.getElementById('sub-number').value = "";
+                document.getElementById('station-number').value = "";
+                document.getElementById('sub-location').value = "";
+                
+                switchScreen('search-screen', 'nav-search');
+            } else {
+                alert(currentLang === 'en' ? "❌ Cloud Upload Failed! Saved only on this device locally." : "❌ অনলাইনে আপলোড ব্যর্থ হয়েছে! ডাটাটি সাময়িকভাবে লোকাল ডিভাইসে সংরক্ষিত করা হলো। গিটহাব টোকেন চেক করুন।");
+                localStorage.setItem('locationDatabase', JSON.stringify(db));
+                switchScreen('search-screen', 'nav-search');
+            }
         }
 
-        // ৯. ব্যাকআপ এক্সপোর্ট ও ইম্পোর্ট
-        function exportData() {
-            const blob = new Blob([localStorage.getItem('locationDatabase')], { type: "application/json" });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_backup.json`; a.click();
-        }
-
+        // ১০. লোকাল ফাইল ইম্পোর্ট মেকানিজম
         function handleFileImport(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                let currentDb = JSON.parse(localStorage.getItem('locationDatabase')) || {};
                 let appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
                 
                 if (file.name.endsWith('.json')) {
                     let remoteData = JSON.parse(e.target.result);
                     let extracted = remoteData.locations || remoteData.Locations || remoteData;
-                    Object.assign(currentDb, extracted);
                     Object.assign(appDb, extracted); 
                 }
-                localStorage.setItem('locationDatabase', JSON.stringify(currentDb));
+                
                 localStorage.setItem('appLocalDatabase', JSON.stringify(appDb));
                 showToast(languages[currentLang].importAlert); 
                 updateDataStats(); 
                 loadRecordTable();
             };
             reader.readAsText(file);
+        }
+
+        // ১১. সম্পূর্ণ ক্লাউড ডাটা এক্সপোর্ট
+        function exportData() {
+            const blob = new Blob([localStorage.getItem('locationDatabase')], { type: "application/json" });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_cloud_backup.json`; a.click();
+        }
+
+        // ফিচার ২: শুধুমাত্র লোকাল অ্যাপ ডেটা এক্সপোর্ট লজিক ফাংশন
+        function exportLocalAppEntries() {
+            const localData = localStorage.getItem('appLocalDatabase') || "{}";
+            const blob = new Blob([localData], { type: "application/json" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `only_local_app_backup.json`;
+            a.click();
+            showToast(currentLang === 'en' ? "Local Data Exported!" : (currentLang === 'ar' ? "تم تصدير البيانات المحلية!" : "লোকাল ডেটা এক্সপোর্ট সম্পন্ন হয়েছে!"));
         }
 
         function clearMemory() {
@@ -897,7 +974,7 @@
             }
         }
 
-        // ১০. ভাষা পরিবর্তন অপশন মেকানিজম (Fixed Realtime Rendering)
+        // ১২. ভাষা পরিবর্তন ও রিয়েলটাইম রেন্ডারিং
         function changeLanguage(lang) {
             currentLang = lang; 
             const l = languages[lang] || languages['bn'];
@@ -905,7 +982,6 @@
             document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
             document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
 
-            // Header & Search Screen Text Update
             document.getElementById('app-title').innerText = l.title;
             document.getElementById('lbl-search-title').innerText = l.searchTitle;
             document.getElementById('lbl-search-sub').innerText = lang === 'en' ? "By Subscription Number:" : (lang === 'ar' ? "بواسطة رقم الاشتراك:" : "সাবস্ক্রিপশন নাম্বারের মাধ্যমে:");
@@ -913,14 +989,12 @@
             document.getElementById('search-input').placeholder = l.searchPlaceholder;
             document.getElementById('btn-search').innerText = l.searchBtn;
             
-            // Results Section Text Update
             document.getElementById('lbl-res-num').innerText = l.resNum;
             document.getElementById('lbl-res-loc').innerText = l.resLoc;
             document.getElementById('btn-map').innerText = l.btnMap;
             document.getElementById('btn-copy').innerText = l.btnCopy;
             document.getElementById('btn-share').innerText = l.btnShare;
             
-            // Add Location Screen Text Update
             document.getElementById('lbl-add-title').innerText = l.addTitle;
             document.getElementById('lbl-sub-num-field').innerText = l.subNumField;
             document.getElementById('lbl-station-field').innerText = lang === 'en' ? "Station ID (Digits Only)" : (lang === 'ar' ? "رقم المحطة (أرقام فقط)" : "স্টেশন আইডি (শুধুমাত্র সংখ্যা)");
@@ -928,39 +1002,37 @@
             document.getElementById('btn-current-loc').innerText = l.currentLocBtn;
             document.getElementById('btn-save').innerText = l.saveBtn;
             
-            // Settings Screen Text Update
             document.getElementById('lbl-settings-title').innerText = l.settingsTitle;
             document.getElementById('lbl-git-path-title').innerText = l.gitPathTitle;
             document.getElementById('btn-git-update').innerText = l.btnGitUpdate;
             document.getElementById('lbl-table-search').innerText = l.lblTableSearch;
             document.getElementById('table-search-input').placeholder = l.tableSearchPlaceholder;
             
-            // Table Headers Text Update
             document.getElementById('th-sub').innerText = l.thSub;
             document.getElementById('th-loc').innerText = l.thLoc;
             document.getElementById('th-action').innerText = l.thAction;
             
-            // Device Management Section Text Update
             document.getElementById('lbl-user-manage-title').innerText = l.userManageTitle;
             document.getElementById('th-dev-id').innerText = l.thDevId;
             document.getElementById('th-dev-status').innerText = l.thDevStatus;
             document.getElementById('th-dev-action').innerText = l.thDevAction;
             
-            // Export Buttons Text Update
-            document.getElementById('btn-export').innerText = lang === 'en' ? "📤 Export Backup Data (Full JSON)" : (lang === 'ar' ? "📤 تصدير البيانات الاحتياطية (JSON)" : "📤 ব্যাকআপ ডাটা এক্সপোর্ট (সম্পূর্ণ JSON)");
+            document.getElementById('btn-export').innerText = lang === 'en' ? "📤 Export Backup Data (Full Cloud JSON)" : (lang === 'ar' ? "📤 تصدير البيانات السحابية (JSON)" : "📤 ব্যাকআপ ডাটা এক্সপোর্ট (সম্পূর্ণ ক্লাউড JSON)");
+            document.getElementById('btn-export-local').innerText = l.btnExportLocalText;
             document.getElementById('btn-import-trigger').innerText = lang === 'en' ? "📂 Import Local File (.xlsx / .json)" : (lang === 'ar' ? "📂 استيراد ملف محلي" : "📂 লোকাল ফাইল ইম্পোর্ট (.xlsx / .json)");
             document.getElementById('btn-clear-mem').innerText = lang === 'en' ? "🗑️ Clear All Storage Data" : (lang === 'ar' ? "🗑️ مسح كل البيانات" : "🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন");
 
-            // Navigation Items Text Update
             document.getElementById('nav-search').innerText = l.navSearch;
             document.getElementById('nav-add').innerText = l.navAdd;
             document.getElementById('nav-settings').innerText = l.navSettings;
             
-            // Auth Screen Text Update
             document.getElementById('lbl-auth-title').innerText = l.authTitle;
             document.getElementById('admin-password').placeholder = l.adminPasswordPlace;
             document.getElementById('btn-auth-confirm').innerText = l.authConfirm;
             document.getElementById('btn-auth-cancel').innerText = l.authCancel;
+            
+            // ল্যাঙ্গুয়েজ ট্র্যান্সলেশন ফর ৩D ম্যানুয়াল ম্যাপ লেবেল
+            document.getElementById('lbl-manual-map-title').innerText = l.lblManualMap;
 
             updateDataStats();
             loadRecordTable();
@@ -972,7 +1044,7 @@
             const appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
             
             document.getElementById('stats-box').innerText = `${languages[currentLang].statsText}${Object.keys(db).length.toLocaleString()}${currentLang === 'bn' ? ' টি' : ''}`;
-            document.getElementById('app-stats-box').innerText = currentLang === 'en' ? `📱 App Local Saved Data: ${Object.keys(appDb).length}` : (currentLang === 'ar' ? `📱 بيانات التطبيق المحلية: ${Object.keys(appDb).length}` : `📱 শুধুমাত্র অ্যাপে সেভ করা ডাটা: ${Object.keys(appDb).length} টি`);
+            document.getElementById('app-stats-box').innerText = currentLang === 'en' ? `📱 Local Imported Data: ${Object.keys(appDb).length}` : (currentLang === 'ar' ? `📱 البيانات المستوردة محلياً: ${Object.keys(appDb).length}` : `📱 শুধুমাত্র লোকাল ইম্পোর্ট করা ডাটা: ${Object.keys(appDb).length} টি`);
         }
 
         function loadRecordTable() {
@@ -989,11 +1061,9 @@
         function deleteRecord(key) {
             if (confirm(languages[currentLang].deleteConfirm)) {
                 let db = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-                let appDb = JSON.parse(localStorage.getItem('appLocalDatabase') || '{}');
                 delete db[key]; 
-                delete appDb[key];
                 localStorage.setItem('locationDatabase', JSON.stringify(db));
-                localStorage.setItem('appLocalDatabase', JSON.stringify(appDb));
+                pushToGitHub(db); 
                 showToast(languages[currentLang].deleteAlert); 
                 updateDataStats(); 
                 loadRecordTable();
@@ -1050,8 +1120,17 @@
             if (navigator.geolocation) {
                 showToast(currentLang === 'en' ? "Fetching location..." : "লোকেশন খোঁজা হচ্ছে...");
                 navigator.geolocation.getCurrentPosition(position => {
-                    document.getElementById('sub-location').value = `${position.coords.latitude}, ${position.coords.longitude}`;
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    document.getElementById('sub-location').value = `${lat}, ${lng}`;
                     showToast(currentLang === 'en' ? "Location updated!" : "লোকেশন যুক্ত হয়েছে!");
+                    
+                    // ৩D ম্যাপ মার্কার পজিশনও কারেন্ট লোকেশনে আপডেট হবে
+                    if (pickerMap && pickerMarker) {
+                        pickerMap.setView([lat, lng], 14);
+                        pickerMarker.setLatLng([lat, lng]);
+                    }
                 }, () => {
                     showToast(currentLang === 'en' ? "Failed to get location." : "লোকেশন পেতে ব্যর্থ।");
                 });
