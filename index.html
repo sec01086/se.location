@@ -32,7 +32,6 @@
             transition: all 0.3s ease;
         }
 
-        /* RTL (Right to Left) Specific Styles for Arabic */
         body[dir="rtl"] {
             text-align: right;
         }
@@ -310,6 +309,8 @@
         }
         .badge-active { background-color: #27ae60; }
         .badge-suspended { background-color: #c0392b; }
+        .badge-waiting { background-color: #f39c12; }
+        
         .action-link { color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 12px; font-weight: bold; }
         
         .suspended-screen { 
@@ -473,14 +474,14 @@
             "456.json", "457.json", "458.json", "459.json", "460.json", "461.json", "462.json", "463.json", "464.json", 
             "465.json", "466.json", "467.json", "468.json", "469.json", "470.json", "471.json", "474.json", "475.json", 
             "476.json", "477.json", "478.json", "479.json", "480.json", "481.json", "482.json", "483.json", "484.json", 
-            "485.json", "486.json", "487.json", "497.json", "498.json", "499.json", "601.json", "602.json", "603.json", 
-            "604.json", "605.json", "606.json", "607.json", "608.json", "609.json", "610.json", "611.json", "612.json", 
-            "613.json", "614.json", "616.json", "617.json", "618.json", "619.json", "620.json", "621.json", "622.json", 
-            "623.json", "624.json", "625.json", "626.json", "627.json", "628.json", "629.json", "640.json", "641.json", 
-            "642.json", "643.json", "644.json", "645.json", "646.json", "647.json", "648.json", "649.json", "650.json", 
-            "651.json", "652.json", "653.json", "654.json", "657.json", "699.json", "749.json", "750.json", "808.json", 
-            "884.json", "900.json", "906.json", "907.json", "908.json", "911.json", "912.json", "913.json", "920.json", 
-            "941.json", "945.json", "946.json", "950.json", "951.json"
+            "485.json", "486.json", "487.json", "490.json", "494.json", "495.json", "497.json", "498.json", "499.json", 
+            "601.json", "602.json", "603.json", "604.json", "605.json", "606.json", "607.json", "608.json", "609.json", 
+            "610.json", "611.json", "612.json", "613.json", "614.json", "616.json", "617.json", "618.json", "619.json", 
+            "620.json", "621.json", "622.json", "623.json", "624.json", "625.json", "626.json", "627.json", "628.json", 
+            "640.json", "641.json", "642.json", "643.json", "644.json", "645.json", "646.json", "647.json", "648.json", 
+            "649.json", "650.json", "651.json", "652.json", "653.json", "654.json", "657.json", "699.json", "749.json", 
+            "750.json", "808.json", "884.json", "900.json", "906.json", "907.json", "908.json", "911.json", "912.json", 
+            "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json"
         ];
         
         let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/sec01086/se.location/main/";
@@ -501,7 +502,7 @@
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
                 cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "আপনার এই ডিভাইসটি সাসপেন্ড করা হয়েছে!", blockDesc: "দয়া করে আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।",
-                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিвайস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
+                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
             },
             en: {
                 title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
@@ -546,7 +547,6 @@
         if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
         if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
 
-        // নতুন ডিভাইসের জন্য অটোমেটিক 'Waiting' স্ট্যাটাস সেটআপ
         function generateDeviceFingerprint() {
             let id = localStorage.getItem('myTrackerDeviceId');
             if (!id) {
@@ -584,7 +584,6 @@
             }
         }
 
-        // ব্যাকগ্রাউন্ড গিটহাব ক্লাউড ডাটা সিঙ্কিং মেকানিজম
         async function syncWithGitHub() {
             const l = languages[currentLang];
             showToast(l.cloudSyncing);
@@ -604,10 +603,8 @@
                     let response = await fetch(githubBaseUrl + part + '?t=' + new Date().getTime());
                     if (response.ok) {
                         let remoteData = await response.json();
-                        
                         if (remoteData) {
                             let extractedData = remoteData.locations || remoteData.Locations || remoteData;
-                            
                             if (Array.isArray(extractedData)) {
                                 extractedData.forEach(item => {
                                     if (item.subscription && item.location) {
@@ -717,17 +714,18 @@
         }
 
         function switchScreen(screenId, navId) {
-            checkSuspensionStatus();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             if(navId) document.getElementById(navId).classList.add('active');
+            
             if (screenId === 'settings-screen') {
                 document.getElementById('github-url-input').value = githubBaseUrl;
                 updateDataStats(); 
                 loadRecordTable(); 
-                loadUserControlPanel();
+                loadUserControlPanel(); // এখানে রিয়েল টাইম রিকোয়েস্ট লোড করবে
             }
+            checkSuspensionStatus();
         }
 
         function handleSettingsNavigation() { 
@@ -793,23 +791,30 @@
             let tbody = document.getElementById('user-table-body');
             tbody.innerHTML = "";
             
+            // যদি কারেন্ট ডিভাইস ডাটাবেজে না থাকে তবে ফোর্স-অ্যাড করা হচ্ছে যাতে সেটিংস-এ সবসময় রিকোয়েস্ট দেখা যায়
+            if (myDeviceId && !userDb[myDeviceId]) {
+                userDb[myDeviceId] = "Waiting";
+                localStorage.setItem('userControlDatabase', JSON.stringify(userDb));
+            }
+            
             Object.keys(userDb).forEach(id => {
                 let status = userDb[id];
                 let isMe = (id === myDeviceId);
                 
                 let badgeClass = "badge-suspended";
                 if (status === "Active") badgeClass = "badge-active";
+                if (status === "Waiting") badgeClass = "badge-waiting"; // অপেক্ষারত ডিভাইসের জন্য হলুদ ব্যাজ
                 
                 let actionText = "";
                 if (status === "Active") {
                     actionText = (currentLang === 'ar' ? "تعليق" : (currentLang === 'en' ? "Suspend" : "সাসপেন্ড"));
                 } else {
-                    actionText = (currentLang === 'ar' ? "تنشيط" : (currentLang === 'en' ? "Activate" : "অ্যাক্টিভ"));
+                    actionText = (currentLang === 'ar' ? "تنشيط" : (currentLang === 'en' ? "Activate" : "অ্যাক্টিভ করুন"));
                 }
                 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${id} ${isMe ? '<small style="color:blue">(You)</small>' : ''}</td>
+                    <td><span style="font-family:monospace; font-size:11px;">${id}</span> ${isMe ? '<small style="color:#2b579a; font-weight:bold;">(You)</small>' : ''}</td>
                     <td><span class="badge ${badgeClass}">${status}</span></td>
                     <td><span class="action-link" onclick="toggleDeviceStatus('${id}')">${actionText}</span></td>
                 `;
