@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Tracker Pro (Verified Build)</title>
+    <title>Subscription Tracker Pro (CORS-Fixed Build)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -404,8 +404,8 @@
                 <div class="stats-box" id="stats-box">📊 মোট রেকর্ডকৃত ডাটা: 0 টি</div>
 
                 <div style="background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color)">
-                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Raw URL Base Path</h4>
-                    <input type="text" id="github-url-input" placeholder="https://raw.githubusercontent.com/username/repo/main/" style="font-size:12px; padding:8px;">
+                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Base URL Path (CORS-Safe)</h4>
+                    <input type="text" id="github-url-input" placeholder="https://sec01086.github.io/se.location/" style="font-size:12px; padding:8px;">
                     <button class="btn" style="padding:6px; font-size:12px; margin-top:5px;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব লিংক আপডেট করুন</button>
                 </div>
 
@@ -481,7 +481,8 @@
             "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json", "629.json"
         ];
         
-        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://raw.githubusercontent.com/sec01086/se.location/main/";
+        // ডিফল্ট লিংক হিসেবে এখন আপনার GitHub Pages লিংকটি সেট করা হয়েছে যা CORS ব্লকিং মুক্ত
+        let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://sec01086.github.io/se.location/";
         let currentLang = 'bn';
         let isAdminAuthenticated = false;
         let myDeviceId = "";
@@ -502,7 +503,7 @@
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
                 cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "এই ডিভাইসটি এখনো একটিভ করা হয়নি!", blockDesc: "নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।",
-                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
+                gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
             },
             en: {
                 title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
@@ -519,7 +520,7 @@
                 userManageTitle: "👥 Device Control", deleteBtn: "Delete", deleteConfirm: "Are you sure you want to delete?", deleteAlert: "Deleted!",
                 cloudReady: "☁️ GitHub Cloud DB Ready", cloudSyncing: "⏳ Syncing data...", cloudSuccess: "✅ Sync Successful!", cloudFailed: "❌ Sync Failed! Check Link.", cloudStatusUp: "☁️ GitHub Cloud: Up-to-date", cloudStatusFail: "⚠️ Cloud Sync Failed",
                 btnSync: "🔄 Sync", blockTitle: "Device is not activated yet!", blockDesc: "Click the button below and input the admin password to activate this device.",
-                gitPathTitle: "⚙️ GitHub Raw URL Base Path", btnGitUpdate: "💾 Update GitHub Link", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action"
+                gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 Update GitHub Link", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action"
             },
             ar: {
                 title: "متابع الاشتراكات برو", searchTitle: "البحث عن موقع الاشتراك", searchBtn: "🔍 بحث",
@@ -536,14 +537,14 @@
                 userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف؟", deleteAlert: "تم حذف البيانات!",
                 cloudReady: "☁️ قاعدة بيانات GitHub جاهزة", cloudSyncing: "⏳ جاري مزامنة البيانات...", cloudSuccess: "✅ تمت المزامنة بنجاح!", cloudFailed: "❌ فشلت المزامنة! تحقق من الرابط.", cloudStatusUp: "☁️ سحابة GitHub: محدثة", cloudStatusFail: "⚠️ فشلت المزامنة السحابية",
                 btnSync: "🔄 مزامنة", blockTitle: "تم تعليق جهازك هذا!", blockDesc: "يرجى الاتصال بمسؤول النظام الخاص بك.",
-                gitPathTitle: "⚙️ مسار عنوان URL الخام لـ GitHub", btnGitUpdate: "💾 تحديث رابط GitHub", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء"
+                gitPathTitle: "⚙️ مسار عنوان URL لـ GitHub", btnGitUpdate: "💾 تحديث رابط GitHub", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء"
             }
         };
 
         if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
         if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
 
-        // ১. স্থানীয় ডিভাইস ফিঙ্গারপ্রিন্ট লজিক
+        // ১. ডিভাইস আইডেন্টিটি ম্যানেজার
         function generateDeviceFingerprint() {
             let id = localStorage.getItem('myTrackerDeviceId');
             if (!id) {
@@ -591,7 +592,7 @@
             switchScreen('search-screen', 'nav-search');
         }
 
-        // ২. সিকিউর স্ক্রিন ট্রিপার ও অটো-লক লজিক
+        // ২. সিকিউর সেটিংস ট্রিপার ও অটো-লক
         function switchScreen(screenId, navId) {
             if (document.getElementById('settings-screen').classList.contains('active') && screenId !== 'settings-screen') {
                 isAdminAuthenticated = false; 
@@ -628,7 +629,7 @@
             }
         }
 
-        // ৩. ডিভাইস কন্ট্রোল প্যানেল রেন্ডারার
+        // ৩. ডিভাইস কন্ট্রোল প্যানেল
         function loadUserControlPanel() {
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
             let tbody = document.getElementById('user-table-body');
@@ -676,18 +677,19 @@
             checkSuspensionStatus();
         }
 
-        // ৪. গিটহাব ক্লাউড সিঙ্ক কোর ইঞ্জিন
+        // ৪. আল্ট্রা-ফাস্ট এবং CORS-সেফ গিটহাব সিঙ্ক মেকানিজম (নতুন লজিক)
         async function syncWithGitHub() {
             const l = languages[currentLang] || languages['bn'];
             showToast(l.cloudSyncing);
             document.getElementById('cloud-status').innerText = l.cloudSyncing;
             
             let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
-            let successCount = 0;
-
-            for (let part of githubParts) {
+            
+            // সব ফাইল একসাথে প্যারালালি প্রসেস করার জন্য Promise.all লজিক ব্যবহার (যাতে লুপ আটকে না থাকে)
+            const fetchPromises = githubParts.map(async (part) => {
                 try {
-                    let response = await fetch(githubBaseUrl + part + '?t=' + new Date().getTime());
+                    let fullUrl = githubBaseUrl + part + '?t=' + new Date().getTime();
+                    let response = await fetch(fullUrl);
                     if (response.ok) {
                         let remoteData = await response.json();
                         if (remoteData) {
@@ -700,11 +702,27 @@
                             } else if (typeof extractedData === 'object') {
                                 Object.assign(localDb, extractedData);
                             }
-                            successCount++;
+                            return true;
                         }
                     }
-                } catch (e) { console.error("Error loading part: " + part, e); }
-            }
+                } catch (e) { 
+                    console.warn("CORS/Fetch error on part: " + part + " - Retrying with raw backup fallback...");
+                    // গিটহাব পেজেস ফেল করলে অটোমেটিক র-ইউআরএল ব্যাকআপ ট্রাই করবে
+                    try {
+                        let fallbackUrl = `https://raw.githubusercontent.com/sec01086/se.location/main/${part}`;
+                        let res = await fetch(fallbackUrl);
+                        if(res.ok) {
+                            let data = await res.json();
+                            Object.assign(localDb, data.locations || data);
+                            return true;
+                        }
+                    } catch(err) { console.error("Fallback also failed for: " + part); }
+                }
+                return false;
+            });
+
+            const results = await Promise.all(fetchPromises);
+            const successCount = results.filter(Boolean).length;
 
             localStorage.setItem('locationDatabase', JSON.stringify(localDb));
             updateDataStats();
@@ -728,7 +746,7 @@
             }
         }
 
-        // ৫. বহুভাষিক অনুবাদ অনুবাদ লজিক
+        // 5. ল্যাঙ্গুয়েজ ও কোর অপারেশন
         function changeLanguage(lang) {
             currentLang = lang; 
             const l = languages[lang] || languages['bn'];
@@ -827,7 +845,6 @@
                 document.getElementById('res-loc').innerText = currentActiveLocation;
                 document.getElementById('result-box').style.display = 'block';
                 document.getElementById('not-found').style.display = 'none';
-                // ফিক্সড গুগল ম্যাপস আইফ্রেম এম্বেড ইউআরএল
                 document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(currentActiveLocation)}&t=m&z=14&output=embed`;
                 document.getElementById('map-area').style.display = 'block';
             } else {
