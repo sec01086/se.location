@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscription Tracker Pro (Live Sync Build)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <style>
         :root {
             --primary-color: #2b579a;
@@ -191,6 +193,16 @@
             border: none;
         }
 
+        /* Picker Map Styling */
+        .picker-map-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+            z-index: 1;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -374,14 +386,20 @@
             <div class="card">
                 <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন (লোকাল)</h2>
                 <div class="input-group">
-                    <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)</label>
+                    <label id="lbl-sub-num-field">সাবক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)</label>
                     <input type="number" id="sub-number" placeholder="উদা: 12301001" pattern="[0-9]*" inputmode="numeric">
                 </div>
                 <div class="input-group">
                     <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
-                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 23.8103, 90.4125)">
+                    <input type="text" id="sub-location" placeholder="ঠিকানা বা ম্যাপ কোঅর্ডিনেট (যেমন: 24.2505, 44.2004)">
                 </div>
                 <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
+                
+                <div style="margin-top: 15px;">
+                    <label id="lbl-map-picker-help" style="font-size: 13px; font-weight: bold; display:block; margin-bottom:5px; color: var(--primary-color);">🗺️ ম্যাপ থেকে ম্যানুয়ালি পিন সিলেক্ট করুন:</label>
+                    <div id="picker-map" class="picker-map-container"></div>
+                </div>
+
                 <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveData()">💾 লোকেশন সেভ করুন</button>
             </div>
         </div>
@@ -481,11 +499,16 @@
             "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json"
         ];
         
-        // ডিফল্ট লিংক হিসেবে GitHub Pages সেট করা হয়েছে যা CORS ব্লকিং মুক্ত
         let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://sec01086.github.io/se.location/";
         let currentLang = 'bn';
         let isAdminAuthenticated = false;
         let myDeviceId = "";
+        
+        // Leaflet Picker Map Instance Global Variables
+        let pickerMap = null;
+        let pickerMarker = null;
+        const defaultLat = 24.2505; // Default Centered Coordinates
+        const defaultLng = 44.2004;
 
         const languages = {
             bn: {
@@ -501,9 +524,10 @@
                 statsText: "📊 মোট রেকর্ডকৃত ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে...",
                 lblTableSearch: "🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন", thAction: "অ্যাকশন",
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
-                cloudReady: "☁️ গิตহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
+                cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "এই ডিভাইসটি এখনো একটিভ করা হয়নি!", blockDesc: "নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।",
-                gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
+                gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন",
+                mapPickerHelp: "🗺️ ম্যাপ থেকে ম্যানুয়ালি পিন সিলেক্ট করুন:"
             },
             en: {
                 title: "Subscription Tracker Pro", searchTitle: "Find Subscription Location", searchBtn: "🔍 Search",
@@ -520,7 +544,8 @@
                 userManageTitle: "👥 Device Control", deleteBtn: "Delete", deleteConfirm: "Are you sure you want to delete?", deleteAlert: "Deleted!",
                 cloudReady: "☁️ GitHub Cloud DB Ready", cloudSyncing: "⏳ Syncing data...", cloudSuccess: "✅ Sync Successful!", cloudFailed: "❌ Sync Failed! Check Link.", cloudStatusUp: "☁️ GitHub Cloud: Up-to-date", cloudStatusFail: "⚠️ Cloud Sync Failed",
                 btnSync: "🔄 Sync", blockTitle: "Device is not activated yet!", blockDesc: "Click the button below and input the admin password to activate this device.",
-                gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 Update GitHub Link", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action"
+                gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 Update GitHub Link", thDevId: "Device ID", thDevStatus: "Status", thDevAction: "Action",
+                mapPickerHelp: "🗺️ Manually select pin from Map:"
             },
             ar: {
                 title: "متابع الاشتراكات برو", searchTitle: "البحث عن موقع الاشتراك", searchBtn: "🔍 بحث",
@@ -534,10 +559,11 @@
                 authConfirm: "🔓 الدخول", authCancel: "إلغاء", wrongPass: "كلمة المرور خاطئة!",
                 statsText: "📊 إجمالي السجلات: ", tableSearchPlaceholder: "ابحث برقم الاشتراك...",
                 lblTableSearch: "🔎 بحث مباشر في السجلات المحفوظة", thSub: "رقم الاشتراك", thLoc: "الموقع", thAction: "الإجراء",
-                userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف？", deleteAlert: "تم حذف البيانات!",
+                userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف؟", deleteAlert: "تم حذف البيانات!",
                 cloudReady: "☁️ قاعدة بيانات GitHub جاهزة", cloudSyncing: "⏳ جاري مزامنة البيانات...", cloudSuccess: "✅ تمت المزامنة بنجاح!", cloudFailed: "❌ فشلت المزامنة! تحقق من الرابط.", cloudStatusUp: "☁️ سحابة GitHub: محدثة", cloudStatusFail: "⚠️ فشلت المزامنة السحابية",
                 btnSync: "🔄 مزامنة", blockTitle: "تم تعليق جهازك هذا!", blockDesc: "يرجى الاتصال بمسؤول النظام الخاص بك.",
-                gitPathTitle: "⚙️ مسار عنوان URL لـ GitHub", btnGitUpdate: "💾 تحديث رابط GitHub", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء"
+                gitPathTitle: "⚙️ مسار عنوان URL لـ GitHub", btnGitUpdate: "💾 تحديث رابط GitHub", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء",
+                mapPickerHelp: "🗺️ حدد الدبوس يدويًا من الخريطة:"
             }
         };
 
@@ -609,6 +635,13 @@
                 loadRecordTable(); 
                 loadUserControlPanel();
             }
+
+            // যখন "নতুন সেট" স্ক্রিন অ্যাক্টিভ হবে, তখন লিফলেট ম্যাপ লোড ও রিফ্রেশ করা হবে
+            if (screenId === 'add-screen') {
+                setTimeout(() => {
+                    initPickerMap();
+                }, 200);
+            }
         }
 
         function handleSettingsNavigation() { 
@@ -629,7 +662,33 @@
             }
         }
 
-        // ৩. ডিভাইস কন্ট্রোল প্যানেল
+        // ৩. ইন্টারেক্টিভ ম্যানুয়াল ম্যাপ পিকার ইনিশিয়ালাইজেশন
+        function initPickerMap() {
+            if (pickerMap !== null) {
+                pickerMap.invalidateSize();
+                return; 
+            }
+
+            pickerMap = L.map('picker-map').setView([defaultLat, defaultLng], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(pickerMap);
+
+            pickerMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(pickerMap);
+
+            pickerMarker.on('dragend', function (e) {
+                let position = pickerMarker.getLatLng();
+                document.getElementById('sub-location').value = `${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`;
+            });
+
+            pickerMap.on('click', function (e) {
+                pickerMarker.setLatLng(e.latlng);
+                document.getElementById('sub-location').value = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+            });
+        }
+
+        // ডিভাইস কন্ট্রোল প্যানেল
         function loadUserControlPanel() {
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
             let tbody = document.getElementById('user-table-body');
@@ -686,7 +745,6 @@
             let completedFiles = 0;
             let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
             
-            // সিঙ্ক শুরুর মেসেজ লোড
             statusText.innerHTML = `${l.cloudSyncing} (<span id="sync-count">0</span>/${totalFiles})`;
             showToast(l.cloudSyncing);
             
@@ -723,7 +781,6 @@
                     } catch(err) { console.error("All fallback failed for: " + part); }
                 }
                 
-                // প্রতিটি ফাইল শেষ হওয়ার সাথে সাথে ইন্টারফেসে প্রোগ্রেস বৃদ্ধি পাবে
                 completedFiles++;
                 const countEl = document.getElementById('sync-count');
                 if (countEl) {
@@ -739,7 +796,6 @@
             localStorage.setItem('locationDatabase', JSON.stringify(localDb));
             updateDataStats();
             
-            // ফাইনাল রেজাল্ট আউটপুট
             if (successCount > 0) {
                 showToast(`${l.cloudSuccess} (${successCount}/${totalFiles})`);
                 statusText.innerHTML = `✅ সফলভাবে সিঙ্ক হয়েছে! (${successCount}/${totalFiles})`;
@@ -801,6 +857,7 @@
             document.getElementById('th-dev-id').innerText = l.thDevId;
             document.getElementById('th-dev-status').innerText = l.thDevStatus;
             document.getElementById('th-dev-action').innerText = l.thDevAction;
+            document.getElementById('lbl-map-picker-help').innerText = l.mapPickerHelp;
 
             updateDataStats();
         }
@@ -867,21 +924,44 @@
             }
         }
 
+        // আপডেট করা সেভ ডাটা ফাংশন: সেভ হওয়ার পর ঘর খালি হবে এবং ম্যাপ মার্কার রিসেট হবে
         function saveData() {
-            const num = document.getElementById('sub-number').value.trim();
-            const loc = document.getElementById('sub-location').value.trim();
+            const numField = document.getElementById('sub-number');
+            const locField = document.getElementById('sub-location');
+            const num = numField.value.trim();
+            const loc = locField.value.trim();
+            
             if (!num || !loc) { showToast(languages[currentLang].emptyAlert); return; }
+            
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
             db[num] = loc; 
             localStorage.setItem('locationDatabase', JSON.stringify(db));
             showToast(languages[currentLang].saveAlert); 
+            
+            // ঘরগুলো খালি করা হলো
+            numField.value = "";
+            locField.value = "";
+            
+            // ম্যাপের পিকার মার্কারটি পুনরায় ডিফল্ট পজিশনে ফিরিয়ে আনা হলো
+            if (pickerMap && pickerMarker) {
+                pickerMarker.setLatLng([defaultLat, defaultLng]);
+                pickerMap.setView([defaultLat, defaultLng], 6);
+            }
+
             switchScreen('search-screen', 'nav-search');
         }
 
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
-                    document.getElementById('sub-location').value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    document.getElementById('sub-location').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    
+                    if (pickerMap && pickerMarker) {
+                        pickerMarker.setLatLng([lat, lng]);
+                        pickerMap.setView([lat, lng], 14);
+                    }
                 });
             }
         }
