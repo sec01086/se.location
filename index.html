@@ -547,7 +547,7 @@
         if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
         if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
 
-        // ডিভাইস ফিঙ্গারপ্রিন্ট জেনারেশন ও কন্ট্রোল লজিক
+                // নতুন ডিভাইসের জন্য অটোমেটিক 'Waiting' এবং রেস্ট্রিকশন লজিক
         function generateDeviceFingerprint() {
             let id = localStorage.getItem('myTrackerDeviceId');
             if (!id) {
@@ -555,9 +555,12 @@
                 localStorage.setItem('myTrackerDeviceId', id);
             }
             myDeviceId = id;
+            
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
+            
+            // নতুন ডিভাইস হলে ডিফল্টভাবে স্ট্যাটাস 'Waiting' সেট হবে
             if (!userDb[id]) { 
-                userDb[id] = "Active"; 
+                userDb[id] = "Waiting"; 
                 localStorage.setItem('userControlDatabase', JSON.stringify(userDb)); 
             }
             checkSuspensionStatus();
@@ -565,8 +568,21 @@
 
         function checkSuspensionStatus() {
             let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
-            if (userDb[myDeviceId] === "Suspended") {
+            let currentStatus = userDb[myDeviceId];
+
+            // ডিভাইস যদি Active না থাকে (অর্থাৎ Suspended বা Waiting হয়), তবে স্ক্রিন ব্লক থাকবে
+            if (currentStatus === "Suspended" || currentStatus === "Waiting") {
                 document.getElementById('block-screen').style.display = "flex";
+                
+                // স্ক্রিনে দেখানোর টেক্সট ল্যাঙ্গুয়েজ অনুযায়ী ডাইনামিক করা হলো
+                if (currentStatus === "Waiting") {
+                    document.getElementById('lbl-block-title').innerText = currentLang === 'en' ? "⏳ Access Pending" : (currentLang === 'ar' ? "⏳ في انتظار التفعيل" : "⏳ ডিভাইসটি অনুমোদনের অপেক্ষায় আছে!");
+                    document.getElementById('lbl-block-desc').innerText = currentLang === 'en' ? "Please wait until the admin approves your device." : (currentLang === 'ar' ? "يرجى الانتظار حتى يوافق المسؤول على جهازك." : "আপনার ডিভাইস আইডিটি এডমিন প্যানেল থেকে অ্যাক্টিভ করার জন্য অনুরোধ করুন।");
+                } else {
+                    const l = languages[currentLang];
+                    document.getElementById('lbl-block-title').innerText = l.blockTitle;
+                    document.getElementById('lbl-block-desc').innerText = l.blockDesc;
+                }
             } else {
                 document.getElementById('block-screen').style.display = "none";
             }
