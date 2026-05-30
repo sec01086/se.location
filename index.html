@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Tracker Pro (CORS-Fixed Build)</title>
+    <title>Subscription Tracker Pro (Live Sync Build)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -478,10 +478,10 @@
             "640.json", "641.json", "642.json", "643.json", "644.json", "645.json", "646.json", "647.json", "648.json", 
             "649.json", "650.json", "651.json", "652.json", "653.json", "654.json", "657.json", "699.json", "749.json", 
             "750.json", "808.json", "884.json", "900.json", "906.json", "907.json", "908.json", "911.json", "912.json", 
-            "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json", "629.json"
+            "913.json", "920.json", "941.json", "945.json", "946.json", "950.json", "951.json"
         ];
         
-        // ডিফল্ট লিংক হিসেবে এখন আপনার GitHub Pages লিংকটি সেট করা হয়েছে যা CORS ব্লকিং মুক্ত
+        // ডিফল্ট লিংক হিসেবে GitHub Pages সেট করা হয়েছে যা CORS ব্লকিং মুক্ত
         let githubBaseUrl = localStorage.getItem('githubBaseUrl') || "https://sec01086.github.io/se.location/";
         let currentLang = 'bn';
         let isAdminAuthenticated = false;
@@ -501,7 +501,7 @@
                 statsText: "📊 মোট রেকর্ডকৃত ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে...",
                 lblTableSearch: "🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন", thAction: "অ্যাকশন",
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
-                cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
+                cloudReady: "☁️ গิตহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "এই ডিভাইসটি এখনো একটিভ করা হয়নি!", blockDesc: "নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।",
                 gitPathTitle: "⚙️ GitHub Base URL Path (CORS-Safe)", btnGitUpdate: "💾 গিটহাব লিংক আপডেট করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন"
             },
@@ -534,7 +534,7 @@
                 authConfirm: "🔓 الدخول", authCancel: "إلغاء", wrongPass: "كلمة المرور خاطئة!",
                 statsText: "📊 إجمالي السجلات: ", tableSearchPlaceholder: "ابحث برقم الاشتراك...",
                 lblTableSearch: "🔎 بحث مباشر في السجلات المحفوظة", thSub: "رقم الاشتراك", thLoc: "الموقع", thAction: "الإجراء",
-                userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف؟", deleteAlert: "تم حذف البيانات!",
+                userManageTitle: "👥 التحكم في الأجهزة", deleteBtn: "حذف", deleteConfirm: "هل أنت متأكد من الحذف？", deleteAlert: "تم حذف البيانات!",
                 cloudReady: "☁️ قاعدة بيانات GitHub جاهزة", cloudSyncing: "⏳ جاري مزامنة البيانات...", cloudSuccess: "✅ تمت المزامنة بنجاح!", cloudFailed: "❌ فشلت المزامنة! تحقق من الرابط.", cloudStatusUp: "☁️ سحابة GitHub: محدثة", cloudStatusFail: "⚠️ فشلت المزامنة السحابية",
                 btnSync: "🔄 مزامنة", blockTitle: "تم تعليق جهازك هذا!", blockDesc: "يرجى الاتصال بمسؤول النظام الخاص بك.",
                 gitPathTitle: "⚙️ مسار عنوان URL لـ GitHub", btnGitUpdate: "💾 تحديث رابط GitHub", thDevId: "معرف الجهاز", thDevStatus: "الحالة", thDevAction: "الإجراء"
@@ -592,7 +592,7 @@
             switchScreen('search-screen', 'nav-search');
         }
 
-        // ২. সিকিউর সেটিংস ট্রিপার ও অটো-লক
+        // ২. স্ক্রিন নেভিগেশন ও অটো-লক কন্ট্রোল
         function switchScreen(screenId, navId) {
             if (document.getElementById('settings-screen').classList.contains('active') && screenId !== 'settings-screen') {
                 isAdminAuthenticated = false; 
@@ -677,16 +677,21 @@
             checkSuspensionStatus();
         }
 
-        // ৪. আল্ট্রা-ফাস্ট এবং CORS-সেফ গিটহাব সিঙ্ক মেকানিজম (নতুন লজিক)
+        // ৪. লাইভ ট্র্যাকিং কাউন্টার সহ আল্ট্রা-ফাস্ট গিটহাব সিঙ্ক মেকানিজম
         async function syncWithGitHub() {
             const l = languages[currentLang] || languages['bn'];
-            showToast(l.cloudSyncing);
-            document.getElementById('cloud-status').innerText = l.cloudSyncing;
+            const statusText = document.getElementById('cloud-status');
+            const totalFiles = githubParts.length;
             
+            let completedFiles = 0;
             let localDb = JSON.parse(localStorage.getItem('locationDatabase') || '{}');
             
-            // সব ফাইল একসাথে প্যারালালি প্রসেস করার জন্য Promise.all লজিক ব্যবহার (যাতে লুপ আটকে না থাকে)
+            // সিঙ্ক শুরুর মেসেজ লোড
+            statusText.innerHTML = `${l.cloudSyncing} (<span id="sync-count">0</span>/${totalFiles})`;
+            showToast(l.cloudSyncing);
+            
             const fetchPromises = githubParts.map(async (part) => {
+                let isSuccess = false;
                 try {
                     let fullUrl = githubBaseUrl + part + '?t=' + new Date().getTime();
                     let response = await fetch(fullUrl);
@@ -702,23 +707,30 @@
                             } else if (typeof extractedData === 'object') {
                                 Object.assign(localDb, extractedData);
                             }
-                            return true;
+                            isSuccess = true;
                         }
                     }
                 } catch (e) { 
-                    console.warn("CORS/Fetch error on part: " + part + " - Retrying with raw backup fallback...");
-                    // গিটহাব পেজেস ফেল করলে অটোমেটিক র-ইউআরএল ব্যাকআপ ট্রাই করবে
+                    console.warn("Retrying fallback for: " + part);
                     try {
                         let fallbackUrl = `https://raw.githubusercontent.com/sec01086/se.location/main/${part}`;
                         let res = await fetch(fallbackUrl);
                         if(res.ok) {
                             let data = await res.json();
                             Object.assign(localDb, data.locations || data);
-                            return true;
+                            isSuccess = true;
                         }
-                    } catch(err) { console.error("Fallback also failed for: " + part); }
+                    } catch(err) { console.error("All fallback failed for: " + part); }
                 }
-                return false;
+                
+                // প্রতিটি ফাইল শেষ হওয়ার সাথে সাথে ইন্টারফেসে প্রোগ্রেস বৃদ্ধি পাবে
+                completedFiles++;
+                const countEl = document.getElementById('sync-count');
+                if (countEl) {
+                    countEl.innerText = completedFiles;
+                }
+                
+                return isSuccess;
             });
 
             const results = await Promise.all(fetchPromises);
@@ -727,12 +739,13 @@
             localStorage.setItem('locationDatabase', JSON.stringify(localDb));
             updateDataStats();
             
+            // ফাইনাল রেজাল্ট আউটপুট
             if (successCount > 0) {
-                showToast(`${l.cloudSuccess} (${successCount}/${githubParts.length} Files)`);
-                document.getElementById('cloud-status').innerText = l.cloudStatusUp;
+                showToast(`${l.cloudSuccess} (${successCount}/${totalFiles})`);
+                statusText.innerHTML = `✅ সফলভাবে সিঙ্ক হয়েছে! (${successCount}/${totalFiles})`;
             } else {
                 showToast(l.cloudFailed);
-                document.getElementById('cloud-status').innerText = l.cloudStatusFail;
+                statusText.innerText = l.cloudStatusFail;
             }
         }
 
@@ -746,7 +759,7 @@
             }
         }
 
-        // 5. ল্যাঙ্গুয়েজ ও কোর অপারেশন
+        // ৫. মাল্টি ল্যাঙ্গুয়েজ ও লোকাল কোর অপারেশন
         function changeLanguage(lang) {
             currentLang = lang; 
             const l = languages[lang] || languages['bn'];
