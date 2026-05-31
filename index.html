@@ -564,6 +564,78 @@
         let pickerMap;
         let pickerMarker;
 
+        // IndexedDB ইনিশিয়ালাইজেশন
+        let dbInstance = null;
+        const dbName = "SubscriptionTrackerDB";
+        const storeName = "localDataStore";
+
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = function(e) {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains(storeName)) {
+                        db.createObjectStore(storeName);
+                    }
+                };
+                request.onsuccess = function(e) {
+                    dbInstance = e.target.result;
+                    resolve(dbInstance);
+                };
+                request.onerror = function(e) {
+                    reject("IndexedDB Open Error");
+                };
+            });
+        }
+
+        // IndexedDB অপারেশনস হেল্পার ফাংশন
+        function getIndexedDBData(key) {
+            return new Promise((resolve) => {
+                if (!dbInstance) { resolve(null); return; }
+                const transaction = dbInstance.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.get(key);
+                request.onsuccess = function() { resolve(request.result || null); };
+                request.onerror = function() { resolve(null); };
+            });
+        }
+
+        function getAllIndexedDBKeys() {
+            return new Promise((resolve) => {
+                if (!dbInstance) { resolve([]); return; }
+                const transaction = dbInstance.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.getAllKeys();
+                request.onsuccess = function() { resolve(request.result || []); };
+                request.onerror = function() { resolve([]); };
+            });
+        }
+
+        function saveBulkIndexedDB(dataObject) {
+            return new Promise((resolve, reject) => {
+                if (!dbInstance) { reject("DB not initialized"); return; }
+                const transaction = dbInstance.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                
+                Object.keys(dataObject).forEach(key => {
+                    store.put(dataObject[key], key);
+                });
+
+                transaction.oncomplete = function() { resolve(true); };
+                transaction.onerror = function() { reject("Bulk Write Error"); };
+            });
+        }
+
+        function clearIndexedDB() {
+            return new Promise((resolve) => {
+                if (!dbInstance) { resolve(false); return; }
+                const transaction = dbInstance.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.clear();
+                request.onsuccess = function() { resolve(true); };
+            });
+        }
+
         const languages = {
             bn: {
                 title: "Subscription Tracker Pro", searchTitle: "সাবস্ক্রিপশন লোকেশন খুঁজুন", searchBtn: "🔍 সার্চ করুন",
@@ -575,10 +647,10 @@
                 copyAlert: "লোকেশন কপি করা হয়েছে!", clearAlert: "সব ডাটা মুছে ফেলা হয়েছে!", importAlert: "লোকাল ডিভাইসে ডাটা সফলভাবে ইম্পোর্ট হয়েছে! (অনলাইনে যাবে না)",
                 invalidAlert: "ভুল ফাইল ফরম্যাট!", authTitle: "🔐 Admin Verification", adminPasswordPlace: "পাসওয়ার্ড লিখুন...",
                 authConfirm: "🔓 প্রবেশ করুন", authCancel: "বাতিল করুন", wrongPass: "ভুল পাসওয়ার্ড!",
-                statsText: "📊 মোট গ্লোবাল ক্লাউড ডাটা: ", tableSearchPlaceholder: "সাবস্ক্রিপশন বা স্টেশন দিয়ে...",
+                statsText: "📊 মোট গ্লোবাল ক্লাউড ডাটা: ", tableSearchPlaceholder: "Search by subscription or station...",
                 lblTableSearch: "🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ", thSub: "সাবস্ক্রিপশন নং", thLoc: "লোকেশন", thAction: "অ্যাকশন",
                 userManageTitle: "👥 ডিভাইস কন্ট্রোল", deleteBtn: "ডিলিট", deleteConfirm: "আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert: "ডাটা ডিলিট করা হয়েছে!",
-                cloudReady: "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! টোকেন বা রেপো লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
+                cloudReady: "☁️ গิตহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing: "⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess: "✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed: "❌ সিঙ্ক ব্যর্থ! টোকেন বা রেপো লিংক চেক করুন।", cloudStatusUp: "☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail: "⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
                 btnSync: "🔄 সিঙ্ক", blockTitle: "এই ডিভাইসটি এখনো একটিভ করা হয়নি!", blockDesc: "নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।",
                 gitPathTitle: "⚙️ GitHub Cloud Configuration", btnGitUpdate: "💾 গিটহাব টোকেন ও রেপো সেভ করুন", thDevId: "ডিভাইস আইডি", thDevStatus: "স্ট্যাটাস", thDevAction: "অ্যাকশন",
                 searchPlaceholder: "সাবস্ক্রিপশন নাম্বার দিয়ে...",
@@ -627,15 +699,18 @@
             }
         };
 
-        // অন-লোড ইনিশিয়ালাইজার (অটোমেটিক রান হবে)
-        window.onload = function() {
-            // থিম লোডার
+        window.onload = async function() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
             
             if (!localStorage.getItem('locationDatabase')) localStorage.setItem('locationDatabase', JSON.stringify({}));
-            if (!localStorage.getItem('appLocalDatabase')) localStorage.setItem('appLocalDatabase', JSON.stringify({}));
             if (!localStorage.getItem('userControlDatabase')) localStorage.setItem('userControlDatabase', JSON.stringify({}));
+
+            try {
+                await initIndexedDB();
+            } catch(e) {
+                console.error(e);
+            }
 
             generateDeviceFingerprint();
             updateDataStats();
@@ -667,7 +742,7 @@
             input.value = formatted;
         }
 
-        function handleSearchInput(input) {
+        async function handleSearchInput(input) {
             formatSubscription(input); 
             
             const query = input.value.trim();
@@ -679,15 +754,18 @@
             }
             
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-            const appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
+            const localKeys = await getAllIndexedDBKeys();
             
-            const allKeys = [...new Set([...Object.keys(db), ...Object.keys(appDb)])];
+            const allKeys = [...new Set([...Object.keys(db), ...localKeys])];
             const matchedKeys = allKeys.filter(key => key.includes(query)).slice(0, 10); 
             
             if (matchedKeys.length > 0) {
                 suggestionsContainer.innerHTML = '';
-                matchedKeys.forEach(key => {
-                    const loc = db[key] || appDb[key] || '';
+                for (let key of matchedKeys) {
+                    let loc = db[key];
+                    if (!loc) {
+                        loc = await getIndexedDBData(key) || '';
+                    }
                     const div = document.createElement('div');
                     div.className = 'suggestion-item';
                     div.innerHTML = `<span>${key}</span><span class="suggestion-loc">${loc}</span>`;
@@ -698,7 +776,7 @@
                         searchLocation(); 
                     };
                     suggestionsContainer.appendChild(div);
-                });
+                }
                 suggestionsContainer.style.display = 'block';
             } else {
                 suggestionsContainer.style.display = 'none';
@@ -822,10 +900,8 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         
-                        // ইনপুট ফিল্ড আপডেট
                         updateLocationInputField(lat, lng);
                         
-                        // যদি লিফলেট ম্যাপ লোড হয়ে থাকে, তবে মার্কার এবং ভিউ কারেন্ট লোকেশনে নিয়ে যাবে
                         if (pickerMap && pickerMarker) {
                             const newPos = new L.LatLng(lat, lng);
                             pickerMarker.setLatLng(newPos);
@@ -948,7 +1024,7 @@
 
         async function pushToGitHub(updatedDb) {
             if (!githubToken) {
-                showToast(currentLang === 'en' ? "GitHub Token Missing!" : "গিটহাব টোকেন সেট করা নেই! সেটিংস দেখুন।");
+                showToast(currentLang === 'en' ? "GitHub Token Missing!" : "গিটহাব টোকেন সেট করা নেই! সেটি疑ংস দেখুন।");
                 return false;
             }
 
@@ -994,12 +1070,11 @@
         }
 
         let currentActiveLocation = "";
-        function searchLocation() {
+        async function searchLocation() {
             const subInput = document.getElementById('search-input').value.trim();
             const stationInput = document.getElementById('search-station-input').value.trim();
             
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-            const appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
             
             let queryKey = subInput ? subInput : stationInput;
             
@@ -1008,7 +1083,11 @@
                 return;
             }
 
-            let matchedLocation = db[queryKey] || appDb[queryKey];
+            // প্রথমে ক্লাউড ডাটাতে খুঁজবে, না পাইলে IndexedDB লোকাল স্টোরেজে খুঁজবে
+            let matchedLocation = db[queryKey];
+            if (!matchedLocation) {
+                matchedLocation = await getIndexedDBData(queryKey);
+            }
 
             if (matchedLocation) {
                 currentActiveLocation = matchedLocation;
@@ -1017,7 +1096,6 @@
                 document.getElementById('result-box').style.display = 'block';
                 document.getElementById('not-found').style.display = 'none';
                 
-                // স্ট্যান্ডার্ড এবং সুরক্ষিত গুগল ম্যাপস এম্বেড লিংক জেনারেটর
                 document.getElementById('map-frame').src = "https://maps.google.com/maps?q=" + encodeURIComponent(currentActiveLocation) + "&t=&z=14&ie=UTF8&iwloc=&output=embed";
                 document.getElementById('map-area').style.display = 'block';
             } else {
@@ -1065,21 +1143,48 @@
         function handleFileImport(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                let appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
-                
-                if (file.name.endsWith('.json')) {
-                    let remoteData = JSON.parse(e.target.result);
-                    let extracted = remoteData.locations || remoteData.Locations || remoteData;
-                    Object.assign(appDb, extracted); 
+            showToast(currentLang === 'bn' ? "⏳ প্রসেসিং হচ্ছে, দয়া করে অপেক্ষা করুন..." : "⏳ Processing, please wait...");
+            
+            reader.onload = async function(e) {
+                try {
+                    let extracted = {};
+                    if (file.name.endsWith('.json')) {
+                        let remoteData = JSON.parse(e.target.result);
+                        extracted = remoteData.locations || remoteData.Locations || remoteData;
+                    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) {
+                        // এক্সেল প্রসেসিং এর জন্য XLSX লাইব্রেরি ব্যবহার করা হয়েছে
+                        let data = new Uint8Array(e.target.result);
+                        let workbook = XLSX.read(data, {type: 'array'});
+                        let firstSheetName = workbook.SheetNames[0];
+                        let worksheet = workbook.Sheets[firstSheetName];
+                        let jsonRows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                        
+                        // ১ম রো হেডার ধরে ডাটা অবজেক্ট তৈরি
+                        for(let i=1; i<jsonRows.length; i++) {
+                            let row = jsonRows[i];
+                            if(row[0] && row[1]) {
+                                extracted[String(row[0]).trim()] = String(row[1]).trim();
+                            }
+                        }
+                    }
+                    
+                    // IndexedDB তে বাল্ক ডাটা ইনসার্ট করা হচ্ছে (যা ৫ মেগাবাইটের লিমিট ভাঙবে না)
+                    await saveBulkIndexedDB(extracted);
+                    
+                    showToast(languages[currentLang].importAlert); 
+                    updateDataStats(); 
+                    loadRecordTable();
+                } catch(err) {
+                    console.error(err);
+                    alert(languages[currentLang].invalidAlert);
                 }
-                
-                localStorage.setItem('appLocalDatabase', JSON.stringify(appDb));
-                showToast(languages[currentLang].importAlert); 
-                updateDataStats(); 
-                loadRecordTable();
             };
-            reader.readAsText(file);
+            
+            if (file.name.endsWith('.json')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
         }
 
         function exportData() {
@@ -1087,20 +1192,41 @@
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_cloud_backup.json`; a.click();
         }
 
-        function exportLocalAppEntries() {
-            const localData = localStorage.getItem('appLocalDatabase') || "{}";
-            const blob = new Blob([localData], { type: "application/json" });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `only_local_app_backup.json`;
-            a.click();
-            showToast(currentLang === 'en' ? "Local Data Exported!" : (currentLang === 'ar' ? "تم تصدير البيانات المحلية!" : "লোকাল ডেটা এক্সপোর্ট সম্পন্ন হয়েছে!"));
+        async function exportLocalAppEntries() {
+            if (!dbInstance) return;
+            const transaction = dbInstance.transaction([storeName], "readonly");
+            const store = transaction.objectStore(storeName);
+            const request = store.getAllKeys();
+            
+            request.onsuccess = function() {
+                let keys = request.result;
+                let localData = {};
+                let count = 0;
+                
+                if(keys.length === 0) {
+                    showToast("No local data found to export!");
+                    return;
+                }
+                
+                keys.forEach(async (key) => {
+                    localData[key] = await getIndexedDBData(key);
+                    count++;
+                    if(count === keys.length) {
+                        const blob = new Blob([JSON.stringify(localData, null, 2)], { type: "application/json" });
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `only_local_app_backup.json`;
+                        a.click();
+                        showToast(currentLang === 'en' ? "Local Data Exported!" : (currentLang === 'ar' ? "تم تصدير البيانات المحلية!" : "লোকাল ডেটা এক্সপোর্ট সম্পন্ন হয়েছে!"));
+                    }
+                });
+            };
         }
 
-        function clearMemory() {
+        async function clearMemory() {
             if (confirm(currentLang === 'en' ? "Clear all storage data?" : "আপনি কি নিশ্চিতভাবে সব মেমোরি ডাটা মুছে ফেলবেন?")) {
                 localStorage.setItem('locationDatabase', JSON.stringify({}));
-                localStorage.setItem('appLocalDatabase', JSON.stringify({}));
+                await clearIndexedDB();
                 showToast(languages[currentLang].clearAlert);
                 updateDataStats();
                 loadRecordTable();
@@ -1170,12 +1296,12 @@
             loadUserControlPanel();
         }
 
-        function updateDataStats() {
+        async function updateDataStats() {
             const db = JSON.parse(localStorage.getItem('locationDatabase')) || {};
-            const appDb = JSON.parse(localStorage.getItem('appLocalDatabase')) || {};
+            const localKeys = await getAllIndexedDBKeys();
             
             document.getElementById('stats-box').innerText = `${languages[currentLang].statsText}${Object.keys(db).length.toLocaleString()}${currentLang === 'bn' ? ' টি' : ''}`;
-            document.getElementById('app-stats-box').innerText = currentLang === 'en' ? `📱 Local Imported Data: ${Object.keys(appDb).length}` : (currentLang === 'ar' ? `📱 البيانات المستوردة محلياً: ${Object.keys(appDb).length}` : `📱 শুধুমাত্র লোকাল ইম্পোর্ট করা ডাটা: ${Object.keys(appDb).length} টি`);
+            document.getElementById('app-stats-box').innerText = currentLang === 'en' ? `📱 Local Imported Data: ${localKeys.length.toLocaleString()}` : (currentLang === 'ar' ? `📱 البيانات المستوردة محلياً: ${localKeys.length.toLocaleString()}` : `📱 শুধুমাত্র লোকাল ইম্পোর্ট করা ডাটা: ${localKeys.length.toLocaleString()} টি`);
         }
 
         function loadRecordTable() {
@@ -1250,7 +1376,7 @@
             const t = document.getElementById('toast'); 
             t.innerText = msg; 
             t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3000); // ৩ সেকেন্ড পর অটো হাইড
+            setTimeout(() => { t.style.display = 'none'; }, 3000); 
         }
     </script>
 </body>
