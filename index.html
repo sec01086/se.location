@@ -815,6 +815,45 @@
             document.getElementById('sub-location').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         }
 
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // ইনপুট ফিল্ড আপডেট
+                        updateLocationInputField(lat, lng);
+                        
+                        // যদি লিফলেট ম্যাপ লোড হয়ে থাকে, তবে মার্কার এবং ভিউ কারেন্ট লোকেশনে নিয়ে যাবে
+                        if (pickerMap && pickerMarker) {
+                            const newPos = new L.LatLng(lat, lng);
+                            pickerMarker.setLatLng(newPos);
+                            pickerMap.setView(newPos, 15);
+                        }
+                        
+                        showToast(currentLang === 'en' ? "Location updated successfully!" : (currentLang === 'ar' ? "تم تحديث الموقع بنجاح!" : "সফলভাবে কারেন্ট লোকেশন নেওয়া হয়েছে!"));
+                    },
+                    function (error) {
+                        let errorMsg = "GPS Error!";
+                        if (currentLang === 'bn') {
+                            if (error.code === error.PERMISSION_DENIED) errorMsg = "লোকেশন পারমিশন রিফিউজ করা হয়েছে!";
+                            else if (error.code === error.POSITION_UNAVAILABLE) errorMsg = "লোকেশন তথ্য পাওয়া যাচ্ছে না!";
+                            else if (error.code === error.TIMEOUT) errorMsg = "অনুরোধের সময় শেষ (Timeout)!";
+                        } else if (currentLang === 'ar') {
+                            errorMsg = "فشل في الحصول على الموقع!";
+                        } else {
+                            errorMsg = error.message;
+                        }
+                        alert(errorMsg);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                alert(currentLang === 'en' ? "Geolocation not supported!" : (currentLang === 'ar' ? "الجغرافي غير مدعوم!" : "আপনার ব্রাউজারে জিপিএস সাপোর্ট করে না!"));
+            }
+        }
+
         function handleSettingsNavigation() { 
             if (isAdminAuthenticated) switchScreen('settings-screen', 'nav-settings'); 
             else {
