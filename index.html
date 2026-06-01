@@ -1,1242 +1,1123 @@
 <!DOCTYPE html>
 <html lang="bn" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Tracker Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <style>
-        :root {
-            --primary-color: #2b579a;
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #cccccc;
-            --shadow: rgba(0,0,0,0.1);
-        }
-        [data-theme="dark"] {
-            --bg-color: #121212; --card-bg: #1e1e1e;
-            --text-color: #e0e0e0; --border-color: #444444; --shadow: rgba(0,0,0,0.5);
-        }
-        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background-color:var(--bg-color); color:var(--text-color); margin:0; padding:0; transition:all 0.3s ease; }
-        body[dir="rtl"] { text-align:right; }
-        header { background-color:var(--primary-color); color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
-        header h1 { margin:0; font-size:18px; }
-        .header-controls { display:flex; align-items:center; gap:10px; }
-        .lang-select,.icon-btn { background-color:rgba(255,255,255,0.15); border:1px solid white; color:white; padding:5px 8px; border-radius:5px; cursor:pointer; font-size:13px; }
-        .lang-select option { color:black; }
-        .icon-btn { font-size:16px; display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:none; }
-        .container { max-width:500px; margin:20px auto 80px auto; padding:15px; }
-        .screen { display:none; }
-        .screen.active { display:block; }
-        .card { background-color:var(--card-bg); padding:20px; border-radius:12px; box-shadow:0 4px 10px var(--shadow); margin-bottom:20px; position:relative; }
-        h2 { margin-top:0; font-size:18px; color:var(--primary-color); text-align:center; }
-        .input-group { margin-bottom:15px; position:relative; }
-        .input-group label { display:block; margin-bottom:5px; font-weight:bold; font-size:14px; }
-        input[type="text"],input[type="number"],input[type="password"] { width:100%; padding:12px; border:1px solid var(--border-color); border-radius:8px; background-color:var(--card-bg); color:var(--text-color); box-sizing:border-box; font-size:16px; }
-        .sub-terminal-input { font-family:'IBM Plex Mono',monospace!important; font-weight:bold; letter-spacing:1px; color:var(--primary-color)!important; }
-        .floating-suggestions { position:absolute; top:100%; left:0; right:0; background-color:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; box-shadow:0 4px 15px var(--shadow); z-index:1000; max-height:200px; overflow-y:auto; display:none; margin-top:5px; }
-        .suggestion-item { padding:10px 15px; cursor:pointer; border-bottom:1px solid var(--border-color); font-family:'IBM Plex Mono',monospace; font-size:14px; display:flex; justify-content:space-between; }
-        .suggestion-item:last-child { border-bottom:none; }
-        .suggestion-item:hover { background-color:rgba(43,87,154,0.1); }
-        .suggestion-loc { font-size:12px; color:#777; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .btn { width:100%; padding:12px; background-color:var(--primary-color); color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; margin-top:5px; }
-        .btn-outline { background-color:transparent; color:var(--primary-color); border:2px solid var(--primary-color); margin-top:8px; }
-        .action-buttons { display:flex; gap:10px; margin-top:15px; margin-bottom:15px; }
-        .action-buttons button { flex:1; padding:12px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:14px; color:white; }
-        .btn-map { background-color:#2b579a; } .btn-copy { background-color:#27ae60; } .btn-share { background-color:#e67e22; }
-        .map-container { width:100%; height:250px; border-radius:10px; overflow:hidden; border:1px solid var(--border-color); margin-top:15px; display:none; }
-        .map-container iframe { width:100%; height:100%; border:none; }
-        .manual-map-wrapper { width:100%; height:250px; border-radius:10px; overflow:hidden; border:1px solid var(--border-color); margin-top:15px; z-index:1; }
-        .bottom-nav { position:fixed; bottom:0; left:0; right:0; background-color:var(--card-bg); display:flex; box-shadow:0 -2px 10px var(--shadow); border-top:1px solid var(--border-color); z-index:999; }
-        .nav-item { flex:1; text-align:center; padding:15px 0; cursor:pointer; font-weight:bold; color:#888888; }
-        .nav-item.active { color:var(--primary-color); border-top:3px solid var(--primary-color); }
-        .file-input { display:none; }
-        .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background-color:#333; color:white; padding:10px 20px; border-radius:20px; font-size:14px; display:none; z-index:10000; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
-        .stats-box { background-color:rgba(43,87,154,0.1); padding:10px; border-radius:8px; font-weight:bold; text-align:center; margin-bottom:10px; border:1px dashed var(--primary-color); }
-        .cloud-sync-box { background-color:#e8f4fd; border:1px solid #bce0fd; color:#1d6fa5; padding:12px; border-radius:8px; font-size:13px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; }
-        [data-theme="dark"] .cloud-sync-box { background-color:#1a2635; border-color:#243b53; color:#64b5f6; }
-        .table-container { max-height:250px; overflow-y:auto; border:1px solid var(--border-color); border-radius:8px; margin-top:10px; }
-        .record-table { width:100%; border-collapse:collapse; font-size:14px; text-align:left; }
-        body[dir="rtl"] .record-table { text-align:right; }
-        .record-table th,.record-table td { padding:10px; border-bottom:1px solid var(--border-color); }
-        .record-table th { background-color:var(--primary-color); color:white; position:sticky; top:0; z-index:1; }
-        .btn-delete-row { background-color:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; }
-        /* ── Role Badges ── */
-        .badge { padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold; color:white; }
-        .badge-active { background-color:#27ae60; }
-        .badge-suspended { background-color:#c0392b; }
-        .badge-waiting { background-color:#f39c12; }
-        .role-badge { padding:2px 7px; border-radius:10px; font-size:10px; font-weight:bold; color:white; margin-left:4px; }
-        .role-admin { background-color:#8e44ad; }
-        .role-editor { background-color:#2980b9; }
-        .role-viewer { background-color:#7f8c8d; }
-        .action-link { color:var(--primary-color); cursor:pointer; text-decoration:underline; font-size:12px; font-weight:bold; }
-        .suspended-screen { position:fixed; top:0; left:0; width:100%; height:100%; background-color:#121212; color:#ff4d4d; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:99999; text-align:center; padding:20px; box-sizing:border-box; }
-        /* ── Progress Bar ── */
-        .progress-wrap { display:none; margin-top:10px; }
-        .progress-bar-bg { background:var(--border-color); border-radius:8px; height:10px; overflow:hidden; }
-        .progress-bar-fill { height:100%; background:var(--primary-color); width:0%; transition:width 0.3s; border-radius:8px; }
-        .progress-label { font-size:12px; text-align:center; margin-top:4px; color:var(--primary-color); }
-        .queue-badge { display:none; background:#e67e22; color:white; border-radius:20px; padding:3px 9px; font-size:11px; font-weight:bold; margin-left:6px; }
-        .chunk-info { font-size:11px; color:#888; text-align:center; margin-top:4px; }
-        /* ── Auth Screen Enhanced ── */
-        .auth-step { display:none; }
-        .auth-step.active { display:block; }
-        .pin-dots { display:flex; justify-content:center; gap:12px; margin:15px 0; }
-        .pin-dot { width:14px; height:14px; border-radius:50%; background:var(--border-color); transition:background 0.2s; }
-        .pin-dot.filled { background:var(--primary-color); }
-        .pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
-        .pin-btn { padding:16px; font-size:20px; font-weight:bold; border:2px solid var(--border-color); border-radius:10px; background:var(--card-bg); color:var(--text-color); cursor:pointer; transition:all 0.15s; }
-        .pin-btn:active { background:var(--primary-color); color:white; transform:scale(0.93); }
-        .pin-btn-del { background:#e74c3c; color:white; border-color:#e74c3c; }
-        .fail-shake { animation:shake 0.4s; }
-        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
-        /* ── User Panel ── */
-        .user-panel-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 10px; border-bottom:1px solid var(--border-color); }
-        .user-panel-row:last-child { border-bottom:none; }
-        .user-id-text { font-family:monospace; font-size:11px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .role-select { font-size:11px; padding:3px 6px; border-radius:6px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); cursor:pointer; }
-        .status-toggle { font-size:11px; padding:3px 8px; border-radius:6px; border:none; cursor:pointer; font-weight:bold; }
-        .last-active-txt { font-size:10px; color:#aaa; width:100%; margin-top:2px; }
-        /* ── Password Change ── */
-        .pw-change-box { background:rgba(142,68,173,0.07); border:1px solid rgba(142,68,173,0.3); border-radius:10px; padding:14px; margin-top:12px; }
-        .pw-strength { height:6px; border-radius:4px; margin-top:6px; transition:width 0.3s,background 0.3s; }
-        /* ── Role Info Banner ── */
-        .role-banner { padding:8px 12px; border-radius:8px; font-size:13px; font-weight:bold; text-align:center; margin-bottom:12px; }
-        .role-banner.admin { background:rgba(142,68,173,0.12); color:#8e44ad; border:1px solid rgba(142,68,173,0.3); }
-        .role-banner.editor { background:rgba(41,128,185,0.12); color:#2980b9; border:1px solid rgba(41,128,185,0.3); }
-        .role-banner.viewer { background:rgba(127,140,141,0.12); color:#7f8c8d; border:1px solid rgba(127,140,141,0.3); }
-        select { padding:10px; border:1px solid var(--border-color); border-radius:8px; background:var(--card-bg); color:var(--text-color); font-size:14px; width:100%; box-sizing:border-box; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscription Tracker Pro v4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+:root{--pc:#2b579a;--bg:#f4f6f9;--card:#fff;--tx:#333;--bd:#ccc;--sh:rgba(0,0,0,.1)}
+[data-theme=dark]{--bg:#121212;--card:#1e1e1e;--tx:#e0e0e0;--bd:#444;--sh:rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);margin:0;padding:0;transition:background .3s,color .3s}
+header{background:var(--pc);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+header h1{margin:0;font-size:17px}
+.hc{display:flex;align-items:center;gap:8px}
+.ls,.ib{background:rgba(255,255,255,.18);border:1px solid #fff;color:#fff;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:13px}
+.ls option{color:#000}
+.ib{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:none}
+.wrap{max-width:500px;margin:18px auto 82px;padding:14px}
+.screen{display:none}.screen.active{display:block}
+.card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 4px 12px var(--sh);margin-bottom:18px}
+h2{margin:0 0 16px;font-size:17px;color:var(--pc);text-align:center}
+.ig{margin-bottom:13px;position:relative}
+.ig label{display:block;margin-bottom:4px;font-weight:700;font-size:13px}
+input[type=text],input[type=number],input[type=password],select{width:100%;padding:11px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font-size:15px}
+.mono{font-family:'IBM Plex Mono',monospace!important;font-weight:700;letter-spacing:1px;color:var(--pc)!important}
+/* suggestions */
+.sugg{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--bd);border-radius:8px;box-shadow:0 4px 14px var(--sh);z-index:1000;max-height:200px;overflow-y:auto;display:none;margin-top:4px}
+.si{padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--bd);font-family:'IBM Plex Mono',monospace;font-size:13px;display:flex;justify-content:space-between}
+.si:last-child{border-bottom:none}.si:hover{background:rgba(43,87,154,.1)}
+.si-loc{font-size:11px;color:#888;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* buttons */
+.btn{width:100%;padding:12px;background:var(--pc);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;margin-top:6px}
+.btn-out{background:transparent;color:var(--pc);border:2px solid var(--pc)}
+.btn-red{background:#e74c3c}.btn-green{background:#27ae60}.btn-purple{background:#8e44ad}.btn-orange{background:#e67e22}
+.ab{display:flex;gap:8px;margin:12px 0}
+.ab button{flex:1;padding:11px 8px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;color:#fff}
+.ab .bm{background:var(--pc)}.ab .bc{background:#27ae60}.ab .bs{background:#e67e22}
+/* map */
+.map-box{width:100%;height:250px;border-radius:10px;overflow:hidden;border:1px solid var(--bd);margin-top:12px;display:none}
+.map-box iframe{width:100%;height:100%;border:none}
+.map-pick{width:100%;height:240px;border-radius:10px;overflow:hidden;border:1px solid var(--bd);margin-top:10px}
+/* nav */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;box-shadow:0 -2px 10px var(--sh);border-top:1px solid var(--bd);z-index:998}
+.ni{flex:1;text-align:center;padding:14px 0;cursor:pointer;font-weight:700;color:#999;font-size:13px}
+.ni.active{color:var(--pc);border-top:3px solid var(--pc)}
+/* toast */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:9px 20px;border-radius:20px;font-size:13px;display:none;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.35);white-space:nowrap}
+/* cloud bar */
+.cloud-bar{background:#e8f4fd;border:1px solid #bce0fd;color:#1d6fa5;padding:11px 13px;border-radius:8px;font-size:13px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+[data-theme=dark] .cloud-bar{background:#1a2635;border-color:#243b53;color:#64b5f6}
+.qbadge{display:none;background:#e67e22;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700}
+/* stats */
+.sbox{padding:9px 12px;border-radius:8px;font-weight:700;text-align:center;margin-bottom:8px;border:1px dashed var(--pc);background:rgba(43,87,154,.08);font-size:13px}
+.sbox2{background:rgba(39,174,96,.08);border-color:#27ae60;color:#27ae60}
+.chunk-info{font-size:11px;color:#999;text-align:center;margin-bottom:10px}
+/* table */
+.tbox{max-height:240px;overflow-y:auto;border:1px solid var(--bd);border-radius:8px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--bd)}
+th{background:var(--pc);color:#fff;position:sticky;top:0;z-index:1}
+.delbtn{background:#e74c3c;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700}
+/* progress */
+.prog-wrap{display:none;margin:10px 0}
+.prog-bg{background:var(--bd);border-radius:6px;height:9px;overflow:hidden}
+.prog-fill{height:100%;background:var(--pc);width:0%;transition:width .25s;border-radius:6px}
+.prog-lbl{font-size:11px;text-align:center;margin-top:3px;color:var(--pc)}
+/* block screen */
+.block{position:fixed;top:0;left:0;width:100%;height:100%;background:#0d0d0d;color:#ff4444;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:99999;text-align:center;padding:20px}
+/* role banner */
+.rbanner{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;margin-bottom:12px}
+.rbanner.admin{background:rgba(142,68,173,.1);color:#8e44ad;border:1px solid rgba(142,68,173,.3)}
+.rbanner.editor{background:rgba(41,128,185,.1);color:#2980b9;border:1px solid rgba(41,128,185,.3)}
+.rbanner.viewer{background:rgba(127,140,141,.1);color:#7f8c8d;border:1px solid rgba(127,140,141,.3)}
+/* AUTH 2-step */
+.astep{display:none}.astep.active{display:block}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:14px 0}
+.pd{width:15px;height:15px;border-radius:50%;background:var(--bd);transition:background .2s}
+.pd.on{background:var(--pc)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.pb{padding:16px;font-size:20px;font-weight:700;border:2px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);cursor:pointer;transition:all .15s}
+.pb:active{background:var(--pc);color:#fff;transform:scale(.93)}
+.pb-del{background:#e74c3c!important;color:#fff!important;border-color:#e74c3c!important}
+.pb-ok{background:#27ae60!important;color:#fff!important;border-color:#27ae60!important}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.shake{animation:shake .38s}
+/* User Panel */
+.up-row{padding:10px 12px;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.up-row:last-child{border-bottom:none}
+.up-id{font-family:monospace;font-size:11px;word-break:break-all;flex:1;min-width:120px}
+.up-meta{font-size:10px;color:#aaa;margin-top:3px}
+.up-controls{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
+.rs{font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+.stbtn{font-size:12px;padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-weight:700;color:#fff}
+/* badge */
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;color:#fff}
+.b-active{background:#27ae60}.b-waiting{background:#f39c12}.b-suspended{background:#c0392b}
+.b-admin{background:#8e44ad}.b-editor{background:#2980b9}.b-viewer{background:#7f8c8d}
+/* pw change */
+.pwbox{background:rgba(142,68,173,.07);border:1px solid rgba(142,68,173,.25);border-radius:10px;padding:14px;margin-top:14px}
+.pwbox h4{margin:0 0 10px;font-size:14px;color:#8e44ad}
+/* viewer block */
+.vblock{background:rgba(231,76,60,.08);border:1px solid #e74c3c;border-radius:8px;padding:12px;text-align:center;color:#e74c3c;font-weight:700;margin-bottom:12px}
+hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
+</style>
 </head>
 <body>
 
-    <!-- Block Screen -->
-    <div id="block-screen" class="suspended-screen" style="display:none;">
-        <h1>🔒 Device Locked</h1>
-        <h2 id="lbl-block-title">এই ডিভাইসটি এখনো একটিভ করা হয়নি!</h2>
-        <p id="lbl-block-desc" style="color:#bbb;max-width:400px;margin-top:5px;font-size:14px;">নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।</p>
-        <button class="btn" style="max-width:200px;background-color:#2b579a;margin-top:15px;" onclick="goToAuthFromLockScreen()">🔓 একটিভ করতে ক্লিক করুন</button>
+<!-- ══ BLOCK SCREEN ══ -->
+<div id="blk" class="block" style="display:none">
+  <h1 style="font-size:28px">🔒</h1>
+  <h2 id="blk-title" style="color:#ff4444">এই ডিভাইসটি একটিভ করা হয়নি!</h2>
+  <p id="blk-desc" style="color:#bbb;font-size:14px;max-width:340px">এডমিন পাসওয়ার্ড দিয়ে একটিভ করুন।</p>
+  <button class="btn" style="max-width:220px;margin-top:16px;background:#2b579a" onclick="goToAuth()">🔓 একটিভ করতে ক্লিক করুন</button>
+</div>
+
+<header>
+  <h1 id="app-title">Subscription Tracker Pro</h1>
+  <div class="hc">
+    <select class="ls" onchange="changeLang(this.value)">
+      <option value="bn">বাংলা</option>
+      <option value="en">English</option>
+      <option value="ar">العربية</option>
+    </select>
+    <button class="ib" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ══ SEARCH ══ -->
+  <div id="s-search" class="screen active">
+    <div id="role-banner" class="rbanner" style="display:none"></div>
+    <div class="cloud-bar">
+      <span id="cloud-lbl">☁️ গিটহাব ক্লাউড রেডি</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="qbadge" id="qbadge"></span>
+        <button class="btn" style="width:auto;margin:0;padding:5px 11px;font-size:12px" onclick="doSync()">🔄 সিঙ্ক</button>
+      </div>
     </div>
-
-    <header>
-        <h1 id="app-title">Subscription Tracker Pro</h1>
-        <div class="header-controls">
-            <select class="lang-select" id="lang-change" onchange="changeLanguage(this.value)">
-                <option value="bn">বাংলা</option>
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
-            </select>
-            <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    <div class="card">
+      <h2>সাবস্ক্রিপশন লোকেশন খুঁজুন</h2>
+      <div class="ig">
+        <label style="font-size:12px;font-weight:700">সাবস্ক্রিপশন নাম্বার:</label>
+        <input type="text" id="si" class="mono" placeholder="xxx/xx/xxx" inputmode="decimal" oninput="onSearchInput(this)">
+        <div id="sugg" class="sugg"></div>
+      </div>
+      <div style="text-align:center;font-weight:700;color:var(--pc);margin:4px 0;font-size:13px">— অথবা —</div>
+      <div class="ig">
+        <label style="font-size:12px;font-weight:700">স্টেশন নাম্বার:</label>
+        <input type="number" id="sti" placeholder="উদা: 450" inputmode="numeric">
+      </div>
+      <button class="btn" onclick="doSearch()">🔍 সার্চ করুন</button>
+      <div id="res-box" class="card" style="display:none;margin-top:16px;border-left:5px solid var(--pc);padding:14px">
+        <p style="margin:4px 0"><strong>📌 সাবস্ক্রিপশন নং:</strong> <span id="res-id"></span></p>
+        <p style="margin:4px 0"><strong>📍 লোকেশন:</strong> <span id="res-loc"></span></p>
+        <div class="ab">
+          <button class="bm" onclick="openMap()">🗺️ ম্যাপ</button>
+          <button class="bc" onclick="copyLoc()">📋 কপি</button>
+          <button class="bs" onclick="shareLoc()">🔗 শেয়ার</button>
         </div>
-    </header>
-
-    <div class="container">
-
-        <!-- ══ SEARCH SCREEN ══ -->
-        <div id="search-screen" class="screen active">
-            <div id="role-banner-search" class="role-banner" style="display:none;"></div>
-            <div class="cloud-sync-box">
-                <span id="cloud-status">☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি</span>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span class="queue-badge" id="queue-badge">0 pending</span>
-                    <button class="btn" style="width:auto;margin:0;padding:5px 10px;font-size:12px;" onclick="syncWithGitHub()">🔄 সিঙ্ক</button>
-                </div>
-            </div>
-            <div class="card">
-                <h2 id="lbl-search-title">সাবস্ক্রিপশন লোকেশন খুঁজুন</h2>
-                <div class="input-group">
-                    <label id="lbl-search-sub" style="font-size:12px;font-weight:bold;">সাবস্ক্রিপশন নাম্বারের মাধ্যমে:</label>
-                    <input type="text" id="search-input" class="sub-terminal-input" placeholder="সাবস্ক্রিপশন নাম্বার দিয়ে..." inputmode="decimal" oninput="handleSearchInput(this)">
-                    <div id="search-suggestions" class="floating-suggestions"></div>
-                </div>
-                <div style="text-align:center;font-weight:bold;margin:5px 0;color:var(--primary-color);">-- অথবা --</div>
-                <div class="input-group">
-                    <label id="lbl-search-station" style="font-size:12px;font-weight:bold;">স্টেশন নাম্বারের মাধ্যমে:</label>
-                    <input type="number" id="search-station-input" placeholder="স্টেশন আইডি লিখুন..." inputmode="numeric">
-                </div>
-                <button class="btn" id="btn-search" onclick="searchLocation()">🔍 সার্চ করুন</button>
-                <div id="result-box" class="card" style="display:none;margin-top:20px;border-left:5px solid var(--primary-color);padding:15px;">
-                    <p><strong id="lbl-res-num">📌 আইডি/সাবস্ক্রিপশন নং:</strong> <span id="res-num"></span></p>
-                    <p><strong id="lbl-res-loc">📍 লোকেশন:</strong> <span id="res-loc"></span></p>
-                    <div class="action-buttons">
-                        <button class="btn-map" id="btn-map" onclick="openMap()">🗺️ ম্যাপ</button>
-                        <button class="btn-copy" id="btn-copy" onclick="copyLocation()">📋 কপি</button>
-                        <button class="btn-share" id="btn-share" onclick="shareLocation()">🔗 শেয়ার</button>
-                    </div>
-                    <div id="map-area" class="map-container">
-                        <iframe id="map-frame" src="" allowfullscreen="" loading="lazy"></iframe>
-                    </div>
-                </div>
-                <p id="not-found" style="text-align:center;color:red;display:none;margin-top:15px;"></p>
-            </div>
-        </div>
-
-        <!-- ══ ADD SCREEN ══ -->
-        <div id="add-screen" class="screen">
-            <div class="card">
-                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন</h2>
-                <div id="viewer-block" style="display:none;background:rgba(231,76,60,0.1);border:1px solid #e74c3c;border-radius:8px;padding:12px;text-align:center;color:#e74c3c;font-weight:bold;margin-bottom:12px;">
-                    🚫 আপনার Role: Viewer — ডাটা Add করার অনুমতি নেই।
-                </div>
-                <div id="add-form-wrap">
-                    <div class="input-group">
-                        <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার</label>
-                        <input type="text" id="sub-number" class="sub-terminal-input" placeholder="xxx/xx/xxx" inputmode="decimal" oninput="formatSubscription(this)">
-                    </div>
-                    <div class="input-group">
-                        <label id="lbl-station-field">স্টেশন আইডি</label>
-                        <input type="number" id="station-number" placeholder="উদা: 450" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
-                        <input type="text" id="sub-location" placeholder="address or coordinates">
-                    </div>
-                    <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
-                    <button class="btn" style="margin-top:20px;" id="btn-save" onclick="saveDataAndPushToGitHub()">💾 সেভ এবং অনলাইনে আপলোড করুন</button>
-                    <div class="input-group" style="margin-top:20px;">
-                        <label id="lbl-manual-map-title" style="font-size:12px;font-weight:bold;color:var(--primary-color)">🗺️ ৩D ম্যাপ থেকে লোকেশন সিলেক্ট করুন:</label>
-                        <div id="manual-picker-map" class="manual-map-wrapper"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══ AUTH SCREEN — 2 Step ══ -->
-        <div id="auth-screen" class="screen">
-            <div class="card">
-                <h2 id="lbl-auth-title">🔐 Admin Verification</h2>
-
-                <!-- Step 1: Password -->
-                <div id="auth-step-1" class="auth-step active">
-                    <p style="text-align:center;font-size:13px;color:#888;margin-bottom:12px;">ধাপ ১/২ — পাসওয়ার্ড লিখুন</p>
-                    <div class="input-group">
-                        <input type="password" id="admin-password" placeholder="পাসওয়ার্ড লিখুন..." oninput="resetAuthFail()">
-                    </div>
-                    <p id="auth-fail-msg" style="color:#e74c3c;font-size:13px;text-align:center;display:none;">❌ ভুল পাসওয়ার্ড! আরো <span id="fail-left">3</span> বার সুযোগ আছে।</p>
-                    <button class="btn" onclick="verifyPasswordStep()" id="btn-auth-confirm">➡️ পরবর্তী ধাপ</button>
-                    <button class="btn btn-outline" onclick="cancelAuthRedirect()" id="btn-auth-cancel">বাতিল করুন</button>
-                </div>
-
-                <!-- Step 2: PIN Pad -->
-                <div id="auth-step-2" class="auth-step">
-                    <p style="text-align:center;font-size:13px;color:#888;margin-bottom:4px;">ধাপ ২/২ — ৪ সংখ্যার PIN দিন</p>
-                    <div class="pin-dots" id="pin-dots">
-                        <div class="pin-dot" id="pd0"></div>
-                        <div class="pin-dot" id="pd1"></div>
-                        <div class="pin-dot" id="pd2"></div>
-                        <div class="pin-dot" id="pd3"></div>
-                    </div>
-                    <p id="pin-fail-msg" style="color:#e74c3c;font-size:13px;text-align:center;display:none;">❌ ভুল PIN!</p>
-                    <div class="pin-pad" id="pin-pad">
-                        <button class="pin-btn" onclick="pinPress('1')">1</button>
-                        <button class="pin-btn" onclick="pinPress('2')">2</button>
-                        <button class="pin-btn" onclick="pinPress('3')">3</button>
-                        <button class="pin-btn" onclick="pinPress('4')">4</button>
-                        <button class="pin-btn" onclick="pinPress('5')">5</button>
-                        <button class="pin-btn" onclick="pinPress('6')">6</button>
-                        <button class="pin-btn" onclick="pinPress('7')">7</button>
-                        <button class="pin-btn" onclick="pinPress('8')">8</button>
-                        <button class="pin-btn" onclick="pinPress('9')">9</button>
-                        <button class="pin-btn pin-btn-del" onclick="pinBack()">⌫</button>
-                        <button class="pin-btn" onclick="pinPress('0')">0</button>
-                        <button class="pin-btn" style="background:#27ae60;color:white;border-color:#27ae60;" onclick="verifyPinStep()">✓</button>
-                    </div>
-                    <button class="btn btn-outline" style="margin-top:14px;" onclick="backToPasswordStep()">← পাসওয়ার্ডে ফিরুন</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══ SETTINGS SCREEN ══ -->
-        <div id="settings-screen" class="screen">
-            <div class="card">
-                <h2 id="lbl-settings-title">⚙️ Settings & Cloud Config</h2>
-
-                <div class="stats-box" id="stats-box">📊 মোট IndexedDB ডাটা: 0 টি</div>
-                <div class="stats-box" id="app-stats-box" style="background-color:rgba(39,174,96,0.1);border-color:#27ae60;color:#27ae60;">📱 লোকাল ইম্পোর্ট করা ডাটা: 0 টি</div>
-                <div class="chunk-info" id="chunk-info">GitHub চাংক: লোড হচ্ছে...</div>
-
-                <!-- GitHub Config -->
-                <div style="background:rgba(0,0,0,0.03);padding:12px;border-radius:8px;margin:15px 0;border:1px solid var(--border-color)">
-                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0;font-size:14px;color:var(--primary-color)">⚙️ GitHub Cloud Configuration</h4>
-                    <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:2px;">Repository (Owner/Repo):</label>
-                    <input type="text" id="github-repo-input" placeholder="sec01086/se.location" style="font-size:12px;padding:8px;margin-bottom:8px;">
-                    <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:2px;">GitHub Token (PAT):</label>
-                    <input type="password" id="github-token-input" placeholder="ghp_xxxxxxxxxxxx" style="font-size:12px;padding:8px;margin-bottom:8px;">
-                    <button class="btn" style="padding:10px;font-size:13px;margin-top:4px;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব সেটিংস সেভ করুন</button>
-                </div>
-
-                <!-- ══ PASSWORD CHANGE BOX ══ -->
-                <div class="pw-change-box">
-                    <h4 style="margin:0 0 10px 0;font-size:14px;color:#8e44ad;">🔑 Admin Password পরিবর্তন করুন</h4>
-                    <div class="input-group" style="margin-bottom:10px;">
-                        <label style="font-size:12px;">বর্তমান Password:</label>
-                        <input type="password" id="pw-current" placeholder="বর্তমান পাসওয়ার্ড...">
-                    </div>
-                    <div class="input-group" style="margin-bottom:6px;">
-                        <label style="font-size:12px;">নতুন Password:</label>
-                        <input type="password" id="pw-new" placeholder="নতুন পাসওয়ার্ড (min 6 char)..." oninput="checkPwStrength(this.value)">
-                        <div style="background:var(--border-color);border-radius:4px;height:6px;margin-top:6px;overflow:hidden;">
-                            <div id="pw-strength-bar" style="height:100%;width:0%;border-radius:4px;transition:width 0.3s,background 0.3s;"></div>
-                        </div>
-                        <div id="pw-strength-label" style="font-size:11px;margin-top:3px;"></div>
-                    </div>
-                    <div class="input-group" style="margin-bottom:10px;">
-                        <label style="font-size:12px;">নতুন PIN (৪ সংখ্যা):</label>
-                        <input type="password" id="pw-new-pin" placeholder="নতুন ৪ সংখ্যার PIN..." maxlength="4" inputmode="numeric">
-                    </div>
-                    <button class="btn" style="background:#8e44ad;margin-top:4px;font-size:13px;" onclick="changeAdminPassword()">🔐 Password ও PIN আপডেট করুন</button>
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="progress-wrap" id="progress-wrap" style="margin-top:12px;">
-                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
-                    <div class="progress-label" id="progress-label">0%</div>
-                </div>
-
-                <!-- Record Table -->
-                <div class="input-group" style="margin-top:14px;">
-                    <label id="lbl-table-search">🔎 রেকর্ড সার্চ</label>
-                    <input type="text" id="table-search-input" placeholder="সাবস্ক্রিপশন বা স্টেশন দিয়ে..." oninput="filterRecordTable()">
-                </div>
-                <div class="table-container">
-                    <table class="record-table">
-                        <thead><tr>
-                            <th id="th-sub">সাবস্ক্রিপশন নং</th>
-                            <th id="th-loc">লোকেশন</th>
-                            <th id="th-action" style="width:70px;text-align:center;">অ্যাকশন</th>
-                        </tr></thead>
-                        <tbody id="record-table-body"></tbody>
-                    </table>
-                </div>
-
-                <hr style="border:0;border-top:1px solid var(--border-color);margin:20px 0;">
-
-                <!-- ══ USER CONTROL PANEL ══ -->
-                <h3 id="lbl-user-manage-title" style="font-size:14px;color:var(--primary-color);margin-bottom:8px;">👥 ডিভাইস কন্ট্রোল প্যানেল</h3>
-                <div id="user-panel-list" style="border:1px solid var(--border-color);border-radius:8px;overflow:hidden;"></div>
-
-                <hr style="border:0;border-top:1px solid var(--border-color);margin:20px 0;">
-
-                <!-- Data Buttons -->
-                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 Full Backup Export (JSON)</button>
-                <button class="btn btn-outline" id="btn-export-local" style="border-color:#27ae60;color:#27ae60;margin-top:8px;" onclick="exportLocalAppEntries()">📤 লোকাল ডাটা Export (JSON)</button>
-                <button class="btn" id="btn-import-trigger" style="background-color:#27ae60;margin-top:10px;" onclick="document.getElementById('import-file').click()">📂 ফাইল ইম্পোর্ট (.xlsx / .json)</button>
-                <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.csv,.xls" onchange="handleFileImport(event)">
-                <button class="btn" id="btn-clear-mem" style="background-color:#c0392b;margin-top:10px;" onclick="clearMemory()">🗑️ সব ডাটা মুছে ফেলুন</button>
-            </div>
-        </div>
-
-    </div><!-- /container -->
-
-    <div class="bottom-nav">
-        <div id="nav-search" class="nav-item active" onclick="switchScreen('search-screen','nav-search')">🔍 সার্চ</div>
-        <div id="nav-add" class="nav-item" onclick="switchScreen('add-screen','nav-add')">➕ নতুন সেট</div>
-        <div id="nav-settings" class="nav-item" onclick="handleSettingsNavigation()">⚙️ সেটিংস</div>
+        <div id="map-box" class="map-box"><iframe id="map-fr" src="" loading="lazy" allowfullscreen></iframe></div>
+      </div>
+      <p id="not-found" style="text-align:center;color:#e74c3c;display:none;margin-top:12px"></p>
     </div>
-    <div id="toast" class="toast"></div>
+  </div>
+
+  <!-- ══ ADD ══ -->
+  <div id="s-add" class="screen">
+    <div class="card">
+      <h2>নতুন লোকেশন সেট করুন</h2>
+      <div id="vblock" class="vblock" style="display:none">🚫 আপনার Role: <strong>Viewer</strong> — ডাটা Add করার অনুমতি নেই।</div>
+      <div id="add-form">
+        <div class="ig"><label>সাবস্ক্রিপশন নাম্বার</label>
+          <input type="text" id="f-sub" class="mono" placeholder="xxx/xx/xxx" inputmode="decimal" oninput="fmtSub(this)"></div>
+        <div class="ig"><label>স্টেশন আইডি</label>
+          <input type="number" id="f-st" placeholder="উদা: 450" inputmode="numeric"></div>
+        <div class="ig"><label>লোকেশন / ঠিকানা</label>
+          <input type="text" id="f-loc" placeholder="ঠিকানা অথবা coordinates"></div>
+        <button class="btn btn-out" onclick="getGPS()">📍 কারেন্ট লোকেশন নিন</button>
+        <button class="btn" style="margin-top:14px" onclick="saveEntry()">💾 সেভ ও আপলোড</button>
+        <div class="ig" style="margin-top:14px">
+          <label style="font-size:12px;font-weight:700;color:var(--pc)">🗺️ ম্যাপে পিন সেট করুন:</label>
+          <div id="pick-map" class="map-pick"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ AUTH ══ -->
+  <div id="s-auth" class="screen">
+    <div class="card">
+      <h2>🔐 Admin Verification</h2>
+
+      <!-- Step 1: Password -->
+      <div id="a-step1" class="astep active">
+        <p style="text-align:center;font-size:13px;color:#888;margin-bottom:10px">ধাপ ১/২ — পাসওয়ার্ড লিখুন</p>
+        <div class="ig">
+          <input type="password" id="a-pw" placeholder="পাসওয়ার্ড লিখুন..." autocomplete="current-password">
+        </div>
+        <p id="a-err1" style="color:#e74c3c;font-size:13px;text-align:center;display:none">
+          ❌ ভুল পাসওয়ার্ড! আরো <span id="a-left">3</span> বার সুযোগ আছে।
+        </p>
+        <button class="btn" onclick="verifyPw()">➡️ পরবর্তী ধাপ</button>
+        <button class="btn btn-out" style="margin-top:8px" onclick="cancelAuth()">বাতিল</button>
+      </div>
+
+      <!-- Step 2: PIN -->
+      <div id="a-step2" class="astep">
+        <p style="text-align:center;font-size:13px;color:#888;margin-bottom:4px">ধাপ ২/২ — ৪ সংখ্যার PIN</p>
+        <div class="pin-dots">
+          <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
+          <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
+        </div>
+        <p id="a-err2" style="color:#e74c3c;font-size:13px;text-align:center;display:none">❌ ভুল PIN!</p>
+        <div class="pin-grid">
+          <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
+          <button class="pb" onclick="pp('4')">4</button><button class="pb" onclick="pp('5')">5</button><button class="pb" onclick="pp('6')">6</button>
+          <button class="pb" onclick="pp('7')">7</button><button class="pb" onclick="pp('8')">8</button><button class="pb" onclick="pp('9')">9</button>
+          <button class="pb pb-del" onclick="pb_del()">⌫</button>
+          <button class="pb" onclick="pp('0')">0</button>
+          <button class="pb pb-ok" onclick="verifyPin()">✓</button>
+        </div>
+        <button class="btn btn-out" style="margin-top:12px" onclick="backToPw()">← পাসওয়ার্ডে ফিরুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS ══ -->
+  <div id="s-settings" class="screen">
+    <div class="card">
+      <h2>⚙️ Settings & Admin Panel</h2>
+
+      <div class="sbox" id="stat-main">📊 মোট রেকর্ড: 0</div>
+      <div class="sbox sbox2" id="stat-local">📱 লোকাল ইম্পোর্ট: 0</div>
+      <div class="chunk-info" id="chunk-info">GitHub: লোড হচ্ছে...</div>
+
+      <!-- GitHub Config -->
+      <div style="background:rgba(0,0,0,.04);padding:12px;border-radius:8px;border:1px solid var(--bd);margin-bottom:14px">
+        <h4 style="margin:0 0 10px;font-size:14px;color:var(--pc)">⚙️ GitHub Configuration</h4>
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Repository (Owner/Repo):</label>
+        <input type="text" id="g-repo" placeholder="username/repo-name" style="font-size:12px;padding:8px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:3px">Personal Access Token (PAT):</label>
+        <input type="password" id="g-tok" placeholder="ghp_xxxxxxxxxxxx" style="font-size:12px;padding:8px;margin-bottom:8px">
+        <button class="btn" style="padding:10px;font-size:13px;margin-top:4px" onclick="saveGH()">💾 GitHub সেটিংস সেভ করুন</button>
+      </div>
+
+      <!-- Password Change -->
+      <div class="pwbox">
+        <h4>🔑 Password ও PIN পরিবর্তন করুন</h4>
+        <div class="ig" style="margin-bottom:8px">
+          <label style="font-size:12px">বর্তমান Password:</label>
+          <input type="password" id="pw-cur" placeholder="বর্তমান পাসওয়ার্ড...">
+        </div>
+        <div class="ig" style="margin-bottom:6px">
+          <label style="font-size:12px">নতুন Password (min 6):</label>
+          <input type="password" id="pw-new" placeholder="নতুন পাসওয়ার্ড..." oninput="pwStrength(this.value)">
+          <div style="background:var(--bd);border-radius:4px;height:6px;margin-top:5px;overflow:hidden">
+            <div id="pw-bar" style="height:100%;width:0%;border-radius:4px;transition:all .3s"></div>
+          </div>
+          <div id="pw-lbl" style="font-size:11px;margin-top:2px"></div>
+        </div>
+        <div class="ig" style="margin-bottom:10px">
+          <label style="font-size:12px">নতুন PIN (৪ সংখ্যা):</label>
+          <input type="password" id="pw-pin" placeholder="নতুন ৪ সংখ্যার PIN..." maxlength="4" inputmode="numeric">
+        </div>
+        <button class="btn btn-purple" onclick="changePw()">🔐 Password ও PIN আপডেট করুন</button>
+      </div>
+
+      <hr class="div">
+
+      <!-- Record Table -->
+      <div class="ig" style="margin-bottom:8px">
+        <label>🔎 রেকর্ড সার্চ</label>
+        <input type="text" id="tbl-search" placeholder="সাবস্ক্রিপশন / স্টেশন দিয়ে সার্চ..." oninput="filterTable()">
+      </div>
+      <div class="prog-wrap" id="prog-wrap">
+        <div class="prog-bg"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-lbl" id="prog-lbl">0%</div>
+      </div>
+      <div class="tbox">
+        <table>
+          <thead><tr><th>সাবস্ক্রিপশন নং</th><th>লোকেশন</th><th style="width:60px;text-align:center">অ্যাকশন</th></tr></thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+
+      <hr class="div">
+
+      <!-- ══ USER CONTROL PANEL ══ -->
+      <h3 style="font-size:14px;color:var(--pc);margin:0 0 10px">👥 ডিভাইস কন্ট্রোল প্যানেল</h3>
+      <div id="up-list" style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:14px"></div>
+
+      <hr class="div">
+
+      <!-- Data buttons -->
+      <button class="btn btn-out" onclick="exportAll()">📤 Full Backup Export (JSON)</button>
+      <button class="btn btn-out" style="border-color:#27ae60;color:#27ae60;margin-top:8px" onclick="exportLocal()">📤 লোকাল ডাটা Export</button>
+      <button class="btn btn-green" style="margin-top:8px" onclick="document.getElementById('imp-file').click()">📂 ফাইল Import (.xlsx / .json)</button>
+      <input type="file" id="imp-file" style="display:none" accept=".json,.xlsx,.xls,.csv" onchange="importFile(event)">
+      <button class="btn btn-red" style="margin-top:8px" onclick="clearAll()">🗑️ সব ডাটা মুছে ফেলুন</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<div class="bnav">
+  <div id="n-search" class="ni active" onclick="go('s-search','n-search')">🔍 সার্চ</div>
+  <div id="n-add"    class="ni"        onclick="go('s-add','n-add')">➕ নতুন সেট</div>
+  <div id="n-set"    class="ni"        onclick="navSettings()">⚙️ সেটিংস</div>
+</div>
+<div id="toast" class="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════
-   Subscription Tracker Pro — v3 Strong User Panel
-   Role System : Admin | Editor | Viewer
-   Auth        : Password (changeable) + 4-digit PIN
-   Storage     : IndexedDB primary, GitHub chunked backup
-═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   Subscription Tracker Pro — v4  (All bugs fixed)
+   Fixes:
+   1. generateDeviceFingerprint → নিজের device সবসময় Active হয় (Admin)
+   2. verifyPw / verifyPin → সঠিকভাবে settings খোলে
+   3. switchScreen → isAdmin reset সঠিক জায়গায়
+   4. changeDeviceRole → নিজের role নিজে বদলাতে পারবে না (disabled)
+   5. cancelAuth → block screen check করে তারপর redirect
+   6. saveEntry → Role check সঠিক
+   7. loadUserPanel → status/role object ও string দুটোই handle করে
+   8. Waiting device → Admin যে activate করবে সে-ই device Active হবে
+═══════════════════════════════════════════════════════════ */
 
-    // ── Config ───────────────────────────────────────────
-    const CHUNK_SIZE     = 5000;
-    const SEARCH_LIMIT   = 10;
-    const TABLE_PAGE     = 100;
-    const DB_NAME        = "SubscriptionTrackerDB_v3";
-    const STORE_MAIN     = "mainData";
-    const STORE_LOCAL    = "localData";
-    const STORE_QUEUE    = "offlineQueue";
+  // ─── Constants ───────────────────────────────────────────
+  const CHUNK    = 5000;
+  const SLIM     = 10;
+  const TPAGE    = 150;
+  const DBN      = "SubTracker_v4";
+  const SM = "main"; const SL = "local"; const SQ = "queue";
 
-    // Default credentials (localStorage এ override হবে)
-    const DEFAULT_PASSWORD = "admin123";
-    const DEFAULT_PIN      = "1234";
+  // ─── State ───────────────────────────────────────────────
+  let GH_REPO  = ls('ghRepo')  || "";
+  let GH_TOK   = ls('ghTok')   || "";
+  let LANG     = 'bn';
+  let isAdmin  = false;
+  let devId    = "";
+  let myRole   = "Viewer";
+  let db       = null;
+  let MEM      = new Map();   // In-memory search index
+  let pinBuf   = "";
+  let pwOk     = false;       // password step passed flag
+  let failCnt  = 0;
+  let locked   = false;
+  let curLoc   = "";
+  let picker, pickerM;
 
-    // ── State ────────────────────────────────────────────
-    let githubRepo           = localStorage.getItem('githubRepo') || "sec01086/se.location";
-    let githubToken          = localStorage.getItem('githubToken') || "";
-    let currentLang          = 'bn';
-    let isAdminAuthenticated = false;
-    let myDeviceId           = "";
-    let myRole               = "Viewer"; // will be set from userDB
-    let pickerMap, pickerMarker;
-    let dbInstance           = null;
-    let memoryIndex          = new Map();
+  function ls(k)    { return localStorage.getItem(k); }
+  function lss(k,v) { localStorage.setItem(k, v); }
+  function getAdminPw()  { return ls('adminPw')  || 'admin123'; }
+  function getAdminPin() { return ls('adminPin') || '1234'; }
 
-    // Auth state
-    let authFailCount = 0;
-    let authLocked    = false;
-    let pinBuffer     = "";
-    let pwStepPassed  = false;
-
-    // ── Helper: get saved password/pin ───────────────────
-    function getSavedPassword() { return localStorage.getItem('adminPassword') || DEFAULT_PASSWORD; }
-    function getSavedPin()      { return localStorage.getItem('adminPin')      || DEFAULT_PIN; }
-
-    /* ═══════════════════════════════════════════════════
-       IndexedDB
-    ═══════════════════════════════════════════════════ */
-    function initIndexedDB() {
-        return new Promise((res, rej) => {
-            const req = indexedDB.open(DB_NAME, 1);
-            req.onupgradeneeded = e => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE_MAIN))  db.createObjectStore(STORE_MAIN);
-                if (!db.objectStoreNames.contains(STORE_LOCAL)) db.createObjectStore(STORE_LOCAL);
-                if (!db.objectStoreNames.contains(STORE_QUEUE)) db.createObjectStore(STORE_QUEUE, { autoIncrement:true });
-            };
-            req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
-            req.onerror   = () => rej("IDB Error");
-        });
-    }
-    function idbGet(store, key) {
-        return new Promise(res => {
-            if (!dbInstance) return res(null);
-            const req = dbInstance.transaction([store],"readonly").objectStore(store).get(key);
-            req.onsuccess = () => res(req.result ?? null);
-            req.onerror   = () => res(null);
-        });
-    }
-    function idbPut(store, key, val) {
-        return new Promise(res => {
-            if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([store],"readwrite");
-            tx.objectStore(store).put(val, key);
-            tx.oncomplete = () => res(true);
-            tx.onerror    = () => res(false);
-        });
-    }
-    function idbDelete(store, key) {
-        return new Promise(res => {
-            if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([store],"readwrite");
-            tx.objectStore(store).delete(key);
-            tx.oncomplete = () => res(true);
-        });
-    }
-    function idbGetAllKeys(store) {
-        return new Promise(res => {
-            if (!dbInstance) return res([]);
-            const req = dbInstance.transaction([store],"readonly").objectStore(store).getAllKeys();
-            req.onsuccess = () => res(req.result || []);
-            req.onerror   = () => res([]);
-        });
-    }
-    function idbGetAll(store) {
-        return new Promise(res => {
-            if (!dbInstance) return res({});
-            const tx   = dbInstance.transaction([store],"readonly");
-            const kReq = tx.objectStore(store).getAllKeys();
-            const vReq = tx.objectStore(store).getAll();
-            let k, v;
-            kReq.onsuccess = () => { k = kReq.result; if (v!==undefined) finish(); };
-            vReq.onsuccess = () => { v = vReq.result; if (k!==undefined) finish(); };
-            function finish() { const o={}; k.forEach((key,i)=>o[key]=v[i]); res(o); }
-        });
-    }
-    function idbBulkPut(store, data, onProgress) {
-        return new Promise((res, rej) => {
-            if (!dbInstance) return rej("DB not ready");
-            const keys  = Object.keys(data);
-            const total = keys.length;
-            if (!total) return res(0);
-            const BATCH = 2000;
-            let done = 0;
-            function writeBatch(start) {
-                const tx = dbInstance.transaction([store],"readwrite");
-                const st = tx.objectStore(store);
-                for (let i=start; i<Math.min(start+BATCH,total); i++) st.put(data[keys[i]], keys[i]);
-                tx.oncomplete = () => {
-                    done = Math.min(start+BATCH, total);
-                    if (onProgress) onProgress(done, total);
-                    done < total ? writeBatch(done) : res(total);
-                };
-                tx.onerror = () => rej("Bulk Error");
-            }
-            writeBatch(0);
-        });
-    }
-    function idbClear(store) {
-        return new Promise(res => {
-            if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([store],"readwrite");
-            tx.objectStore(store).clear();
-            tx.oncomplete = () => res(true);
-        });
-    }
-    function enqueueOfflineWrite(key, loc) {
-        return new Promise(res => {
-            if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([STORE_QUEUE],"readwrite");
-            tx.objectStore(STORE_QUEUE).add({ key, location:loc, ts:Date.now() });
-            tx.oncomplete = () => res(true);
-        });
-    }
-    function getOfflineQueue() {
-        return new Promise(res => {
-            if (!dbInstance) return res([]);
-            const tx   = dbInstance.transaction([STORE_QUEUE],"readonly");
-            const kReq = tx.objectStore(STORE_QUEUE).getAllKeys();
-            const vReq = tx.objectStore(STORE_QUEUE).getAll();
-            let k, v;
-            kReq.onsuccess = () => { k = kReq.result; if (v) finish(); };
-            vReq.onsuccess = () => { v = vReq.result; if (k) finish(); };
-            function finish() { res(k.map((id,i)=>({id,...v[i]}))); }
-        });
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Memory Index
-    ═══════════════════════════════════════════════════ */
-    async function buildMemoryIndex() {
-        memoryIndex.clear();
-        return new Promise(res => {
-            if (!dbInstance) return res();
-            const req = dbInstance.transaction([STORE_MAIN],"readonly").objectStore(STORE_MAIN).openCursor();
-            req.onsuccess = e => {
-                const cur = e.target.result;
-                if (cur) { memoryIndex.set(cur.key, cur.value); cur.continue(); }
-                else res();
-            };
-            req.onerror = () => res();
-        });
-    }
-
-    /* ═══════════════════════════════════════════════════
-       GitHub Chunked Storage
-    ═══════════════════════════════════════════════════ */
-    async function getFileSha(path) {
-        try {
-            const r = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${path}`, {
-                headers:{ "Authorization":`token ${githubToken}` }
-            });
-            if (r.ok) { const d = await r.json(); return d.sha || ""; }
-        } catch(e) {}
-        return "";
-    }
-    async function pushFileToGitHub(path, content, msg) {
-        const sha  = await getFileSha(path);
-        const body = { message:msg, content:btoa(unescape(encodeURIComponent(content))) };
-        if (sha) body.sha = sha;
-        const r = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${path}`, {
-            method:"PUT",
-            headers:{ "Authorization":`token ${githubToken}`, "Content-Type":"application/json" },
-            body: JSON.stringify(body)
-        });
-        return r.ok;
-    }
-    async function fetchGitHubMeta() {
-        try {
-            const r = await fetch(`https://raw.githubusercontent.com/${githubRepo}/main/meta.json?t=${Date.now()}`);
-            if (r.ok) return await r.json();
-        } catch(e) {}
-        return { totalRecords:0, totalChunks:0 };
-    }
-    async function fetchChunk(i) {
-        try {
-            const r = await fetch(`https://raw.githubusercontent.com/${githubRepo}/main/chunks/chunk_${i}.json?t=${Date.now()}`);
-            if (r.ok) return await r.json();
-        } catch(e) {}
-        return null;
-    }
-    async function pushToGitHub(key, value) {
-        if (!githubToken) return false;
-        try {
-            const meta       = await fetchGitHubMeta();
-            const total      = (meta.totalRecords||0) + 1;
-            const chunkIndex = Math.floor((total-1)/CHUNK_SIZE);
-            const chunk      = await fetchChunk(chunkIndex) || {};
-            chunk[key]       = value;
-            const pushed     = await pushFileToGitHub(`chunks/chunk_${chunkIndex}.json`, JSON.stringify(chunk), `📌 Add ${key}`);
-            if (!pushed) return false;
-            await pushFileToGitHub('meta.json',
-                JSON.stringify({ totalRecords:total, totalChunks:Math.max(meta.totalChunks||1,chunkIndex+1), lastUpdated:new Date().toISOString() }),
-                '📊 Update meta');
-            return true;
-        } catch(e) { return false; }
-    }
-    async function syncWithGitHub() {
-        const statusEl = document.getElementById('cloud-status');
-        statusEl.innerHTML = "⏳ সিঙ্ক হচ্ছে...";
-        showToast("⏳ সিঙ্ক হচ্ছে...");
-        try {
-            const meta   = await fetchGitHubMeta();
-            const chunks = meta.totalChunks || 0;
-            let imported = 0;
-            for (let i=0; i<chunks; i++) {
-                const chunk = await fetchChunk(i);
-                if (chunk) {
-                    await idbBulkPut(STORE_MAIN, chunk, null);
-                    Object.keys(chunk).forEach(k => memoryIndex.set(k, chunk[k]));
-                    imported += Object.keys(chunk).length;
-                }
-                statusEl.innerHTML = `⏳ ${i+1}/${chunks} chunks…`;
-            }
-            await flushOfflineQueue();
-            updateDataStats();
-            statusEl.innerHTML = `✅ ${imported.toLocaleString()} records synced`;
-            showToast("✅ সিঙ্ক সম্পন্ন!");
-            updateChunkInfo(meta);
-        } catch(e) {
-            statusEl.innerHTML = "⚠️ সিঙ্ক ব্যর্থ";
-            showToast("❌ সিঙ্ক ব্যর্থ!");
-        }
-    }
-    async function flushOfflineQueue() {
-        const q = await getOfflineQueue();
-        for (const item of q) await pushToGitHub(item.key, item.location);
-        await idbClear(STORE_QUEUE);
-        updateQueueBadge();
-    }
-    async function updateQueueBadge() {
-        const q     = await getOfflineQueue();
-        const badge = document.getElementById('queue-badge');
-        badge.style.display = q.length>0 ? 'inline' : 'none';
-        if (q.length>0) badge.textContent = q.length + ' pending';
-    }
-    async function updateChunkInfo(meta) {
-        if (!meta) meta = await fetchGitHubMeta();
-        const el = document.getElementById('chunk-info');
-        el.textContent = meta.totalChunks
-            ? `GitHub: ${meta.totalChunks} chunks | ${(meta.totalRecords||0).toLocaleString()} records | ${meta.lastUpdated ? new Date(meta.lastUpdated).toLocaleString() : ''}`
-            : 'GitHub: meta.json পাওয়া যায়নি';
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Role System
-       userControlDatabase: { deviceId: { status, role, lastActive } }
-    ═══════════════════════════════════════════════════ */
-    function getUserDB() { return JSON.parse(localStorage.getItem('userControlDatabase') || '{}'); }
-    function setUserDB(db) { localStorage.setItem('userControlDatabase', JSON.stringify(db)); }
-
-    function getMyRole() {
-        const db  = getUserDB();
-        const rec = db[myDeviceId];
-        return rec ? (rec.role || "Viewer") : "Viewer";
-    }
-
-    function updateLastActive() {
-        const db = getUserDB();
-        if (db[myDeviceId]) {
-            db[myDeviceId].lastActive = new Date().toISOString();
-            setUserDB(db);
-        }
-    }
-
-    function applyRoleRestrictions() {
-        myRole = getMyRole();
-        // Add screen restriction
-        const viewerBlock = document.getElementById('viewer-block');
-        const addFormWrap = document.getElementById('add-form-wrap');
-        if (myRole === "Viewer") {
-            viewerBlock.style.display = 'block';
-            addFormWrap.style.display = 'none';
-        } else {
-            viewerBlock.style.display = 'none';
-            addFormWrap.style.display = 'block';
-        }
-        // Role banner
-        const banners = ['role-banner-search'];
-        banners.forEach(id => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const icons = { Admin:'👑', Editor:'✏️', Viewer:'👁️' };
-            el.textContent = `${icons[myRole]||''} আপনার Role: ${myRole}`;
-            el.className = `role-banner ${myRole.toLowerCase()}`;
-            el.style.display = 'block';
-        });
-    }
-
-    /* ═══════════════════════════════════════════════════
-       2-Step Auth
-    ═══════════════════════════════════════════════════ */
-    function showAuthStep(n) {
-        document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('active'));
-        document.getElementById(`auth-step-${n}`).classList.add('active');
-    }
-
-    function resetAuthFail() {
-        document.getElementById('auth-fail-msg').style.display='none';
-    }
-
-    function verifyPasswordStep() {
-        if (authLocked) { showToast("🔒 অনেকবার ভুল হয়েছে! পরে চেষ্টা করুন।"); return; }
-        const entered = document.getElementById('admin-password').value;
-        if (entered === getSavedPassword()) {
-            authFailCount = 0;
-            pwStepPassed  = true;
-            pinBuffer     = "";
-            updatePinDots();
-            document.getElementById('pin-fail-msg').style.display='none';
-            showAuthStep(2);
-        } else {
-            authFailCount++;
-            const left = Math.max(0, 3 - authFailCount);
-            const msgEl = document.getElementById('auth-fail-msg');
-            msgEl.style.display='block';
-            document.getElementById('fail-left').textContent = left;
-            document.getElementById('auth-step-1').classList.add('fail-shake');
-            setTimeout(()=>document.getElementById('auth-step-1').classList.remove('fail-shake'), 400);
-            if (authFailCount >= 3) {
-                authLocked = true;
-                setTimeout(()=>{ authLocked=false; authFailCount=0; }, 30000);
-                showToast("🔒 ৩০ সেকেন্ড অপেক্ষা করুন!");
-            }
-        }
-    }
-
-    function pinPress(d) {
-        if (pinBuffer.length >= 4) return;
-        pinBuffer += d;
-        updatePinDots();
-    }
-    function pinBack() {
-        pinBuffer = pinBuffer.slice(0,-1);
-        updatePinDots();
-    }
-    function updatePinDots() {
-        for (let i=0; i<4; i++) {
-            document.getElementById(`pd${i}`).classList.toggle('filled', i < pinBuffer.length);
-        }
-    }
-    function verifyPinStep() {
-        if (!pwStepPassed) { showAuthStep(1); return; }
-        if (pinBuffer === getSavedPin()) {
-            isAdminAuthenticated = true;
-            pwStepPassed = false;
-            pinBuffer = "";
-            updatePinDots();
-            switchScreen('settings-screen','nav-settings');
-        } else {
-            document.getElementById('pin-fail-msg').style.display='block';
-            document.getElementById('auth-step-2').classList.add('fail-shake');
-            setTimeout(()=>document.getElementById('auth-step-2').classList.remove('fail-shake'), 400);
-            pinBuffer = "";
-            updatePinDots();
-        }
-    }
-    function backToPasswordStep() {
-        pwStepPassed = false;
-        pinBuffer = "";
-        updatePinDots();
-        showAuthStep(1);
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Password Change
-    ═══════════════════════════════════════════════════ */
-    function checkPwStrength(val) {
-        const bar   = document.getElementById('pw-strength-bar');
-        const label = document.getElementById('pw-strength-label');
-        let score = 0;
-        if (val.length >= 6)  score++;
-        if (val.length >= 10) score++;
-        if (/[A-Z]/.test(val)) score++;
-        if (/[0-9]/.test(val)) score++;
-        if (/[^A-Za-z0-9]/.test(val)) score++;
-        const levels = [
-            { pct:'20%', color:'#e74c3c', text:'খুব দুর্বল' },
-            { pct:'40%', color:'#e67e22', text:'দুর্বল' },
-            { pct:'60%', color:'#f1c40f', text:'মাঝারি' },
-            { pct:'80%', color:'#2ecc71', text:'শক্তিশালী' },
-            { pct:'100%',color:'#27ae60', text:'অনেক শক্তিশালী' },
-        ];
-        const lv = levels[Math.min(score, 4)];
-        bar.style.width      = val ? lv.pct : '0%';
-        bar.style.background = lv.color;
-        label.textContent    = val ? lv.text : '';
-        label.style.color    = lv.color;
-    }
-
-    function changeAdminPassword() {
-        const cur    = document.getElementById('pw-current').value;
-        const newPw  = document.getElementById('pw-new').value;
-        const newPin = document.getElementById('pw-new-pin').value;
-
-        if (cur !== getSavedPassword()) { showToast("❌ বর্তমান পাসওয়ার্ড ভুল!"); return; }
-        if (newPw.length < 6)           { showToast("❌ নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!"); return; }
-        if (!/^\d{4}$/.test(newPin))    { showToast("❌ PIN অবশ্যই ৪ সংখ্যার হতে হবে!"); return; }
-
-        localStorage.setItem('adminPassword', newPw);
-        localStorage.setItem('adminPin', newPin);
-        document.getElementById('pw-current').value = '';
-        document.getElementById('pw-new').value     = '';
-        document.getElementById('pw-new-pin').value = '';
-        checkPwStrength('');
-        showToast("✅ Password ও PIN সফলভাবে পরিবর্তন হয়েছে!");
-    }
-
-    /* ═══════════════════════════════════════════════════
-       User Control Panel — Role + Status + Last Active
-    ═══════════════════════════════════════════════════ */
-    function loadUserControlPanel() {
-        const db      = getUserDB();
-        const listEl  = document.getElementById('user-panel-list');
-        listEl.innerHTML = '';
-
-        const ids = Object.keys(db);
-        if (ids.length === 0) {
-            listEl.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:13px;">কোনো ডিভাইস নেই</div>';
-            return;
-        }
-
-        ids.forEach(id => {
-            const rec    = db[id];
-            const status = typeof rec === 'object' ? rec.status : rec;
-            const role   = typeof rec === 'object' ? (rec.role || 'Viewer') : 'Viewer';
-            const lastA  = typeof rec === 'object' ? rec.lastActive : null;
-            const isMe   = (id === myDeviceId);
-
-            const statusColor  = status==='Active' ? '#27ae60' : status==='Waiting' ? '#f39c12' : '#c0392b';
-            const toggleLabel  = status==='Active'
-                ? (currentLang==='bn' ? 'সাসপেন্ড' : 'Suspend')
-                : (currentLang==='bn' ? 'একটিভ করুন' : 'Activate');
-            const toggleBg     = status==='Active' ? '#e74c3c' : '#27ae60';
-
-            const lastActiveStr = lastA
-                ? `⏱ শেষ সক্রিয়: ${new Date(lastA).toLocaleString('bn-BD')}`
-                : '⏱ কখনো সক্রিয় হয়নি';
-
-            const row = document.createElement('div');
-            row.className = 'user-panel-row';
-            row.innerHTML = `
-                <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                        <span class="user-id-text">${id}</span>
-                        ${isMe ? '<small style="color:#2b579a;font-weight:bold;white-space:nowrap;">(আপনি)</small>' : ''}
-                        <span class="role-badge role-${role.toLowerCase()}">${role}</span>
-                        <span class="badge" style="background:${statusColor}">${status}</span>
-                    </div>
-                    <div class="last-active-txt">${lastActiveStr}</div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
-                    <select class="role-select" onchange="changeDeviceRole('${id}',this.value)" ${isMe?'disabled':''}>
-                        <option value="Admin"  ${role==='Admin'  ?'selected':''}>👑 Admin</option>
-                        <option value="Editor" ${role==='Editor' ?'selected':''}>✏️ Editor</option>
-                        <option value="Viewer" ${role==='Viewer' ?'selected':''}>👁️ Viewer</option>
-                    </select>
-                    <button class="status-toggle" style="background:${toggleBg};color:white;"
-                        onclick="toggleDeviceStatus('${id}')" ${isMe?'disabled':''}>
-                        ${toggleLabel}
-                    </button>
-                </div>
-            `;
-            listEl.appendChild(row);
-        });
-    }
-
-    function changeDeviceRole(id, newRole) {
-        const db = getUserDB();
-        if (!db[id]) return;
-        if (typeof db[id] === 'string') db[id] = { status: db[id], role:'Viewer' };
-        db[id].role = newRole;
-        setUserDB(db);
-        showToast(`✅ ${id.slice(0,10)}... → ${newRole}`);
-        loadUserControlPanel();
-        applyRoleRestrictions(); // নিজের role পাল্টালে তাৎক্ষণিক effect
-    }
-
-    function toggleDeviceStatus(id) {
-        const db = getUserDB();
-        if (!db[id]) return;
-        if (typeof db[id] === 'string') db[id] = { status: db[id], role:'Viewer' };
-        db[id].status = db[id].status === 'Active' ? 'Suspended' : 'Active';
-        setUserDB(db);
-        loadUserControlPanel();
-        checkSuspensionStatus();
-    }
-
-    /* ═══════════════════════════════════════════════════
-       App Init
-    ═══════════════════════════════════════════════════ */
-    window.onload = async function() {
-        if (localStorage.getItem('theme')==='dark') document.body.setAttribute('data-theme','dark');
-        if (!localStorage.getItem('userControlDatabase')) setUserDB({});
-
-        try {
-            await initIndexedDB();
-            document.getElementById('cloud-status').innerHTML = "⏳ সার্চ ইনডেক্স তৈরি হচ্ছে...";
-            await buildMemoryIndex();
-            document.getElementById('cloud-status').innerHTML = "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি";
-        } catch(e) { console.error(e); }
-
-        generateDeviceFingerprint();
-        updateDataStats();
-        updateQueueBadge();
-        applyRoleRestrictions();
-
-        window.addEventListener('online', async () => {
-            showToast('🌐 নেটওয়ার্ক পাওয়া গেছে! Sync হচ্ছে...');
-            await flushOfflineQueue();
-        });
-
-        // প্রতি ৩০ সেকেন্ডে last active আপডেট
-        setInterval(updateLastActive, 30000);
-    };
-
-    /* ═══════════════════════════════════════════════════
-       Device & Suspension
-    ═══════════════════════════════════════════════════ */
-    function generateDeviceFingerprint() {
-        let id = localStorage.getItem('myTrackerDeviceId');
-        if (!id) {
-            id = "DEV-" + screen.width + "x" + screen.height + "-" + (Math.floor(Math.random()*9000)+1000);
-            localStorage.setItem('myTrackerDeviceId', id);
-        }
-        myDeviceId = id;
-        const db = getUserDB();
-        if (!db[id]) {
-            db[id] = { status:"Waiting", role:"Viewer", lastActive: new Date().toISOString() };
-            setUserDB(db);
-        } else if (typeof db[id]==='string') {
-            // migrate old format
-            db[id] = { status:db[id], role:"Viewer", lastActive: new Date().toISOString() };
-            setUserDB(db);
-        }
-        checkSuspensionStatus();
-    }
-
-    function checkSuspensionStatus() {
-        const db  = getUserDB();
-        const rec = db[myDeviceId];
-        const status = typeof rec==='object' ? rec.status : rec;
-        if (status==="Suspended"||status==="Waiting") {
-            document.getElementById('block-screen').style.display="flex";
-            document.getElementById('lbl-block-title').innerText = status==="Waiting"
-                ? "এই ডিভাইসটি এখনো একটিভ করা হয়নি!"
-                : "🚫 আপনার ডিভাইস সাসপেন্ড করা হয়েছে!";
-            document.getElementById('lbl-block-desc').innerText = status==="Waiting"
-                ? "এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।"
-                : "আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।";
-        } else {
-            document.getElementById('block-screen').style.display="none";
-        }
-    }
-
-    function goToAuthFromLockScreen() {
-        document.getElementById('admin-password').value="";
-        document.getElementById('block-screen').style.display="none";
-        pinBuffer=""; updatePinDots(); showAuthStep(1);
-        switchScreen('auth-screen','nav-settings');
-    }
-    function cancelAuthRedirect() {
-        checkSuspensionStatus();
-        switchScreen('search-screen','nav-search');
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Screen Switching
-    ═══════════════════════════════════════════════════ */
-    function switchScreen(screenId, navId) {
-        if (document.getElementById('settings-screen').classList.contains('active') && screenId!=='settings-screen')
-            isAdminAuthenticated = false;
-
-        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-        if (navId) document.getElementById(navId).classList.add('active');
-
-        if (screenId==='settings-screen') {
-            document.getElementById('github-repo-input').value = githubRepo;
-            document.getElementById('github-token-input').value = githubToken;
-            updateDataStats(); loadRecordTable(); loadUserControlPanel(); updateChunkInfo(null);
-        }
-        if (screenId==='add-screen') {
-            applyRoleRestrictions();
-            setTimeout(initializeManualPickerMap, 200);
-        }
-        if (screenId==='auth-screen') {
-            pinBuffer=""; updatePinDots(); showAuthStep(1);
-            document.getElementById('auth-fail-msg').style.display='none';
-            document.getElementById('pin-fail-msg').style.display='none';
-        }
-    }
-
-    function handleSettingsNavigation() {
-        if (isAdminAuthenticated) switchScreen('settings-screen','nav-settings');
-        else switchScreen('auth-screen','nav-settings');
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Map
-    ═══════════════════════════════════════════════════ */
-    function initializeManualPickerMap() {
-        if (!pickerMap) {
-            pickerMap = L.map('manual-picker-map').setView([24.7136, 46.6753], 11);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(pickerMap);
-            pickerMarker = L.marker([24.7136,46.6753],{draggable:true}).addTo(pickerMap);
-            pickerMarker.on('dragend',()=>updateLocField(pickerMarker.getLatLng().lat, pickerMarker.getLatLng().lng));
-            pickerMap.on('click',e=>{ pickerMarker.setLatLng(e.latlng); updateLocField(e.latlng.lat, e.latlng.lng); });
-        } else { pickerMap.invalidateSize(); }
-    }
-    function updateLocField(lat,lng) { document.getElementById('sub-location').value=`${lat.toFixed(5)}, ${lng.toFixed(5)}`; }
-    function getCurrentLocation() {
-        if (!navigator.geolocation) return alert("GPS সাপোর্ট নেই!");
-        navigator.geolocation.getCurrentPosition(pos=>{
-            updateLocField(pos.coords.latitude, pos.coords.longitude);
-            if (pickerMap&&pickerMarker) { pickerMarker.setLatLng([pos.coords.latitude,pos.coords.longitude]); pickerMap.setView([pos.coords.latitude,pos.coords.longitude],15); }
-            showToast("📍 লোকেশন আপডেট হয়েছে!");
-        }, err=>alert("GPS Error: "+err.message), {enableHighAccuracy:true,timeout:10000});
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Search
-    ═══════════════════════════════════════════════════ */
-    function formatSubscription(input) {
-        let val=input.value.replace(/[^0-9.]/g,'');
-        let parts=val.split('.');
-        if(parts.length>2){val=parts[0]+'.'+parts.slice(1).join('');parts=val.split('.');}
-        let m=parts[0].replace(/\D/g,'').substr(0,8);
-        let f='';
-        if(m.length>0)f+=m.substr(0,3);
-        if(m.length>3)f+='/'+m.substr(3,2);
-        if(m.length>5)f+='/'+m.substr(5,3);
-        if(parts.length===2){let e=parts[1].replace(/\D/g,'').substr(0,3);f+='.'+e;}
-        input.value=f;
-    }
-
-    async function handleSearchInput(input) {
-        formatSubscription(input);
-        const q     = input.value.trim();
-        const sugEl = document.getElementById('search-suggestions');
-        if (!q) { sugEl.style.display='none'; return; }
-        const matched=[];
-        for (const [key] of memoryIndex) {
-            if (key.includes(q)) { matched.push(key); if(matched.length>=SEARCH_LIMIT) break; }
-        }
-        if (matched.length>0) {
-            sugEl.innerHTML='';
-            for (const key of matched) {
-                const loc=memoryIndex.get(key)||'';
-                const div=document.createElement('div');
-                div.className='suggestion-item';
-                div.innerHTML=`<span>${key}</span><span class="suggestion-loc">${loc}</span>`;
-                div.onclick=()=>{ input.value=key; sugEl.style.display='none'; searchLocation(); };
-                sugEl.appendChild(div);
-            }
-            sugEl.style.display='block';
-        } else { sugEl.style.display='none'; }
-    }
-
-    document.addEventListener('click', e => {
-        const c=document.getElementById('search-suggestions');
-        const i=document.getElementById('search-input');
-        if(e.target!==c&&e.target!==i) c.style.display='none';
+  // ─── IndexedDB ───────────────────────────────────────────
+  function openDB() {
+    return new Promise((res,rej) => {
+      const r = indexedDB.open(DBN, 1);
+      r.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains(SM)) d.createObjectStore(SM);
+        if (!d.objectStoreNames.contains(SL)) d.createObjectStore(SL);
+        if (!d.objectStoreNames.contains(SQ)) d.createObjectStore(SQ,{autoIncrement:true});
+      };
+      r.onsuccess = e => { db = e.target.result; res(db); };
+      r.onerror   = () => rej("IDB Error");
     });
-
-    let currentActiveLocation="";
-    async function searchLocation() {
-        const sub     = document.getElementById('search-input').value.trim();
-        const station = document.getElementById('search-station-input').value.trim();
-        const key     = sub||station;
-        if (!key) { showToast("দয়া করে নাম্বার দিন!"); return; }
-        let loc = memoryIndex.get(key) || await idbGet(STORE_MAIN, key);
-        if (loc) { memoryIndex.set(key, loc); }
-        if (loc) {
-            currentActiveLocation=loc;
-            document.getElementById('res-num').innerText=key;
-            document.getElementById('res-loc').innerText=loc;
-            document.getElementById('result-box').style.display='block';
-            document.getElementById('not-found').style.display='none';
-            document.getElementById('map-frame').src="https://maps.google.com/maps?q="+encodeURIComponent(loc)+"&t=&z=14&ie=UTF8&iwloc=&output=embed";
-            document.getElementById('map-area').style.display='block';
-            updateLastActive();
-        } else {
-            document.getElementById('result-box').style.display='none';
-            document.getElementById('not-found').innerText="এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!";
-            document.getElementById('not-found').style.display='block';
-        }
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Save Data
-    ═══════════════════════════════════════════════════ */
-    async function saveDataAndPushToGitHub() {
-        if (myRole==="Viewer") { showToast("🚫 Viewer হিসেবে ডাটা Add করা যাবে না!"); return; }
-        const num     = document.getElementById('sub-number').value.trim();
-        const station = document.getElementById('station-number').value.trim();
-        const loc     = document.getElementById('sub-location').value.trim();
-        if ((!num&&!station)||!loc) { showToast("ফিল্ড পূরণ করুন!"); return; }
-        const key = num||station;
-        await idbPut(STORE_MAIN, key, loc);
-        memoryIndex.set(key, loc);
-        updateLastActive();
-        if (navigator.onLine) {
-            showToast("⏳ আপলোড হচ্ছে...");
-            const ok = await pushToGitHub(key, loc);
-            showToast(ok ? "✅ সফলভাবে সেভ ও আপলোড হয়েছে!" : "⚠️ লোকালে সেভ হয়েছে, cloud ব্যর্থ।");
-            if (!ok) { await enqueueOfflineWrite(key, loc); updateQueueBadge(); }
-        } else {
-            await enqueueOfflineWrite(key, loc);
-            showToast("📴 Offline — লোকালে সেভ, নেট এলে sync হবে।");
-            updateQueueBadge();
-        }
-        document.getElementById('sub-number').value='';
-        document.getElementById('station-number').value='';
-        document.getElementById('sub-location').value='';
-        switchScreen('search-screen','nav-search');
-        updateDataStats();
-    }
-
-    /* ═══════════════════════════════════════════════════
-       Import / Export
-    ═══════════════════════════════════════════════════ */
-    async function handleFileImport(event) {
-        const file=event.target.files[0]; if(!file) return;
-        showToast("⏳ প্রসেসিং হচ্ছে...");
-        const reader=new FileReader();
-        reader.onload=async function(e){
-            try {
-                let extracted={};
-                if(file.name.endsWith('.json')){
-                    const raw=JSON.parse(e.target.result);
-                    extracted=raw.locations||raw.Locations||raw;
-                } else if(file.name.match(/\.(xlsx|xls|csv)$/i)){
-                    const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-                    const ws=wb.Sheets[wb.SheetNames[0]];
-                    const rows=XLSX.utils.sheet_to_json(ws,{header:1});
-                    for(let i=1;i<rows.length;i++){if(rows[i][0]&&rows[i][1]) extracted[String(rows[i][0]).trim()]=String(rows[i][1]).trim();}
-                } else { showToast("ভুল ফরম্যাট!"); return; }
-                const total=Object.keys(extracted).length;
-                if(!total){showToast("কোনো ডাটা নেই!"); return;}
-                const pw=document.getElementById('progress-wrap');
-                const pb=document.getElementById('progress-bar-fill');
-                const pl=document.getElementById('progress-label');
-                pw.style.display='block';
-                await idbBulkPut(STORE_MAIN, extracted, (done,total)=>{
-                    const p=Math.round(done/total*100);
-                    pb.style.width=p+'%'; pl.textContent=`${p}% (${done.toLocaleString()}/${total.toLocaleString()})`;
-                });
-                const markers={};
-                Object.keys(extracted).forEach(k=>markers[k]=1);
-                await idbBulkPut(STORE_LOCAL, markers, null);
-                Object.keys(extracted).forEach(k=>memoryIndex.set(k,extracted[k]));
-                pw.style.display='none';
-                showToast("✅ ডাটা ইম্পোর্ট সম্পন্ন!");
-                updateDataStats(); loadRecordTable();
-            } catch(err){ console.error(err); alert("ভুল ফাইল ফরম্যাট!"); }
+  }
+  function iGet(st,k) {
+    return new Promise(res => {
+      if (!db) return res(null);
+      const r = db.transaction([st],'readonly').objectStore(st).get(k);
+      r.onsuccess = () => res(r.result ?? null);
+      r.onerror   = () => res(null);
+    });
+  }
+  function iPut(st,k,v) {
+    return new Promise(res => {
+      if (!db) return res(false);
+      const tx = db.transaction([st],'readwrite');
+      tx.objectStore(st).put(v,k);
+      tx.oncomplete = () => res(true);
+      tx.onerror    = () => res(false);
+    });
+  }
+  function iDel(st,k) {
+    return new Promise(res => {
+      if (!db) return res(false);
+      const tx = db.transaction([st],'readwrite');
+      tx.objectStore(st).delete(k);
+      tx.oncomplete = () => res(true);
+    });
+  }
+  function iKeys(st) {
+    return new Promise(res => {
+      if (!db) return res([]);
+      const r = db.transaction([st],'readonly').objectStore(st).getAllKeys();
+      r.onsuccess = () => res(r.result||[]);
+      r.onerror   = () => res([]);
+    });
+  }
+  function iAll(st) {
+    return new Promise(res => {
+      if (!db) return res({});
+      const tx  = db.transaction([st],'readonly');
+      const kr  = tx.objectStore(st).getAllKeys();
+      const vr  = tx.objectStore(st).getAll();
+      let k, v;
+      kr.onsuccess = () => { k=kr.result; if(v!==undefined) fin(); };
+      vr.onsuccess = () => { v=vr.result; if(k!==undefined) fin(); };
+      function fin(){ const o={}; k.forEach((key,i)=>o[key]=v[i]); res(o); }
+    });
+  }
+  function iBulk(st, data, onProg) {
+    return new Promise((res,rej) => {
+      if (!db) return rej("No DB");
+      const keys = Object.keys(data);
+      const tot  = keys.length;
+      if (!tot) return res(0);
+      const B = 2000; let done = 0;
+      function batch(s) {
+        const tx = db.transaction([st],'readwrite');
+        const os = tx.objectStore(st);
+        for (let i=s; i<Math.min(s+B,tot); i++) os.put(data[keys[i]], keys[i]);
+        tx.oncomplete = () => {
+          done = Math.min(s+B, tot);
+          if (onProg) onProg(done, tot);
+          done < tot ? batch(done) : res(tot);
         };
-        file.name.endsWith('.json') ? reader.readAsText(file) : reader.readAsArrayBuffer(file);
-        event.target.value="";
-    }
+        tx.onerror = () => rej("Bulk error");
+      }
+      batch(0);
+    });
+  }
+  function iClear(st) {
+    return new Promise(res => {
+      if (!db) return res(false);
+      const tx = db.transaction([st],'readwrite');
+      tx.objectStore(st).clear();
+      tx.oncomplete = () => res(true);
+    });
+  }
+  function enqueue(k, loc) {
+    return new Promise(res => {
+      if (!db) return res(false);
+      const tx = db.transaction([SQ],'readwrite');
+      tx.objectStore(SQ).add({key:k, location:loc, ts:Date.now()});
+      tx.oncomplete = () => res(true);
+    });
+  }
+  function getQueue() {
+    return new Promise(res => {
+      if (!db) return res([]);
+      const tx  = db.transaction([SQ],'readonly');
+      const kr  = tx.objectStore(SQ).getAllKeys();
+      const vr  = tx.objectStore(SQ).getAll();
+      let k, v;
+      kr.onsuccess = () => { k=kr.result; if(v) fin(); };
+      vr.onsuccess = () => { v=vr.result; if(k) fin(); };
+      function fin(){ res(k.map((id,i)=>({id,...v[i]}))); }
+    });
+  }
 
-    async function exportData() {
-        const all=await idbGetAll(STORE_MAIN);
-        const blob=new Blob([JSON.stringify(all,null,2)],{type:"application/json"});
-        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`full_backup_${Date.now()}.json`; a.click();
-    }
+  // ─── Memory Index ─────────────────────────────────────────
+  async function buildIndex() {
+    MEM.clear();
+    return new Promise(res => {
+      if (!db) return res();
+      const r = db.transaction([SM],'readonly').objectStore(SM).openCursor();
+      r.onsuccess = e => {
+        const c = e.target.result;
+        if (c) { MEM.set(c.key, c.value); c.continue(); } else res();
+      };
+      r.onerror = () => res();
+    });
+  }
 
-    async function exportLocalAppEntries() {
-        const keys=await idbGetAllKeys(STORE_LOCAL);
-        if(!keys.length){showToast("কোনো লোকাল ডাটা নেই!");return;}
-        const out={};
-        for(const k of keys){const v=memoryIndex.get(k)||await idbGet(STORE_MAIN,k); if(v) out[k]=v;}
-        const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
-        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`local_backup.json`; a.click();
-        showToast("✅ লোকাল ডাটা এক্সপোর্ট সম্পন্ন!");
-    }
-
-    async function deleteRecord(key) {
-        if(!confirm("ডাটাটি ডিলিট করতে চান?")) return;
-        await idbDelete(STORE_MAIN, key);
-        await idbDelete(STORE_LOCAL, key);
-        memoryIndex.delete(key);
-        showToast("✅ ডিলিট সম্পন্ন!");
-        updateDataStats(); loadRecordTable();
-    }
-
-    async function clearMemory() {
-        if(!confirm("সব ডাটা মুছে ফেলবেন?")) return;
-        await idbClear(STORE_MAIN); await idbClear(STORE_LOCAL); await idbClear(STORE_QUEUE);
-        memoryIndex.clear();
-        showToast("✅ সব ডাটা মুছে ফেলা হয়েছে!");
-        updateDataStats(); loadRecordTable(); updateQueueBadge();
-    }
-
-    async function updateDataStats() {
-        const localKeys=await idbGetAllKeys(STORE_LOCAL);
-        document.getElementById('stats-box').innerText=`📊 মোট IndexedDB ডাটা: ${memoryIndex.size.toLocaleString()} টি`;
-        document.getElementById('app-stats-box').innerText=`📱 লোকাল ইম্পোর্ট করা ডাটা: ${localKeys.length.toLocaleString()} টি`;
-    }
-
-    function loadRecordTable() {
-        const tbody=document.getElementById('record-table-body');
-        tbody.innerHTML=''; let count=0;
-        for(const [key,val] of memoryIndex){
-            if(count++>=TABLE_PAGE) break;
-            const tr=document.createElement('tr');
-            tr.innerHTML=`<td><strong style="font-family:'IBM Plex Mono',monospace;">${key}</strong></td><td>${val}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
-            tbody.appendChild(tr);
+  // ─── GitHub ───────────────────────────────────────────────
+  async function ghSha(path) {
+    try {
+      const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
+        {headers:{"Authorization":`token ${GH_TOK}`}});
+      if (r.ok) { const d=await r.json(); return d.sha||""; }
+    } catch(e){}
+    return "";
+  }
+  async function ghPush(path, content, msg) {
+    const sha  = await ghSha(path);
+    const body = {message:msg, content:btoa(unescape(encodeURIComponent(content)))};
+    if (sha) body.sha = sha;
+    const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,{
+      method:"PUT",
+      headers:{"Authorization":`token ${GH_TOK}`,"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    return r.ok;
+  }
+  async function ghMeta() {
+    try {
+      const r = await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/meta.json?t=${Date.now()}`);
+      if (r.ok) return await r.json();
+    } catch(e){}
+    return {totalRecords:0, totalChunks:0};
+  }
+  async function ghChunk(i) {
+    try {
+      const r = await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/chunks/chunk_${i}.json?t=${Date.now()}`);
+      if (r.ok) return await r.json();
+    } catch(e){}
+    return null;
+  }
+  async function pushOne(key, val) {
+    if (!GH_TOK) return false;
+    try {
+      const meta  = await ghMeta();
+      const tot   = (meta.totalRecords||0)+1;
+      const ci    = Math.floor((tot-1)/CHUNK);
+      const chunk = await ghChunk(ci)||{};
+      chunk[key]  = val;
+      const ok    = await ghPush(`chunks/chunk_${ci}.json`, JSON.stringify(chunk), `Add ${key}`);
+      if (!ok) return false;
+      await ghPush('meta.json', JSON.stringify({
+        totalRecords:tot,
+        totalChunks:Math.max(meta.totalChunks||1, ci+1),
+        lastUpdated:new Date().toISOString()
+      }), 'Update meta');
+      return true;
+    } catch(e){ return false; }
+  }
+  async function doSync() {
+    const el = document.getElementById('cloud-lbl');
+    el.textContent = "⏳ সিঙ্ক হচ্ছে...";
+    showToast("⏳ সিঙ্ক হচ্ছে...");
+    try {
+      const meta = await ghMeta();
+      const tc   = meta.totalChunks||0;
+      let imp = 0;
+      for (let i=0; i<tc; i++) {
+        const ch = await ghChunk(i);
+        if (ch) {
+          await iBulk(SM, ch, null);
+          Object.keys(ch).forEach(k=>MEM.set(k,ch[k]));
+          imp += Object.keys(ch).length;
         }
+        el.textContent = `⏳ ${i+1}/${tc} chunks…`;
+      }
+      // flush queue
+      const q = await getQueue();
+      for (const it of q) await pushOne(it.key, it.location);
+      await iClear(SQ);
+      refreshQBadge();
+      updateStats();
+      el.textContent = `✅ ${imp.toLocaleString()} records synced`;
+      showToast("✅ সিঙ্ক সম্পন্ন!");
+      refreshChunkInfo(meta);
+    } catch(e) {
+      el.textContent = "⚠️ সিঙ্ক ব্যর্থ";
+      showToast("❌ সিঙ্ক ব্যর্থ!");
     }
+  }
+  async function refreshQBadge() {
+    const q = await getQueue();
+    const b = document.getElementById('qbadge');
+    if (q.length>0){ b.style.display='inline'; b.textContent=q.length+' pending'; }
+    else b.style.display='none';
+  }
+  async function refreshChunkInfo(meta) {
+    if (!meta) meta = await ghMeta();
+    document.getElementById('chunk-info').textContent = meta.totalChunks
+      ? `GitHub: ${meta.totalChunks} chunks | ${(meta.totalRecords||0).toLocaleString()} records | ${meta.lastUpdated ? new Date(meta.lastUpdated).toLocaleString() : ''}`
+      : 'GitHub: meta.json পাওয়া যায়নি';
+  }
 
-    function filterRecordTable() {
-        const val=document.getElementById('table-search-input').value.trim();
-        const tbody=document.getElementById('record-table-body');
-        tbody.innerHTML='';
-        if(!val){loadRecordTable();return;}
-        let count=0;
-        for(const [key,loc] of memoryIndex){
-            if(!key.includes(val)) continue;
-            if(count++>=TABLE_PAGE) break;
-            const tr=document.createElement('tr');
-            tr.style.backgroundColor="rgba(39,174,96,0.1)";
-            tr.innerHTML=`<td><strong style="font-family:'IBM Plex Mono',monospace;">${key}</strong></td><td>${loc}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
-            tbody.appendChild(tr);
-        }
-    }
+  // ─── UserDB helpers ───────────────────────────────────────
+  function getUDB() { return JSON.parse(ls('udb')||'{}'); }
+  function setUDB(d){ lss('udb', JSON.stringify(d)); }
+  function getStatus(rec){ return typeof rec==='object' ? (rec.status||'Waiting') : (rec||'Waiting'); }
+  function getRole(rec)  { return typeof rec==='object' ? (rec.role||'Viewer')   : 'Viewer'; }
+  function migrateRec(rec){
+    if (typeof rec==='string') return {status:rec, role:'Viewer', lastActive:null};
+    return rec;
+  }
 
-    /* ═══════════════════════════════════════════════════
-       Settings & Theme
-    ═══════════════════════════════════════════════════ */
-    function saveGithubSettings() {
-        const r=document.getElementById('github-repo-input').value.trim();
-        const t=document.getElementById('github-token-input').value.trim();
-        if(r){localStorage.setItem('githubRepo',r); githubRepo=r;}
-        localStorage.setItem('githubToken',t); githubToken=t;
-        showToast("✅ GitHub সেটিংস সেভ হয়েছে!");
+  // ─── Device fingerprint & boot ────────────────────────────
+  function initDevice() {
+    let id = ls('devId');
+    if (!id) {
+      id = "DEV-" + screen.width + "x" + screen.height + "-" + (~~(Math.random()*9000)+1000);
+      lss('devId', id);
     }
+    devId = id;
+    const udb = getUDB();
+    if (!udb[id]) {
+      // নতুন device — প্রথম device হলে Admin, বাকি Waiting/Viewer
+      const isFirst = Object.keys(udb).length === 0;
+      udb[id] = {
+        status: isFirst ? 'Active' : 'Waiting',
+        role:   isFirst ? 'Admin'  : 'Viewer',
+        lastActive: new Date().toISOString()
+      };
+      setUDB(udb);
+    } else {
+      udb[id] = migrateRec(udb[id]);
+      udb[id].lastActive = new Date().toISOString();
+      setUDB(udb);
+    }
+    myRole = getRole(udb[id]);
+  }
 
-    function toggleTheme() {
-        const cur=document.body.getAttribute('data-theme');
-        if(cur==='dark'){document.body.removeAttribute('data-theme');localStorage.setItem('theme','light');}
-        else{document.body.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');}
+  function checkBlock() {
+    const udb    = getUDB();
+    const rec    = migrateRec(udb[devId]);
+    const status = getStatus(rec);
+    const blk    = document.getElementById('blk');
+    if (status==='Suspended'||status==='Waiting') {
+      blk.style.display = 'flex';
+      document.getElementById('blk-title').textContent =
+        status==='Waiting' ? "এই ডিভাইসটি একটিভ করা হয়নি!" : "🚫 ডিভাইসটি সাসপেন্ড করা হয়েছে!";
+      document.getElementById('blk-desc').textContent =
+        status==='Waiting' ? "এডমিন পাসওয়ার্ড দিয়ে একটিভ করুন।" : "আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।";
+    } else {
+      blk.style.display = 'none';
     }
+  }
 
-    function openMap() { if(currentActiveLocation) window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(currentActiveLocation),'_blank'); }
-    function copyLocation() {
-        const num=document.getElementById('res-num').innerText;
-        const link="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(currentActiveLocation);
-        const txt=`ID: ${num}\nLocation: ${currentActiveLocation}\nMap: ${link}`;
-        const el=document.createElement("textarea"); el.value=txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-        showToast("📋 কপি হয়েছে!");
-    }
-    function shareLocation() {
-        const num=document.getElementById('res-num').innerText;
-        const link="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(currentActiveLocation);
-        window.open(`https://wa.me/?text=${encodeURIComponent('ID: '+num+' | Link: '+link)}`,'_blank');
-    }
-    function showToast(msg) {
-        const t=document.getElementById('toast'); t.innerText=msg; t.style.display='block';
-        setTimeout(()=>t.style.display='none',3000);
-    }
+  function applyRole() {
+    const udb = getUDB();
+    myRole = getRole(migrateRec(udb[devId]));
+    // Banner
+    const icons = {Admin:'👑', Editor:'✏️', Viewer:'👁️'};
+    const bn = document.getElementById('role-banner');
+    bn.textContent  = `${icons[myRole]||''} আপনার Role: ${myRole}`;
+    bn.className    = `rbanner ${myRole.toLowerCase()}`;
+    bn.style.display = 'block';
+    // Add screen
+    const vb = document.getElementById('vblock');
+    const af = document.getElementById('add-form');
+    if (myRole==='Viewer') { vb.style.display='block'; af.style.display='none'; }
+    else                    { vb.style.display='none';  af.style.display='block'; }
+  }
 
-    function changeLanguage(lang) {
-        currentLang=lang;
-        document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');
-        document.body.setAttribute('dir',lang==='ar'?'rtl':'ltr');
-        applyRoleRestrictions();
-        loadUserControlPanel();
+  function touchActive() {
+    const udb = getUDB();
+    if (udb[devId]) { udb[devId].lastActive = new Date().toISOString(); setUDB(udb); }
+  }
+
+  // ─── Boot ─────────────────────────────────────────────────
+  window.onload = async () => {
+    if (ls('theme')==='dark') document.body.setAttribute('data-theme','dark');
+    try {
+      await openDB();
+      document.getElementById('cloud-lbl').textContent = "⏳ Index তৈরি হচ্ছে...";
+      await buildIndex();
+      document.getElementById('cloud-lbl').textContent = "☁️ গিটহাব ক্লাউড রেডি";
+    } catch(e){ console.error(e); }
+    initDevice();
+    checkBlock();
+    applyRole();
+    updateStats();
+    refreshQBadge();
+    window.addEventListener('online', async ()=>{
+      showToast('🌐 নেটওয়ার্ক পাওয়া গেছে!');
+      const q = await getQueue();
+      for (const it of q) await pushOne(it.key, it.location);
+      await iClear(SQ); refreshQBadge();
+    });
+    setInterval(touchActive, 30000);
+  };
+
+  // ─── Navigation ───────────────────────────────────────────
+  function go(sid, nid) {
+    // Settings থেকে বের হলে admin lock
+    if (document.getElementById('s-settings').classList.contains('active') && sid!=='s-settings')
+      isAdmin = false;
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+    document.getElementById(sid).classList.add('active');
+    if (nid) document.getElementById(nid).classList.add('active');
+    if (sid==='s-settings') openSettings();
+    if (sid==='s-add')      { applyRole(); setTimeout(initPicker,200); }
+    if (sid==='s-auth')     { resetAuth(); }
+  }
+
+  function navSettings() {
+    if (isAdmin) go('s-settings','n-set');
+    else         go('s-auth','n-set');
+  }
+
+  function goToAuth() {
+    document.getElementById('blk').style.display='none';
+    go('s-auth','n-set');
+  }
+  function cancelAuth() {
+    checkBlock();
+    go('s-search','n-search');
+  }
+
+  function openSettings() {
+    document.getElementById('g-repo').value = GH_REPO;
+    document.getElementById('g-tok').value  = GH_TOK;
+    updateStats();
+    loadTable();
+    loadUserPanel();
+    refreshChunkInfo(null);
+  }
+
+  // ─── 2-Step Auth ──────────────────────────────────────────
+  function resetAuth() {
+    pinBuf = ""; pwOk = false; failCnt = 0;
+    updateDots();
+    showStep(1);
+    document.getElementById('a-pw').value = '';
+    document.getElementById('a-err1').style.display = 'none';
+    document.getElementById('a-err2').style.display = 'none';
+  }
+  function showStep(n) {
+    document.querySelectorAll('.astep').forEach(s=>s.classList.remove('active'));
+    document.getElementById(`a-step${n}`).classList.add('active');
+  }
+  function verifyPw() {
+    if (locked) { showToast("🔒 ৩০ সেকেন্ড অপেক্ষা করুন!"); return; }
+    const val = document.getElementById('a-pw').value;
+    if (val === getAdminPw()) {
+      failCnt = 0; pwOk = true;
+      pinBuf = ""; updateDots();
+      document.getElementById('a-err2').style.display = 'none';
+      showStep(2);
+    } else {
+      failCnt++;
+      const left = Math.max(0, 3-failCnt);
+      document.getElementById('a-err1').style.display = 'block';
+      document.getElementById('a-left').textContent   = left;
+      document.getElementById('a-step1').classList.add('shake');
+      setTimeout(()=>document.getElementById('a-step1').classList.remove('shake'),400);
+      if (failCnt>=3) {
+        locked = true;
+        setTimeout(()=>{ locked=false; failCnt=0; }, 30000);
+        showToast("🔒 ৩০ সেকেন্ড লক!");
+      }
     }
+  }
+  function pp(d) { if(pinBuf.length<4){ pinBuf+=d; updateDots(); } }
+  function pb_del() { pinBuf=pinBuf.slice(0,-1); updateDots(); }
+  function updateDots() {
+    for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.toggle('on', i<pinBuf.length);
+  }
+  function verifyPin() {
+    if (!pwOk) { showStep(1); return; }
+    if (pinBuf === getAdminPin()) {
+      isAdmin = true; pwOk = false;
+      // যদি device Waiting থাকে → Active করে দাও
+      const udb = getUDB();
+      if (udb[devId] && getStatus(migrateRec(udb[devId]))==='Waiting') {
+        udb[devId] = migrateRec(udb[devId]);
+        udb[devId].status = 'Active';
+        setUDB(udb);
+        checkBlock();
+        applyRole();
+      }
+      go('s-settings','n-set');
+    } else {
+      document.getElementById('a-err2').style.display='block';
+      document.getElementById('a-step2').classList.add('shake');
+      setTimeout(()=>document.getElementById('a-step2').classList.remove('shake'),400);
+      pinBuf=""; updateDots();
+    }
+  }
+  function backToPw() { pwOk=false; pinBuf=""; updateDots(); showStep(1); }
+
+  // ─── Password Change ──────────────────────────────────────
+  function pwStrength(v) {
+    let s=0;
+    if(v.length>=6)s++; if(v.length>=10)s++;
+    if(/[A-Z]/.test(v))s++; if(/[0-9]/.test(v))s++; if(/[^A-Za-z0-9]/.test(v))s++;
+    const lv=[['20%','#e74c3c','খুব দুর্বল'],['40%','#e67e22','দুর্বল'],
+              ['60%','#f1c40f','মাঝারি'],['80%','#2ecc71','শক্তিশালী'],['100%','#27ae60','অনেক শক্তিশালী']];
+    const [p,c,t] = lv[Math.min(s,4)];
+    const bar = document.getElementById('pw-bar');
+    bar.style.width=v?p:'0%'; bar.style.background=c;
+    const lbl = document.getElementById('pw-lbl');
+    lbl.textContent=v?t:''; lbl.style.color=c;
+  }
+  function changePw() {
+    const cur = document.getElementById('pw-cur').value;
+    const nw  = document.getElementById('pw-new').value;
+    const pin = document.getElementById('pw-pin').value;
+    if (cur!==getAdminPw())      { showToast("❌ বর্তমান পাসওয়ার্ড ভুল!"); return; }
+    if (nw.length<6)             { showToast("❌ নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!"); return; }
+    if (!/^\d{4}$/.test(pin))    { showToast("❌ PIN অবশ্যই ৪ সংখ্যার হতে হবে!"); return; }
+    lss('adminPw', nw); lss('adminPin', pin);
+    document.getElementById('pw-cur').value='';
+    document.getElementById('pw-new').value='';
+    document.getElementById('pw-pin').value='';
+    pwStrength('');
+    showToast("✅ Password ও PIN সফলভাবে পরিবর্তন হয়েছে!");
+  }
+
+  // ─── User Control Panel ───────────────────────────────────
+  function loadUserPanel() {
+    const udb  = getUDB();
+    const el   = document.getElementById('up-list');
+    el.innerHTML = '';
+    const ids  = Object.keys(udb);
+    if (!ids.length) {
+      el.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:13px">কোনো ডিভাইস নেই</div>';
+      return;
+    }
+    ids.forEach(id => {
+      const rec    = migrateRec(udb[id]);
+      const status = getStatus(rec);
+      const role   = getRole(rec);
+      const lastA  = rec.lastActive;
+      const isMe   = id===devId;
+      const sBg    = status==='Active'?'#27ae60':status==='Waiting'?'#f39c12':'#c0392b';
+      const togLbl = status==='Active'?'সাসপেন্ড':'একটিভ করুন';
+      const togBg  = status==='Active'?'#e74c3c':'#27ae60';
+      const lastTx = lastA ? `⏱ ${new Date(lastA).toLocaleString()}` : '⏱ কখনো সক্রিয় হয়নি';
+      const row    = document.createElement('div');
+      row.className = 'up-row';
+      row.innerHTML = `
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+            <span class="up-id">${id}</span>
+            ${isMe?'<span style="color:var(--pc);font-weight:700;font-size:11px">(আপনি)</span>':''}
+            <span class="badge b-${role.toLowerCase()}">${role==='Admin'?'👑':role==='Editor'?'✏️':'👁️'} ${role}</span>
+            <span class="badge" style="background:${sBg}">${status}</span>
+          </div>
+          <div class="up-meta">${lastTx}</div>
+        </div>
+        <div class="up-controls">
+          <select class="rs" onchange="changeRole('${id}',this.value)" ${isMe?'disabled':''}>
+            <option value="Admin"  ${role==='Admin' ?'selected':''}>👑 Admin</option>
+            <option value="Editor" ${role==='Editor'?'selected':''}>✏️ Editor</option>
+            <option value="Viewer" ${role==='Viewer'?'selected':''}>👁️ Viewer</option>
+          </select>
+          <button class="stbtn" style="background:${togBg}" onclick="toggleStatus('${id}')" ${isMe?'disabled':''}>
+            ${togLbl}
+          </button>
+        </div>`;
+      el.appendChild(row);
+    });
+  }
+
+  function changeRole(id, role) {
+    const udb = getUDB();
+    if (!udb[id]) return;
+    udb[id] = migrateRec(udb[id]);
+    udb[id].role = role;
+    setUDB(udb);
+    showToast(`✅ Role → ${role}`);
+    loadUserPanel();
+    if (id===devId) applyRole();
+  }
+
+  function toggleStatus(id) {
+    if (id===devId) { showToast("❌ নিজের status পরিবর্তন করা যাবে না!"); return; }
+    const udb = getUDB();
+    if (!udb[id]) return;
+    udb[id] = migrateRec(udb[id]);
+    udb[id].status = udb[id].status==='Active' ? 'Suspended' : 'Active';
+    setUDB(udb);
+    loadUserPanel();
+    checkBlock();
+    showToast(`✅ Status → ${udb[id].status}`);
+  }
+
+  // ─── Search ───────────────────────────────────────────────
+  function fmtSub(inp) {
+    let v=inp.value.replace(/[^0-9.]/g,'');
+    let p=v.split('.');
+    if(p.length>2){v=p[0]+'.'+p.slice(1).join('');p=v.split('.');}
+    let m=p[0].replace(/\D/g,'').substr(0,8), f='';
+    if(m.length>0)f+=m.substr(0,3);
+    if(m.length>3)f+='/'+m.substr(3,2);
+    if(m.length>5)f+='/'+m.substr(5,3);
+    if(p.length===2)f+='.'+p[1].replace(/\D/g,'').substr(0,3);
+    inp.value=f;
+  }
+  function onSearchInput(inp) {
+    fmtSub(inp);
+    const q  = inp.value.trim();
+    const el = document.getElementById('sugg');
+    if (!q) { el.style.display='none'; return; }
+    const hits=[];
+    for (const [k] of MEM) { if(k.includes(q)) hits.push(k); if(hits.length>=SLIM) break; }
+    if (hits.length) {
+      el.innerHTML='';
+      hits.forEach(k=>{
+        const d=document.createElement('div');
+        d.className='si';
+        d.innerHTML=`<span>${k}</span><span class="si-loc">${MEM.get(k)||''}</span>`;
+        d.onclick=()=>{ inp.value=k; el.style.display='none'; doSearch(); };
+        el.appendChild(d);
+      });
+      el.style.display='block';
+    } else el.style.display='none';
+  }
+  document.addEventListener('click', e=>{
+    const el=document.getElementById('sugg');
+    if(e.target!==el&&e.target!==document.getElementById('si')) el.style.display='none';
+  });
+
+  async function doSearch() {
+    const sub = document.getElementById('si').value.trim();
+    const st  = document.getElementById('sti').value.trim();
+    const key = sub||st;
+    if (!key) { showToast("নাম্বার দিন!"); return; }
+    let loc = MEM.get(key) || await iGet(SM,key);
+    if (loc) MEM.set(key,loc);
+    if (loc) {
+      curLoc=loc;
+      document.getElementById('res-id').textContent  = key;
+      document.getElementById('res-loc').textContent = loc;
+      document.getElementById('res-box').style.display='block';
+      document.getElementById('not-found').style.display='none';
+      document.getElementById('map-fr').src=`https://maps.google.com/maps?q=${encodeURIComponent(loc)}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
+      document.getElementById('map-box').style.display='block';
+      touchActive();
+    } else {
+      document.getElementById('res-box').style.display='none';
+      document.getElementById('not-found').textContent='এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!';
+      document.getElementById('not-found').style.display='block';
+    }
+  }
+
+  // ─── Add Entry ────────────────────────────────────────────
+  function initPicker() {
+    if (!picker) {
+      picker  = L.map('pick-map').setView([24.7136,46.6753],11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(picker);
+      pickerM = L.marker([24.7136,46.6753],{draggable:true}).addTo(picker);
+      pickerM.on('dragend',()=>setLocField(pickerM.getLatLng().lat,pickerM.getLatLng().lng));
+      picker.on('click',e=>{ pickerM.setLatLng(e.latlng); setLocField(e.latlng.lat,e.latlng.lng); });
+    } else picker.invalidateSize();
+  }
+  function setLocField(la,ln){ document.getElementById('f-loc').value=`${la.toFixed(5)}, ${ln.toFixed(5)}`; }
+  function getGPS() {
+    if (!navigator.geolocation) { showToast("GPS সাপোর্ট নেই!"); return; }
+    navigator.geolocation.getCurrentPosition(p=>{
+      setLocField(p.coords.latitude, p.coords.longitude);
+      if(picker&&pickerM){ pickerM.setLatLng([p.coords.latitude,p.coords.longitude]); picker.setView([p.coords.latitude,p.coords.longitude],15); }
+      showToast("📍 লোকেশন আপডেট হয়েছে!");
+    }, e=>showToast("GPS Error: "+e.message),{enableHighAccuracy:true,timeout:10000});
+  }
+  async function saveEntry() {
+    if (myRole==='Viewer') { showToast("🚫 Viewer হিসেবে ডাটা Add করা যাবে না!"); return; }
+    const sub = document.getElementById('f-sub').value.trim();
+    const st  = document.getElementById('f-st').value.trim();
+    const loc = document.getElementById('f-loc').value.trim();
+    if ((!sub&&!st)||!loc) { showToast("সব ফিল্ড পূরণ করুন!"); return; }
+    const key = sub||st;
+    await iPut(SM,key,loc);
+    MEM.set(key,loc);
+    touchActive();
+    if (navigator.onLine) {
+      showToast("⏳ আপলোড হচ্ছে...");
+      const ok = await pushOne(key,loc);
+      if (!ok) { await enqueue(key,loc); refreshQBadge(); showToast("⚠️ লোকালে সেভ, পরে sync হবে।"); }
+      else showToast("✅ সেভ ও আপলোড সম্পন্ন!");
+    } else {
+      await enqueue(key,loc);
+      refreshQBadge();
+      showToast("📴 Offline — লোকালে সেভ।");
+    }
+    document.getElementById('f-sub').value='';
+    document.getElementById('f-st').value='';
+    document.getElementById('f-loc').value='';
+    go('s-search','n-search');
+    updateStats();
+  }
+
+  // ─── Import / Export ──────────────────────────────────────
+  async function importFile(ev) {
+    const file=ev.target.files[0]; if(!file) return;
+    showToast("⏳ প্রসেসিং হচ্ছে...");
+    const rd=new FileReader();
+    rd.onload = async e => {
+      try {
+        let data={};
+        if (file.name.endsWith('.json')) {
+          const raw=JSON.parse(e.target.result);
+          data=raw.locations||raw.Locations||raw;
+        } else if (file.name.match(/\.(xlsx|xls|csv)$/i)) {
+          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+          const ws=wb.Sheets[wb.SheetNames[0]];
+          XLSX.utils.sheet_to_json(ws,{header:1}).slice(1).forEach(r=>{
+            if(r[0]&&r[1]) data[String(r[0]).trim()]=String(r[1]).trim();
+          });
+        } else { showToast("ভুল ফরম্যাট!"); return; }
+        const tot=Object.keys(data).length;
+        if(!tot){ showToast("কোনো ডাটা নেই!"); return; }
+        const pw=document.getElementById('prog-wrap');
+        const pf=document.getElementById('prog-fill');
+        const pl=document.getElementById('prog-lbl');
+        pw.style.display='block';
+        await iBulk(SM, data, (d,t)=>{
+          const p=~~(d/t*100); pf.style.width=p+'%'; pl.textContent=`${p}% (${d.toLocaleString()}/${t.toLocaleString()})`;
+        });
+        const mk={}; Object.keys(data).forEach(k=>mk[k]=1);
+        await iBulk(SL, mk, null);
+        Object.keys(data).forEach(k=>MEM.set(k,data[k]));
+        pw.style.display='none';
+        showToast(`✅ ${tot.toLocaleString()} রেকর্ড ইম্পোর্ট সম্পন্ন!`);
+        updateStats(); loadTable();
+      } catch(err){ console.error(err); showToast("ভুল ফাইল ফরম্যাট!"); }
+    };
+    file.name.endsWith('.json') ? rd.readAsText(file) : rd.readAsArrayBuffer(file);
+    ev.target.value='';
+  }
+  async function exportAll() {
+    const d=await iAll(SM);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+    a.download=`full_backup_${Date.now()}.json`; a.click();
+  }
+  async function exportLocal() {
+    const ks=await iKeys(SL);
+    if(!ks.length){ showToast("কোনো লোকাল ডাটা নেই!"); return; }
+    const out={};
+    for(const k of ks){ const v=MEM.get(k)||await iGet(SM,k); if(v) out[k]=v; }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));
+    a.download='local_backup.json'; a.click();
+    showToast("✅ এক্সপোর্ট সম্পন্ন!");
+  }
+  async function clearAll() {
+    if(!confirm("সব ডাটা মুছে ফেলবেন?")) return;
+    await iClear(SM); await iClear(SL); await iClear(SQ);
+    MEM.clear(); refreshQBadge();
+    updateStats(); loadTable();
+    showToast("✅ সব ডাটা মুছে ফেলা হয়েছে!");
+  }
+  async function deleteRec(key) {
+    if(!confirm("ডিলিট করবেন?")) return;
+    await iDel(SM,key); await iDel(SL,key); MEM.delete(key);
+    showToast("✅ ডিলিট সম্পন্ন!"); updateStats(); loadTable();
+  }
+
+  // ─── Table ────────────────────────────────────────────────
+  function loadTable() {
+    const tb=document.getElementById('tbl-body');
+    tb.innerHTML=''; let n=0;
+    for(const [k,v] of MEM){
+      if(n++>=TPAGE) break;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><strong style="font-family:'IBM Plex Mono',monospace;font-size:12px">${k}</strong></td>
+        <td style="font-size:12px">${v}</td>
+        <td style="text-align:center"><button class="delbtn" onclick="deleteRec('${k.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
+      tb.appendChild(tr);
+    }
+  }
+  function filterTable() {
+    const q=document.getElementById('tbl-search').value.trim();
+    const tb=document.getElementById('tbl-body');
+    tb.innerHTML=''; if(!q){ loadTable(); return; }
+    let n=0;
+    for(const [k,v] of MEM){
+      if(!k.includes(q)) continue; if(n++>=TPAGE) break;
+      const tr=document.createElement('tr');
+      tr.style.background='rgba(39,174,96,.08)';
+      tr.innerHTML=`<td><strong style="font-family:'IBM Plex Mono',monospace;font-size:12px">${k}</strong></td>
+        <td style="font-size:12px">${v}</td>
+        <td style="text-align:center"><button class="delbtn" onclick="deleteRec('${k.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
+      tb.appendChild(tr);
+    }
+  }
+
+  // ─── Stats ────────────────────────────────────────────────
+  async function updateStats() {
+    const lk=await iKeys(SL);
+    document.getElementById('stat-main').textContent  = `📊 মোট রেকর্ড: ${MEM.size.toLocaleString()} টি`;
+    document.getElementById('stat-local').textContent = `📱 লোকাল ইম্পোর্ট: ${lk.length.toLocaleString()} টি`;
+  }
+
+  // ─── GitHub Settings ──────────────────────────────────────
+  function saveGH() {
+    const r=document.getElementById('g-repo').value.trim();
+    const t=document.getElementById('g-tok').value.trim();
+    if(r){ lss('ghRepo',r); GH_REPO=r; }
+    lss('ghTok',t); GH_TOK=t;
+    showToast("✅ GitHub সেটিংস সেভ হয়েছে!");
+  }
+
+  // ─── Map actions ──────────────────────────────────────────
+  function openMap() { if(curLoc) window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(curLoc),'_blank'); }
+  function copyLoc() {
+    const id=document.getElementById('res-id').textContent;
+    const lnk="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(curLoc);
+    const t=`ID: ${id}\nLocation: ${curLoc}\nMap: ${lnk}`;
+    const el=document.createElement('textarea'); el.value=t; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+    showToast("📋 কপি হয়েছে!");
+  }
+  function shareLoc() {
+    const id=document.getElementById('res-id').textContent;
+    const lnk="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(curLoc);
+    window.open(`https://wa.me/?text=${encodeURIComponent('ID: '+id+' | '+lnk)}`,'_blank');
+  }
+
+  // ─── Theme & Toast ────────────────────────────────────────
+  function toggleTheme() {
+    const c=document.body.getAttribute('data-theme');
+    if(c==='dark'){ document.body.removeAttribute('data-theme'); lss('theme','light'); }
+    else           { document.body.setAttribute('data-theme','dark'); lss('theme','dark'); }
+  }
+  function showToast(msg) {
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.style.display='block';
+    clearTimeout(t._to);
+    t._to=setTimeout(()=>t.style.display='none', 3000);
+  }
+  function changeLang(l) {
+    LANG = l;
+    const dir = l==='ar' ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('dir', dir);
+    document.body.setAttribute('dir', dir);
+  }
 </script>
 </body>
 </html>
