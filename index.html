@@ -15,85 +15,112 @@
             --card-bg: #ffffff;
             --text-color: #333333;
             --border-color: #cccccc;
-            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow: rgba(0,0,0,0.1);
         }
         [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --border-color: #444444;
-            --shadow: rgba(0, 0, 0, 0.5);
+            --bg-color: #121212; --card-bg: #1e1e1e;
+            --text-color: #e0e0e0; --border-color: #444444; --shadow: rgba(0,0,0,0.5);
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; transition: all 0.3s ease; }
-        body[dir="rtl"] { text-align: right; }
-        header { background-color: var(--primary-color); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        header h1 { margin: 0; font-size: 18px; }
-        .header-controls { display: flex; align-items: center; gap: 10px; }
-        .lang-select, .icon-btn { background-color: rgba(255,255,255,0.15); border: 1px solid white; color: white; padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-        .lang-select option { color: black; }
-        .icon-btn { font-size: 16px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: none; }
-        .container { max-width: 500px; margin: 20px auto 80px auto; padding: 15px; }
-        .screen { display: none; }
-        .screen.active { display: block; }
-        .card { background-color: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px var(--shadow); margin-bottom: 20px; position: relative; }
-        h2 { margin-top: 0; font-size: 18px; color: var(--primary-color); text-align: center; }
-        .input-group { margin-bottom: 15px; position: relative; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--card-bg); color: var(--text-color); box-sizing: border-box; font-size: 16px; }
-        .sub-terminal-input { font-family: 'IBM Plex Mono', monospace !important; font-weight: bold; letter-spacing: 1px; color: var(--primary-color) !important; }
-        .floating-suggestions { position: absolute; top: 100%; left: 0; right: 0; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 15px var(--shadow); z-index: 1000; max-height: 200px; overflow-y: auto; display: none; margin-top: 5px; }
-        .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-family: 'IBM Plex Mono', monospace; font-size: 14px; display: flex; justify-content: space-between; }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:hover { background-color: rgba(43,87,154,0.1); }
-        .suggestion-loc { font-size: 12px; color: #777; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .btn { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 5px; }
-        .btn-outline { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); margin-top: 8px; }
-        .action-buttons { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
-        .action-buttons button { flex: 1; padding: 12px 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; color: white; }
-        .btn-map { background-color: #2b579a; }
-        .btn-copy { background-color: #27ae60; }
-        .btn-share { background-color: #e67e22; }
-        .map-container { width: 100%; height: 250px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); margin-top: 15px; display: none; }
-        .map-container iframe { width: 100%; height: 100%; border: none; }
-        .manual-map-wrapper { width: 100%; height: 250px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); margin-top: 15px; z-index: 1; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--card-bg); display: flex; box-shadow: 0 -2px 10px var(--shadow); border-top: 1px solid var(--border-color); z-index: 999; }
-        .nav-item { flex: 1; text-align: center; padding: 15px 0; cursor: pointer; font-weight: bold; color: #888888; }
-        .nav-item.active { color: var(--primary-color); border-top: 3px solid var(--primary-color); }
-        .file-input { display: none; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #333; color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; display: none; z-index: 10000; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .stats-box { background-color: rgba(43,87,154,0.1); padding: 10px; border-radius: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border: 1px dashed var(--primary-color); }
-        .cloud-sync-box { background-color: #e8f4fd; border: 1px solid #bce0fd; color: #1d6fa5; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        [data-theme="dark"] .cloud-sync-box { background-color: #1a2635; border-color: #243b53; color: #64b5f6; }
-        .table-container { max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; }
-        .record-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
-        body[dir="rtl"] .record-table { text-align: right; }
-        .record-table th, .record-table td { padding: 10px; border-bottom: 1px solid var(--border-color); }
-        .record-table th { background-color: var(--primary-color); color: white; position: sticky; top: 0; z-index: 1; }
-        .btn-delete-row { background-color: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
-        .badge-active { background-color: #27ae60; }
-        .badge-suspended { background-color: #c0392b; }
-        .badge-waiting { background-color: #f39c12; }
-        .action-link { color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 12px; font-weight: bold; }
-        .suspended-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #121212; color: #ff4d4d; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; text-align: center; padding: 20px; box-sizing: border-box; }
-        /* ── নতুন: Progress Bar ── */
-        .progress-wrap { display: none; margin-top: 10px; }
-        .progress-bar-bg { background: var(--border-color); border-radius: 8px; height: 10px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s; border-radius: 8px; }
-        .progress-label { font-size: 12px; text-align: center; margin-top: 4px; color: var(--primary-color); }
-        /* ── নতুন: Offline Queue Badge ── */
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background-color:var(--bg-color); color:var(--text-color); margin:0; padding:0; transition:all 0.3s ease; }
+        body[dir="rtl"] { text-align:right; }
+        header { background-color:var(--primary-color); color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
+        header h1 { margin:0; font-size:18px; }
+        .header-controls { display:flex; align-items:center; gap:10px; }
+        .lang-select,.icon-btn { background-color:rgba(255,255,255,0.15); border:1px solid white; color:white; padding:5px 8px; border-radius:5px; cursor:pointer; font-size:13px; }
+        .lang-select option { color:black; }
+        .icon-btn { font-size:16px; display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:none; }
+        .container { max-width:500px; margin:20px auto 80px auto; padding:15px; }
+        .screen { display:none; }
+        .screen.active { display:block; }
+        .card { background-color:var(--card-bg); padding:20px; border-radius:12px; box-shadow:0 4px 10px var(--shadow); margin-bottom:20px; position:relative; }
+        h2 { margin-top:0; font-size:18px; color:var(--primary-color); text-align:center; }
+        .input-group { margin-bottom:15px; position:relative; }
+        .input-group label { display:block; margin-bottom:5px; font-weight:bold; font-size:14px; }
+        input[type="text"],input[type="number"],input[type="password"] { width:100%; padding:12px; border:1px solid var(--border-color); border-radius:8px; background-color:var(--card-bg); color:var(--text-color); box-sizing:border-box; font-size:16px; }
+        .sub-terminal-input { font-family:'IBM Plex Mono',monospace!important; font-weight:bold; letter-spacing:1px; color:var(--primary-color)!important; }
+        .floating-suggestions { position:absolute; top:100%; left:0; right:0; background-color:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; box-shadow:0 4px 15px var(--shadow); z-index:1000; max-height:200px; overflow-y:auto; display:none; margin-top:5px; }
+        .suggestion-item { padding:10px 15px; cursor:pointer; border-bottom:1px solid var(--border-color); font-family:'IBM Plex Mono',monospace; font-size:14px; display:flex; justify-content:space-between; }
+        .suggestion-item:last-child { border-bottom:none; }
+        .suggestion-item:hover { background-color:rgba(43,87,154,0.1); }
+        .suggestion-loc { font-size:12px; color:#777; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .btn { width:100%; padding:12px; background-color:var(--primary-color); color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; margin-top:5px; }
+        .btn-outline { background-color:transparent; color:var(--primary-color); border:2px solid var(--primary-color); margin-top:8px; }
+        .action-buttons { display:flex; gap:10px; margin-top:15px; margin-bottom:15px; }
+        .action-buttons button { flex:1; padding:12px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:14px; color:white; }
+        .btn-map { background-color:#2b579a; } .btn-copy { background-color:#27ae60; } .btn-share { background-color:#e67e22; }
+        .map-container { width:100%; height:250px; border-radius:10px; overflow:hidden; border:1px solid var(--border-color); margin-top:15px; display:none; }
+        .map-container iframe { width:100%; height:100%; border:none; }
+        .manual-map-wrapper { width:100%; height:250px; border-radius:10px; overflow:hidden; border:1px solid var(--border-color); margin-top:15px; z-index:1; }
+        .bottom-nav { position:fixed; bottom:0; left:0; right:0; background-color:var(--card-bg); display:flex; box-shadow:0 -2px 10px var(--shadow); border-top:1px solid var(--border-color); z-index:999; }
+        .nav-item { flex:1; text-align:center; padding:15px 0; cursor:pointer; font-weight:bold; color:#888888; }
+        .nav-item.active { color:var(--primary-color); border-top:3px solid var(--primary-color); }
+        .file-input { display:none; }
+        .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background-color:#333; color:white; padding:10px 20px; border-radius:20px; font-size:14px; display:none; z-index:10000; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
+        .stats-box { background-color:rgba(43,87,154,0.1); padding:10px; border-radius:8px; font-weight:bold; text-align:center; margin-bottom:10px; border:1px dashed var(--primary-color); }
+        .cloud-sync-box { background-color:#e8f4fd; border:1px solid #bce0fd; color:#1d6fa5; padding:12px; border-radius:8px; font-size:13px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; }
+        [data-theme="dark"] .cloud-sync-box { background-color:#1a2635; border-color:#243b53; color:#64b5f6; }
+        .table-container { max-height:250px; overflow-y:auto; border:1px solid var(--border-color); border-radius:8px; margin-top:10px; }
+        .record-table { width:100%; border-collapse:collapse; font-size:14px; text-align:left; }
+        body[dir="rtl"] .record-table { text-align:right; }
+        .record-table th,.record-table td { padding:10px; border-bottom:1px solid var(--border-color); }
+        .record-table th { background-color:var(--primary-color); color:white; position:sticky; top:0; z-index:1; }
+        .btn-delete-row { background-color:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; }
+        /* ── Role Badges ── */
+        .badge { padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold; color:white; }
+        .badge-active { background-color:#27ae60; }
+        .badge-suspended { background-color:#c0392b; }
+        .badge-waiting { background-color:#f39c12; }
+        .role-badge { padding:2px 7px; border-radius:10px; font-size:10px; font-weight:bold; color:white; margin-left:4px; }
+        .role-admin { background-color:#8e44ad; }
+        .role-editor { background-color:#2980b9; }
+        .role-viewer { background-color:#7f8c8d; }
+        .action-link { color:var(--primary-color); cursor:pointer; text-decoration:underline; font-size:12px; font-weight:bold; }
+        .suspended-screen { position:fixed; top:0; left:0; width:100%; height:100%; background-color:#121212; color:#ff4d4d; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:99999; text-align:center; padding:20px; box-sizing:border-box; }
+        /* ── Progress Bar ── */
+        .progress-wrap { display:none; margin-top:10px; }
+        .progress-bar-bg { background:var(--border-color); border-radius:8px; height:10px; overflow:hidden; }
+        .progress-bar-fill { height:100%; background:var(--primary-color); width:0%; transition:width 0.3s; border-radius:8px; }
+        .progress-label { font-size:12px; text-align:center; margin-top:4px; color:var(--primary-color); }
         .queue-badge { display:none; background:#e67e22; color:white; border-radius:20px; padding:3px 9px; font-size:11px; font-weight:bold; margin-left:6px; }
-        /* ── নতুন: Chunk Info ── */
         .chunk-info { font-size:11px; color:#888; text-align:center; margin-top:4px; }
+        /* ── Auth Screen Enhanced ── */
+        .auth-step { display:none; }
+        .auth-step.active { display:block; }
+        .pin-dots { display:flex; justify-content:center; gap:12px; margin:15px 0; }
+        .pin-dot { width:14px; height:14px; border-radius:50%; background:var(--border-color); transition:background 0.2s; }
+        .pin-dot.filled { background:var(--primary-color); }
+        .pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
+        .pin-btn { padding:16px; font-size:20px; font-weight:bold; border:2px solid var(--border-color); border-radius:10px; background:var(--card-bg); color:var(--text-color); cursor:pointer; transition:all 0.15s; }
+        .pin-btn:active { background:var(--primary-color); color:white; transform:scale(0.93); }
+        .pin-btn-del { background:#e74c3c; color:white; border-color:#e74c3c; }
+        .fail-shake { animation:shake 0.4s; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        /* ── User Panel ── */
+        .user-panel-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 10px; border-bottom:1px solid var(--border-color); }
+        .user-panel-row:last-child { border-bottom:none; }
+        .user-id-text { font-family:monospace; font-size:11px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .role-select { font-size:11px; padding:3px 6px; border-radius:6px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); cursor:pointer; }
+        .status-toggle { font-size:11px; padding:3px 8px; border-radius:6px; border:none; cursor:pointer; font-weight:bold; }
+        .last-active-txt { font-size:10px; color:#aaa; width:100%; margin-top:2px; }
+        /* ── Password Change ── */
+        .pw-change-box { background:rgba(142,68,173,0.07); border:1px solid rgba(142,68,173,0.3); border-radius:10px; padding:14px; margin-top:12px; }
+        .pw-strength { height:6px; border-radius:4px; margin-top:6px; transition:width 0.3s,background 0.3s; }
+        /* ── Role Info Banner ── */
+        .role-banner { padding:8px 12px; border-radius:8px; font-size:13px; font-weight:bold; text-align:center; margin-bottom:12px; }
+        .role-banner.admin { background:rgba(142,68,173,0.12); color:#8e44ad; border:1px solid rgba(142,68,173,0.3); }
+        .role-banner.editor { background:rgba(41,128,185,0.12); color:#2980b9; border:1px solid rgba(41,128,185,0.3); }
+        .role-banner.viewer { background:rgba(127,140,141,0.12); color:#7f8c8d; border:1px solid rgba(127,140,141,0.3); }
+        select { padding:10px; border:1px solid var(--border-color); border-radius:8px; background:var(--card-bg); color:var(--text-color); font-size:14px; width:100%; box-sizing:border-box; }
     </style>
 </head>
 <body>
 
-    <div id="block-screen" class="suspended-screen" style="display: none;">
+    <!-- Block Screen -->
+    <div id="block-screen" class="suspended-screen" style="display:none;">
         <h1>🔒 Device Locked</h1>
         <h2 id="lbl-block-title">এই ডিভাইসটি এখনো একটিভ করা হয়নি!</h2>
-        <p id="lbl-block-desc" style="color: #bbb; max-width: 400px; margin-top: 5px; font-size: 14px;">নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।</p>
-        <button class="btn" style="max-width: 200px; background-color:#2b579a; margin-top:15px;" onclick="goToAuthFromLockScreen()">🔓 একটিভ করতে ক্লিক করুন</button>
+        <p id="lbl-block-desc" style="color:#bbb;max-width:400px;margin-top:5px;font-size:14px;">নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।</p>
+        <button class="btn" style="max-width:200px;background-color:#2b579a;margin-top:15px;" onclick="goToAuthFromLockScreen()">🔓 একটিভ করতে ক্লিক করুন</button>
     </div>
 
     <header>
@@ -109,30 +136,31 @@
     </header>
 
     <div class="container">
+
+        <!-- ══ SEARCH SCREEN ══ -->
         <div id="search-screen" class="screen active">
+            <div id="role-banner-search" class="role-banner" style="display:none;"></div>
             <div class="cloud-sync-box">
                 <span id="cloud-status">☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি</span>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <span class="queue-badge" id="queue-badge">0 pending</span>
-                    <button class="btn" style="width:auto; margin:0; padding:5px 10px; font-size:12px;" id="btn-sync-action" onclick="syncWithGitHub()">🔄 সিঙ্ক</button>
+                    <button class="btn" style="width:auto;margin:0;padding:5px 10px;font-size:12px;" onclick="syncWithGitHub()">🔄 সিঙ্ক</button>
                 </div>
             </div>
-
             <div class="card">
                 <h2 id="lbl-search-title">সাবস্ক্রিপশন লোকেশন খুঁজুন</h2>
                 <div class="input-group">
-                    <label id="lbl-search-sub" style="font-size:12px; font-weight:bold;">সাবস্ক্রিপশন নাম্বারের মাধ্যমে:</label>
+                    <label id="lbl-search-sub" style="font-size:12px;font-weight:bold;">সাবস্ক্রিপশন নাম্বারের মাধ্যমে:</label>
                     <input type="text" id="search-input" class="sub-terminal-input" placeholder="সাবস্ক্রিপশন নাম্বার দিয়ে..." inputmode="decimal" oninput="handleSearchInput(this)">
                     <div id="search-suggestions" class="floating-suggestions"></div>
                 </div>
-                <div style="text-align:center; font-weight:bold; margin: 5px 0; color:var(--primary-color);" id="lbl-or">-- অথবা --</div>
+                <div style="text-align:center;font-weight:bold;margin:5px 0;color:var(--primary-color);">-- অথবা --</div>
                 <div class="input-group">
-                    <label id="lbl-search-station" style="font-size:12px; font-weight:bold;">স্টেশন নাম্বারের মাধ্যমে:</label>
-                    <input type="number" id="search-station-input" placeholder="স্টেশন আইডি লিখুন..." pattern="[0-9]*" inputmode="numeric">
+                    <label id="lbl-search-station" style="font-size:12px;font-weight:bold;">স্টেশন নাম্বারের মাধ্যমে:</label>
+                    <input type="number" id="search-station-input" placeholder="স্টেশন আইডি লিখুন..." inputmode="numeric">
                 </div>
                 <button class="btn" id="btn-search" onclick="searchLocation()">🔍 সার্চ করুন</button>
-
-                <div id="result-box" class="card" style="display:none; margin-top:20px; border-left: 5px solid var(--primary-color); padding: 15px;">
+                <div id="result-box" class="card" style="display:none;margin-top:20px;border-left:5px solid var(--primary-color);padding:15px;">
                     <p><strong id="lbl-res-num">📌 আইডি/সাবস্ক্রিপশন নং:</strong> <span id="res-num"></span></p>
                     <p><strong id="lbl-res-loc">📍 লোকেশন:</strong> <span id="res-loc"></span></p>
                     <div class="action-buttons">
@@ -144,1083 +172,1069 @@
                         <iframe id="map-frame" src="" allowfullscreen="" loading="lazy"></iframe>
                     </div>
                 </div>
-                <p id="not-found" style="text-align:center; color:red; display:none; margin-top:15px;"></p>
+                <p id="not-found" style="text-align:center;color:red;display:none;margin-top:15px;"></p>
             </div>
         </div>
 
+        <!-- ══ ADD SCREEN ══ -->
         <div id="add-screen" class="screen">
             <div class="card">
-                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন (অনলাইন সিঙ্ক)</h2>
-                <div class="input-group">
-                    <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)</label>
-                    <input type="text" id="sub-number" class="sub-terminal-input" placeholder="xxx/xx/xxx" inputmode="decimal" oninput="formatSubscription(this)">
+                <h2 id="lbl-add-title">নতুন লোকেশন সেট করুন</h2>
+                <div id="viewer-block" style="display:none;background:rgba(231,76,60,0.1);border:1px solid #e74c3c;border-radius:8px;padding:12px;text-align:center;color:#e74c3c;font-weight:bold;margin-bottom:12px;">
+                    🚫 আপনার Role: Viewer — ডাটা Add করার অনুমতি নেই।
                 </div>
-                <div class="input-group">
-                    <label id="lbl-station-field">স্টেশন আইডি (শুধুমাত্র সংখ্যা)</label>
-                    <input type="number" id="station-number" placeholder="উদা: 450" pattern="[0-9]*" inputmode="numeric">
-                </div>
-                <div class="input-group">
-                    <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
-                    <input type="text" id="sub-location" placeholder="address or coordinates (eg: 23.8103, 90.4125)">
-                </div>
-                <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
-                <button class="btn" style="margin-top: 20px;" id="btn-save" onclick="saveDataAndPushToGitHub()">💾 সেভ এবং অনলাইনে আপলোড করুন</button>
-                <div class="input-group" style="margin-top: 20px;">
-                    <label id="lbl-manual-map-title" style="font-size:12px; font-weight:bold; color:var(--primary-color)">🗺️ ৩D ম্যাপ থেকে ম্যানুয়ালি লোকেশন সিলেক্ট করুন:</label>
-                    <div id="manual-picker-map" class="manual-map-wrapper"></div>
+                <div id="add-form-wrap">
+                    <div class="input-group">
+                        <label id="lbl-sub-num-field">সাবস্ক্রিপশন নাম্বার</label>
+                        <input type="text" id="sub-number" class="sub-terminal-input" placeholder="xxx/xx/xxx" inputmode="decimal" oninput="formatSubscription(this)">
+                    </div>
+                    <div class="input-group">
+                        <label id="lbl-station-field">স্টেশন আইডি</label>
+                        <input type="number" id="station-number" placeholder="উদা: 450" inputmode="numeric">
+                    </div>
+                    <div class="input-group">
+                        <label id="lbl-loc-field">লোকেশন / ঠিকানা</label>
+                        <input type="text" id="sub-location" placeholder="address or coordinates">
+                    </div>
+                    <button class="btn btn-outline" id="btn-current-loc" onclick="getCurrentLocation()">📍 আমার কারেন্ট লোকেশন নিন</button>
+                    <button class="btn" style="margin-top:20px;" id="btn-save" onclick="saveDataAndPushToGitHub()">💾 সেভ এবং অনলাইনে আপলোড করুন</button>
+                    <div class="input-group" style="margin-top:20px;">
+                        <label id="lbl-manual-map-title" style="font-size:12px;font-weight:bold;color:var(--primary-color)">🗺️ ৩D ম্যাপ থেকে লোকেশন সিলেক্ট করুন:</label>
+                        <div id="manual-picker-map" class="manual-map-wrapper"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- ══ AUTH SCREEN — 2 Step ══ -->
         <div id="auth-screen" class="screen">
             <div class="card">
                 <h2 id="lbl-auth-title">🔐 Admin Verification</h2>
-                <div class="input-group">
-                    <input type="password" id="admin-password" placeholder="পাসওয়ার্ড লিখুন...">
+
+                <!-- Step 1: Password -->
+                <div id="auth-step-1" class="auth-step active">
+                    <p style="text-align:center;font-size:13px;color:#888;margin-bottom:12px;">ধাপ ১/২ — পাসওয়ার্ড লিখুন</p>
+                    <div class="input-group">
+                        <input type="password" id="admin-password" placeholder="পাসওয়ার্ড লিখুন..." oninput="resetAuthFail()">
+                    </div>
+                    <p id="auth-fail-msg" style="color:#e74c3c;font-size:13px;text-align:center;display:none;">❌ ভুল পাসওয়ার্ড! আরো <span id="fail-left">3</span> বার সুযোগ আছে।</p>
+                    <button class="btn" onclick="verifyPasswordStep()" id="btn-auth-confirm">➡️ পরবর্তী ধাপ</button>
+                    <button class="btn btn-outline" onclick="cancelAuthRedirect()" id="btn-auth-cancel">বাতিল করুন</button>
                 </div>
-                <button class="btn" onclick="verifyAdminPassword()" id="btn-auth-confirm">🔓 প্রবেশ করুন</button>
-                <button class="btn btn-outline" onclick="cancelAuthRedirect()" id="btn-auth-cancel">বাতিল করুন</button>
+
+                <!-- Step 2: PIN Pad -->
+                <div id="auth-step-2" class="auth-step">
+                    <p style="text-align:center;font-size:13px;color:#888;margin-bottom:4px;">ধাপ ২/২ — ৪ সংখ্যার PIN দিন</p>
+                    <div class="pin-dots" id="pin-dots">
+                        <div class="pin-dot" id="pd0"></div>
+                        <div class="pin-dot" id="pd1"></div>
+                        <div class="pin-dot" id="pd2"></div>
+                        <div class="pin-dot" id="pd3"></div>
+                    </div>
+                    <p id="pin-fail-msg" style="color:#e74c3c;font-size:13px;text-align:center;display:none;">❌ ভুল PIN!</p>
+                    <div class="pin-pad" id="pin-pad">
+                        <button class="pin-btn" onclick="pinPress('1')">1</button>
+                        <button class="pin-btn" onclick="pinPress('2')">2</button>
+                        <button class="pin-btn" onclick="pinPress('3')">3</button>
+                        <button class="pin-btn" onclick="pinPress('4')">4</button>
+                        <button class="pin-btn" onclick="pinPress('5')">5</button>
+                        <button class="pin-btn" onclick="pinPress('6')">6</button>
+                        <button class="pin-btn" onclick="pinPress('7')">7</button>
+                        <button class="pin-btn" onclick="pinPress('8')">8</button>
+                        <button class="pin-btn" onclick="pinPress('9')">9</button>
+                        <button class="pin-btn pin-btn-del" onclick="pinBack()">⌫</button>
+                        <button class="pin-btn" onclick="pinPress('0')">0</button>
+                        <button class="pin-btn" style="background:#27ae60;color:white;border-color:#27ae60;" onclick="verifyPinStep()">✓</button>
+                    </div>
+                    <button class="btn btn-outline" style="margin-top:14px;" onclick="backToPasswordStep()">← পাসওয়ার্ডে ফিরুন</button>
+                </div>
             </div>
         </div>
 
+        <!-- ══ SETTINGS SCREEN ══ -->
         <div id="settings-screen" class="screen">
             <div class="card">
                 <h2 id="lbl-settings-title">⚙️ Settings & Cloud Config</h2>
 
-                <div class="stats-box" id="stats-box">📊 মোট গ্লোবাল ক্লাউড ডাটা: 0 টি</div>
-                <div class="stats-box" id="app-stats-box" style="background-color:rgba(39,174,96,0.1); border-color:#27ae60; color:#27ae60;">📱 শুধুমাত্র লোকাল ইম্পোর্ট করা ডাটা: 0 টি</div>
+                <div class="stats-box" id="stats-box">📊 মোট IndexedDB ডাটা: 0 টি</div>
+                <div class="stats-box" id="app-stats-box" style="background-color:rgba(39,174,96,0.1);border-color:#27ae60;color:#27ae60;">📱 লোকাল ইম্পোর্ট করা ডাটা: 0 টি</div>
                 <div class="chunk-info" id="chunk-info">GitHub চাংক: লোড হচ্ছে...</div>
 
-                <div style="background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color)">
-                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0; font-size:14px; color: var(--primary-color)">⚙️ GitHub Cloud Configuration</h4>
-                    <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px;">Repository (Owner/Repo):</label>
-                    <input type="text" id="github-repo-input" placeholder="উদা: sec01086/se.location" style="font-size:12px; padding:8px; margin-bottom:8px;">
-                    <label style="font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px;">GitHub Personal Access Token (PAT):</label>
-                    <input type="password" id="github-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="font-size:12px; padding:8px; margin-bottom: 8px;">
-                    <button class="btn" style="padding:12px; font-size:14px; margin-top:8px; background-color:#2b579a;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব টোকেন ও রেপো সেভ করুন</button>
+                <!-- GitHub Config -->
+                <div style="background:rgba(0,0,0,0.03);padding:12px;border-radius:8px;margin:15px 0;border:1px solid var(--border-color)">
+                    <h4 id="lbl-git-path-title" style="margin:0 0 10px 0;font-size:14px;color:var(--primary-color)">⚙️ GitHub Cloud Configuration</h4>
+                    <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:2px;">Repository (Owner/Repo):</label>
+                    <input type="text" id="github-repo-input" placeholder="sec01086/se.location" style="font-size:12px;padding:8px;margin-bottom:8px;">
+                    <label style="font-size:11px;font-weight:bold;display:block;margin-bottom:2px;">GitHub Token (PAT):</label>
+                    <input type="password" id="github-token-input" placeholder="ghp_xxxxxxxxxxxx" style="font-size:12px;padding:8px;margin-bottom:8px;">
+                    <button class="btn" style="padding:10px;font-size:13px;margin-top:4px;" id="btn-git-update" onclick="saveGithubSettings()">💾 গিটহাব সেটিংস সেভ করুন</button>
                 </div>
 
-                <!-- নতুন: Import Progress Bar -->
-                <div class="progress-wrap" id="progress-wrap">
+                <!-- ══ PASSWORD CHANGE BOX ══ -->
+                <div class="pw-change-box">
+                    <h4 style="margin:0 0 10px 0;font-size:14px;color:#8e44ad;">🔑 Admin Password পরিবর্তন করুন</h4>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label style="font-size:12px;">বর্তমান Password:</label>
+                        <input type="password" id="pw-current" placeholder="বর্তমান পাসওয়ার্ড...">
+                    </div>
+                    <div class="input-group" style="margin-bottom:6px;">
+                        <label style="font-size:12px;">নতুন Password:</label>
+                        <input type="password" id="pw-new" placeholder="নতুন পাসওয়ার্ড (min 6 char)..." oninput="checkPwStrength(this.value)">
+                        <div style="background:var(--border-color);border-radius:4px;height:6px;margin-top:6px;overflow:hidden;">
+                            <div id="pw-strength-bar" style="height:100%;width:0%;border-radius:4px;transition:width 0.3s,background 0.3s;"></div>
+                        </div>
+                        <div id="pw-strength-label" style="font-size:11px;margin-top:3px;"></div>
+                    </div>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label style="font-size:12px;">নতুন PIN (৪ সংখ্যা):</label>
+                        <input type="password" id="pw-new-pin" placeholder="নতুন ৪ সংখ্যার PIN..." maxlength="4" inputmode="numeric">
+                    </div>
+                    <button class="btn" style="background:#8e44ad;margin-top:4px;font-size:13px;" onclick="changeAdminPassword()">🔐 Password ও PIN আপডেট করুন</button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-wrap" id="progress-wrap" style="margin-top:12px;">
                     <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
                     <div class="progress-label" id="progress-label">0%</div>
                 </div>
 
-                <div class="input-group" style="margin-top:10px;">
-                    <label id="lbl-table-search">🔎 সংরক্ষিত রেকর্ড রেকর্ড টেবিল সার্চ</label>
+                <!-- Record Table -->
+                <div class="input-group" style="margin-top:14px;">
+                    <label id="lbl-table-search">🔎 রেকর্ড সার্চ</label>
                     <input type="text" id="table-search-input" placeholder="সাবস্ক্রিপশন বা স্টেশন দিয়ে..." oninput="filterRecordTable()">
                 </div>
                 <div class="table-container">
                     <table class="record-table">
-                        <thead>
-                            <tr>
-                                <th id="th-sub">সাবস্ক্রিপশন নং</th>
-                                <th id="th-loc">লোকেশন</th>
-                                <th id="th-action" style="width: 70px; text-align: center;">অ্যাকশন</th>
-                            </tr>
-                        </thead>
+                        <thead><tr>
+                            <th id="th-sub">সাবস্ক্রিপশন নং</th>
+                            <th id="th-loc">লোকেশন</th>
+                            <th id="th-action" style="width:70px;text-align:center;">অ্যাকশন</th>
+                        </tr></thead>
                         <tbody id="record-table-body"></tbody>
                     </table>
                 </div>
 
-                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
-                <h3 id="lbl-user-manage-title" style="font-size:14px; color:var(--primary-color);">👥 ডিভাইস কন্ট্রোল</h3>
-                <div class="table-container" style="max-height: 150px;">
-                    <table class="record-table" style="font-size:12px;">
-                        <thead>
-                            <tr>
-                                <th id="th-dev-id">ডিভাইস আইডি</th>
-                                <th id="th-dev-status">স্ট্যাটাস</th>
-                                <th id="th-dev-action">অ্যাকশন</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-table-body"></tbody>
-                    </table>
-                </div>
+                <hr style="border:0;border-top:1px solid var(--border-color);margin:20px 0;">
 
-                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
-                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 ব্যাকআপ ডাটা এক্সপোর্ট (সম্পূর্ণ IndexedDB JSON)</button>
-                <button class="btn btn-outline" id="btn-export-local" style="border-color:#27ae60; color:#27ae60;" onclick="exportLocalAppEntries()">📤 শুধুমাত্র অ্যাপ লোকাল ডাটা এক্সপোর্ট (JSON)</button>
-                <button class="btn" id="btn-import-trigger" style="background-color:#27ae60; margin-top:10px;" onclick="document.getElementById('import-file').click()">📂 লোকাল ফাইল ইম্পোর্ট (.xlsx / .json)</button>
+                <!-- ══ USER CONTROL PANEL ══ -->
+                <h3 id="lbl-user-manage-title" style="font-size:14px;color:var(--primary-color);margin-bottom:8px;">👥 ডিভাইস কন্ট্রোল প্যানেল</h3>
+                <div id="user-panel-list" style="border:1px solid var(--border-color);border-radius:8px;overflow:hidden;"></div>
+
+                <hr style="border:0;border-top:1px solid var(--border-color);margin:20px 0;">
+
+                <!-- Data Buttons -->
+                <button class="btn btn-outline" id="btn-export" onclick="exportData()">📤 Full Backup Export (JSON)</button>
+                <button class="btn btn-outline" id="btn-export-local" style="border-color:#27ae60;color:#27ae60;margin-top:8px;" onclick="exportLocalAppEntries()">📤 লোকাল ডাটা Export (JSON)</button>
+                <button class="btn" id="btn-import-trigger" style="background-color:#27ae60;margin-top:10px;" onclick="document.getElementById('import-file').click()">📂 ফাইল ইম্পোর্ট (.xlsx / .json)</button>
                 <input type="file" id="import-file" class="file-input" accept=".json,.xlsx,.csv,.xls" onchange="handleFileImport(event)">
-                <button class="btn" id="btn-clear-mem" style="background-color:#c0392b; margin-top:10px;" onclick="clearMemory()">🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন</button>
+                <button class="btn" id="btn-clear-mem" style="background-color:#c0392b;margin-top:10px;" onclick="clearMemory()">🗑️ সব ডাটা মুছে ফেলুন</button>
             </div>
         </div>
-    </div>
+
+    </div><!-- /container -->
 
     <div class="bottom-nav">
-        <div id="nav-search" class="nav-item active" onclick="switchScreen('search-screen', 'nav-search')">🔍 সার্চ</div>
-        <div id="nav-add" class="nav-item" onclick="switchScreen('add-screen', 'nav-add')">➕ নতুন সেট</div>
+        <div id="nav-search" class="nav-item active" onclick="switchScreen('search-screen','nav-search')">🔍 সার্চ</div>
+        <div id="nav-add" class="nav-item" onclick="switchScreen('add-screen','nav-add')">➕ নতুন সেট</div>
         <div id="nav-settings" class="nav-item" onclick="handleSettingsNavigation()">⚙️ সেটিংস</div>
     </div>
-
     <div id="toast" class="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   ██████╗  ██████╗     ██╗  ██╗██╗   ██╗██████╗ ██████╗ ██╗██████╗
-   ██╔══██╗██╔════╝    ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██║██╔══██╗
-   ██║  ██║██║         ███████║ ╚████╔╝ ██████╔╝██████╔╝██║██║  ██║
-   ██║  ██║██║         ██╔══██║  ╚██╔╝  ██╔══██╗██╔══██╗██║██║  ██║
-   ██████╔╝╚██████╗    ██║  ██║   ██║   ██████╔╝██║  ██║██║██████╔╝
-   ╚═════╝  ╚═════╝    ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
-   HYBRID SYSTEM v2.0
-   PRIMARY STORE  : IndexedDB (Unlimited — বাস্তবে কোনো লিমিট নেই)
-   SEARCH INDEX   : In-Memory Map (O(1) lookup — instant)
-   GITHUB BACKUP  : Chunked files (chunk_0.json, chunk_1.json …)
-                    প্রতিটি ৫০০০ রেকর্ড — GitHub 100MB লিমিট নেই
-   OFFLINE QUEUE  : Pending writes → sync হলে push
-   localStorage   : শুধু config + userControlDB (ছোট ডাটা)
-═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   Subscription Tracker Pro — v3 Strong User Panel
+   Role System : Admin | Editor | Viewer
+   Auth        : Password (changeable) + 4-digit PIN
+   Storage     : IndexedDB primary, GitHub chunked backup
+═══════════════════════════════════════════════════════ */
 
-    // ── Config ──────────────────────────────────────────────────
-    const CHUNK_SIZE        = 5000;   // প্রতি GitHub ফাইলে রেকর্ড
-    const SEARCH_LIMIT      = 10;     // suggestion max
-    const TABLE_PAGE_SIZE   = 100;    // settings table rows
-    const DB_NAME           = "SubscriptionTrackerDB_v2";
-    const STORE_MAIN        = "mainData";     // সব ডাটা
-    const STORE_LOCAL       = "localData";    // শুধু import করা ডাটা
-    const STORE_QUEUE       = "offlineQueue"; // pending GitHub writes
+    // ── Config ───────────────────────────────────────────
+    const CHUNK_SIZE     = 5000;
+    const SEARCH_LIMIT   = 10;
+    const TABLE_PAGE     = 100;
+    const DB_NAME        = "SubscriptionTrackerDB_v3";
+    const STORE_MAIN     = "mainData";
+    const STORE_LOCAL    = "localData";
+    const STORE_QUEUE    = "offlineQueue";
 
-    // ── State ────────────────────────────────────────────────────
-    let githubRepo          = localStorage.getItem('githubRepo') || "sec01086/se.location";
-    let githubToken         = localStorage.getItem('githubToken') || "";
-    let currentLang         = 'bn';
+    // Default credentials (localStorage এ override হবে)
+    const DEFAULT_PASSWORD = "admin123";
+    const DEFAULT_PIN      = "1234";
+
+    // ── State ────────────────────────────────────────────
+    let githubRepo           = localStorage.getItem('githubRepo') || "sec01086/se.location";
+    let githubToken          = localStorage.getItem('githubToken') || "";
+    let currentLang          = 'bn';
     let isAdminAuthenticated = false;
-    let myDeviceId          = "";
+    let myDeviceId           = "";
+    let myRole               = "Viewer"; // will be set from userDB
     let pickerMap, pickerMarker;
-    let dbInstance          = null;
+    let dbInstance           = null;
+    let memoryIndex          = new Map();
 
-    // In-Memory Search Index (key → location string)
-    // এটা IndexedDB থেকে একবার লোড হয়, তারপর সব search এখানে instant
-    let memoryIndex         = new Map();
-    let memoryIndexReady    = false;
+    // Auth state
+    let authFailCount = 0;
+    let authLocked    = false;
+    let pinBuffer     = "";
+    let pwStepPassed  = false;
 
-    // ── Languages ────────────────────────────────────────────────
-    const languages = {
-        bn: {
-            title:"Subscription Tracker Pro", searchTitle:"সাবস্ক্রিপশন লোকেশন খুঁজুন", searchBtn:"🔍 সার্চ করুন",
-            resNum:"📌 আইডি/সাবস্ক্রিপশন নং:", resLoc:"📍 লোকেশন:", btnMap:"🗺️ ম্যাপ", btnCopy:"📋 কপি",
-            btnShare:"🔗 শেয়ার", notFound:"এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!", addTitle:"নতুন লোকেশন সেট করুন (অনলাইন সিঙ্ক)",
-            subNumField:"সাবস্ক্রিপশন নাম্বার (শুধুমাত্র সংখ্যা)", locField:"লোকেশন / ঠিকানা", currentLocBtn:"📍 আমার কারেন্ট লোকেশন নিন",
-            saveBtn:"💾 সেভ এবং অনলাইনে আপলোড করুন", settingsTitle:"⚙️ সেটিংস ও ক্লাউড কনফিগারেশন", navSearch:"🔍 সার্চ",
-            navAdd:"➕ নতুন সেট", navSettings:"⚙️ সেটিংস", emptyAlert:"দয়া করে ফিল্ড পূরণ করুন!", saveAlert:"সফলভাবে সংরক্ষিত এবং অনলাইনে আপলোড হয়েছে!",
-            copyAlert:"লোকেশন কপি করা হয়েছে!", clearAlert:"সব ডাটা মুছে ফেলা হয়েছে!", importAlert:"লোকাল ডিভাইসে ডাটা সফলভাবে ইম্পোর্ট হয়েছে! (অনলাইনে যাবে না)",
-            invalidAlert:"ভুল ফাইল ফরম্যাট!", authTitle:"🔐 Admin Verification", adminPasswordPlace:"পাসওয়ার্ড লিখুন...",
-            authConfirm:"🔓 প্রবেশ করুন", authCancel:"বাতিল করুন", wrongPass:"ভুল পাসওয়ার্ড!",
-            statsText:"📊 মোট IndexedDB ডাটা: ", tableSearchPlaceholder:"Search by subscription or station...",
-            lblTableSearch:"🔎 সংরক্ষিত রেকর্ড টেবিল সার্চ", thSub:"সাবস্ক্রিপশন নং", thLoc:"লোকেশন", thAction:"অ্যাকশন",
-            userManageTitle:"👥 ডিভাইস কন্ট্রোল", deleteBtn:"ডিলিট", deleteConfirm:"আপনি কি নিশ্চিতভাবে ডাটাটি ডিলিট করতে চান?", deleteAlert:"ডাটা ডিলিট করা হয়েছে!",
-            cloudReady:"☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি", cloudSyncing:"⏳ ডাটা সিঙ্ক হচ্ছে...", cloudSuccess:"✅ সফলভাবে সিঙ্ক হয়েছে!", cloudFailed:"❌ সিঙ্ক ব্যর্থ! টোকেন বা রেপো লিংক চেক করুন।",
-            cloudStatusUp:"☁️ গিটহাব ক্লাউড: আপ-টু-ডেট", cloudStatusFail:"⚠️ ক্লাউড সিঙ্ক ব্যর্থ",
-            btnSync:"🔄 সিঙ্ক", blockTitle:"এই ডিভাইসটি এখনো একটিভ করা হয়নি!", blockDesc:"নিচের বাটনটি চেপে এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।",
-            gitPathTitle:"⚙️ GitHub Cloud Configuration", btnGitUpdate:"💾 গিটহাব টোকেন ও রেপো সেভ করুন", thDevId:"ডিভাইস আইডি", thDevStatus:"স্ট্যাটাস", thDevAction:"অ্যাকশন",
-            searchPlaceholder:"সাবস্ক্রিপশন নাম্বার দিয়ে...", lblManualMap:"🗺️ ৩D ম্যাপ থেকে ম্যানুয়ালি লোকেশন সিলেক্ট করুন:",
-            btnExportLocalText:"📤 শুধুমাত্র অ্যাপ লোকাল ডাটা এক্সপোর্ট (JSON)", indexBuilding:"⏳ সার্চ ইনডেক্স তৈরি হচ্ছে..."
-        },
-        en: {
-            title:"Subscription Tracker Pro", searchTitle:"Find Subscription Location", searchBtn:"🔍 Search",
-            resNum:"📌 ID/Sub No:", resLoc:"📍 Location:", btnMap:"🗺️ Map", btnCopy:"📋 Copy",
-            btnShare:"🔗 Share", notFound:"No location found!", addTitle:"Set New Location (Cloud Sync)",
-            subNumField:"Subscription Number (Digits Only)", locField:"Location / Address", currentLocBtn:"📍 Use Current Location",
-            saveBtn:"💾 Save & Upload Online", settingsTitle:"⚙️ Settings & Cloud Config", navSearch:"🔍 Search",
-            navAdd:"➕ Add New", navSettings:"⚙️ Settings", emptyAlert:"Please fill fields!", saveAlert:"Saved and Uploaded Online!",
-            copyAlert:"Copied!", clearAlert:"All data cleared!", importAlert:"Imported Locally! (Will not sync online)",
-            invalidAlert:"Invalid format!", authTitle:"🔐 Admin Verification", adminPasswordPlace:"Enter password...",
-            authConfirm:"🔓 Enter", authCancel:"Cancel", wrongPass:"Wrong password!",
-            statsText:"📊 Total IndexedDB Records: ", tableSearchPlaceholder:"Search by subscription or station...",
-            lblTableSearch:"🔎 Saved Records Live Search", thSub:"Subscription No", thLoc:"Location", thAction:"Action",
-            userManageTitle:"👥 Device Control", deleteBtn:"Delete", deleteConfirm:"Are you sure?", deleteAlert:"Deleted!",
-            cloudReady:"☁️ GitHub Cloud DB Ready", cloudSyncing:"⏳ Syncing...", cloudSuccess:"✅ Sync Successful!", cloudFailed:"❌ Sync Failed! Check Token/Repo.",
-            cloudStatusUp:"☁️ GitHub Cloud: Up-to-date", cloudStatusFail:"⚠️ Cloud Sync Failed",
-            btnSync:"🔄 Sync", blockTitle:"Device is not activated yet!", blockDesc:"Click below and enter admin password.",
-            gitPathTitle:"⚙️ GitHub Cloud Configuration", btnGitUpdate:"💾 Save GitHub Settings", thDevId:"Device ID", thDevStatus:"Status", thDevAction:"Action",
-            searchPlaceholder:"Enter Subscription Number...", lblManualMap:"🗺️ Select Location Manually from 3D Map:",
-            btnExportLocalText:"📤 Export Local App Data Only (JSON)", indexBuilding:"⏳ Building search index..."
-        },
-        ar: {
-            title:"متابع الاشتراكات برو", searchTitle:"البحث عن موقع الاشتراك", searchBtn:"🔍 بحث",
-            resNum:"📌 رقم التعريف/الاشتراك:", resLoc:"📍 الموقع:", btnMap:"🗺️ الخريطة", btnCopy:"📋 نسخ",
-            btnShare:"🔗 مشاركة", notFound:"لم يتم العثور على موقع!", addTitle:"تعيين موقع جديد (مزامنة سحابية)",
-            subNumField:"رقم الاشتراك (أرقام فقط)", locField:"الموقع / العنوان", currentLocBtn:"📍 خذ موقعي الحالي",
-            saveBtn:"💾 حفظ ورفع أونلاين", settingsTitle:"⚙️ الإعدادات", navSearch:"🔍 بحث",
-            navAdd:"➕ إضافة", navSettings:"⚙️ إعدادات", emptyAlert:"يرجى ملء الحقول!", saveAlert:"تم الحفظ والرفع بنجاح!",
-            copyAlert:"تم النسخ!", clearAlert:"تم مسح البيانات!", importAlert:"تم الاستيراد محلياً!",
-            invalidAlert:"صيغة خاطئة!", authTitle:"🔐 التحقق من المسؤول", adminPasswordPlace:"أدخل كلمة المرور...",
-            authConfirm:"🔓 الدخول", authCancel:"إلغاء", wrongPass:"كلمة المرور خاطئة!",
-            statsText:"📊 إجمالي السجلات: ", tableSearchPlaceholder:"ابحث برقم الاشتراك...",
-            lblTableSearch:"🔎 بحث مباشر", thSub:"رقم الاشتراك", thLoc:"الموقع", thAction:"الإجراء",
-            userManageTitle:"👥 التحكم في الأجهزة", deleteBtn:"حذف", deleteConfirm:"هل أنت متأكد؟", deleteAlert:"تم الحذف!",
-            cloudReady:"☁️ قاعدة بيانات جاهزة", cloudSyncing:"⏳ جاري المزامنة...", cloudSuccess:"✅ تمت المزامنة!", cloudFailed:"❌ فشلت المزامنة!",
-            cloudStatusUp:"☁️ سحابة GitHub: محدثة", cloudStatusFail:"⚠️ فشلت المزامنة",
-            btnSync:"🔄 مزامنة", blockTitle:"تم تعليق جهازك!", blockDesc:"يرجى الاتصال بالمسؤول.",
-            gitPathTitle:"⚙️ تكوين سحابة GitHub", btnGitUpdate:"💾 حفظ إعدادات GitHub", thDevId:"معرف الجهاز", thDevStatus:"الحالة", thDevAction:"الإجراء",
-            searchPlaceholder:"أدخل رقم الاشتراك...", lblManualMap:"🗺️ حدد الموقع من الخريطة:",
-            btnExportLocalText:"📤 تصدير بيانات محلية (JSON)", indexBuilding:"⏳ بناء فهرس البحث..."
-        }
-    };
+    // ── Helper: get saved password/pin ───────────────────
+    function getSavedPassword() { return localStorage.getItem('adminPassword') || DEFAULT_PASSWORD; }
+    function getSavedPin()      { return localStorage.getItem('adminPin')      || DEFAULT_PIN; }
 
-    /* ═══════════════════════════════════════════════════════════
-       IndexedDB — 3 Object Stores
-       mainData   : key → location  (cloud + local, everything)
-       localData  : key → 1         (marker: imported locally)
-       offlineQueue: auto-inc → {key, location, ts}
-    ═══════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════
+       IndexedDB
+    ═══════════════════════════════════════════════════ */
     function initIndexedDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open(DB_NAME, 2);
-            req.onupgradeneeded = function(e) {
+        return new Promise((res, rej) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = e => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE_MAIN))
-                    db.createObjectStore(STORE_MAIN);
-                if (!db.objectStoreNames.contains(STORE_LOCAL))
-                    db.createObjectStore(STORE_LOCAL);
-                if (!db.objectStoreNames.contains(STORE_QUEUE))
-                    db.createObjectStore(STORE_QUEUE, { autoIncrement: true });
+                if (!db.objectStoreNames.contains(STORE_MAIN))  db.createObjectStore(STORE_MAIN);
+                if (!db.objectStoreNames.contains(STORE_LOCAL)) db.createObjectStore(STORE_LOCAL);
+                if (!db.objectStoreNames.contains(STORE_QUEUE)) db.createObjectStore(STORE_QUEUE, { autoIncrement:true });
             };
-            req.onsuccess = e => { dbInstance = e.target.result; resolve(dbInstance); };
-            req.onerror   = () => reject("IndexedDB Error");
+            req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
+            req.onerror   = () => rej("IDB Error");
         });
     }
-
-    // Generic IDB helpers
     function idbGet(store, key) {
         return new Promise(res => {
             if (!dbInstance) return res(null);
-            const tx = dbInstance.transaction([store], "readonly");
-            const req = tx.objectStore(store).get(key);
+            const req = dbInstance.transaction([store],"readonly").objectStore(store).get(key);
             req.onsuccess = () => res(req.result ?? null);
             req.onerror   = () => res(null);
         });
     }
-
-    function idbPut(store, key, value) {
+    function idbPut(store, key, val) {
         return new Promise(res => {
             if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([store], "readwrite");
-            tx.objectStore(store).put(value, key);
+            const tx = dbInstance.transaction([store],"readwrite");
+            tx.objectStore(store).put(val, key);
             tx.oncomplete = () => res(true);
             tx.onerror    = () => res(false);
         });
     }
-
     function idbDelete(store, key) {
         return new Promise(res => {
             if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([store], "readwrite");
+            const tx = dbInstance.transaction([store],"readwrite");
             tx.objectStore(store).delete(key);
             tx.oncomplete = () => res(true);
-            tx.onerror    = () => res(false);
         });
     }
-
     function idbGetAllKeys(store) {
         return new Promise(res => {
             if (!dbInstance) return res([]);
-            const tx = dbInstance.transaction([store], "readonly");
-            const req = tx.objectStore(store).getAllKeys();
+            const req = dbInstance.transaction([store],"readonly").objectStore(store).getAllKeys();
             req.onsuccess = () => res(req.result || []);
             req.onerror   = () => res([]);
         });
     }
-
     function idbGetAll(store) {
         return new Promise(res => {
             if (!dbInstance) return res({});
-            const tx = dbInstance.transaction([store], "readonly");
-            const keys = tx.objectStore(store).getAllKeys();
-            const vals = tx.objectStore(store).getAll();
+            const tx   = dbInstance.transaction([store],"readonly");
+            const kReq = tx.objectStore(store).getAllKeys();
+            const vReq = tx.objectStore(store).getAll();
             let k, v;
-            keys.onsuccess = () => { k = keys.result; if (v !== undefined) finish(); };
-            vals.onsuccess = () => { v = vals.result; if (k !== undefined) finish(); };
-            function finish() {
-                const out = {};
-                k.forEach((key, i) => out[key] = v[i]);
-                res(out);
-            }
+            kReq.onsuccess = () => { k = kReq.result; if (v!==undefined) finish(); };
+            vReq.onsuccess = () => { v = vReq.result; if (k!==undefined) finish(); };
+            function finish() { const o={}; k.forEach((key,i)=>o[key]=v[i]); res(o); }
         });
     }
-
-    // Bulk insert with progress callback
-    function idbBulkPut(store, dataObj, onProgress) {
-        return new Promise((resolve, reject) => {
-            if (!dbInstance) return reject("DB not ready");
-            const keys = Object.keys(dataObj);
+    function idbBulkPut(store, data, onProgress) {
+        return new Promise((res, rej) => {
+            if (!dbInstance) return rej("DB not ready");
+            const keys  = Object.keys(data);
             const total = keys.length;
-            if (total === 0) return resolve(0);
-
+            if (!total) return res(0);
             const BATCH = 2000;
             let done = 0;
-
             function writeBatch(start) {
-                const tx = dbInstance.transaction([store], "readwrite");
+                const tx = dbInstance.transaction([store],"readwrite");
                 const st = tx.objectStore(store);
-                for (let i = start; i < Math.min(start + BATCH, total); i++) {
-                    st.put(dataObj[keys[i]], keys[i]);
-                }
+                for (let i=start; i<Math.min(start+BATCH,total); i++) st.put(data[keys[i]], keys[i]);
                 tx.oncomplete = () => {
-                    done = Math.min(start + BATCH, total);
+                    done = Math.min(start+BATCH, total);
                     if (onProgress) onProgress(done, total);
-                    if (done < total) writeBatch(done);
-                    else resolve(total);
+                    done < total ? writeBatch(done) : res(total);
                 };
-                tx.onerror = () => reject("Bulk Write Error");
+                tx.onerror = () => rej("Bulk Error");
             }
             writeBatch(0);
         });
     }
-
-    function idbClearStore(store) {
+    function idbClear(store) {
         return new Promise(res => {
             if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([store], "readwrite");
+            const tx = dbInstance.transaction([store],"readwrite");
             tx.objectStore(store).clear();
             tx.oncomplete = () => res(true);
         });
     }
-
-    // Offline Queue helpers
-    function enqueueOfflineWrite(key, location) {
+    function enqueueOfflineWrite(key, loc) {
         return new Promise(res => {
             if (!dbInstance) return res(false);
-            const tx = dbInstance.transaction([STORE_QUEUE], "readwrite");
-            tx.objectStore(STORE_QUEUE).add({ key, location, ts: Date.now() });
+            const tx = dbInstance.transaction([STORE_QUEUE],"readwrite");
+            tx.objectStore(STORE_QUEUE).add({ key, location:loc, ts:Date.now() });
             tx.oncomplete = () => res(true);
         });
     }
-
     function getOfflineQueue() {
         return new Promise(res => {
             if (!dbInstance) return res([]);
-            const tx = dbInstance.transaction([STORE_QUEUE], "readonly");
-            const keysReq = tx.objectStore(STORE_QUEUE).getAllKeys();
-            const valsReq = tx.objectStore(STORE_QUEUE).getAll();
+            const tx   = dbInstance.transaction([STORE_QUEUE],"readonly");
+            const kReq = tx.objectStore(STORE_QUEUE).getAllKeys();
+            const vReq = tx.objectStore(STORE_QUEUE).getAll();
             let k, v;
-            keysReq.onsuccess = () => { k = keysReq.result; if (v) finish(); };
-            valsReq.onsuccess = () => { v = valsReq.result; if (k) finish(); };
-            function finish() {
-                res(k.map((id, i) => ({ id, ...v[i] })));
-            }
+            kReq.onsuccess = () => { k = kReq.result; if (v) finish(); };
+            vReq.onsuccess = () => { v = vReq.result; if (k) finish(); };
+            function finish() { res(k.map((id,i)=>({id,...v[i]}))); }
         });
     }
 
-    function clearOfflineQueue() {
-        return idbClearStore(STORE_QUEUE);
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       In-Memory Index
-       ১০ লাখ Map entry ≈ ~80MB RAM — একবার লোড করলে ব্যবহার করা যাবে
-       Populate করার সময় IndexedDB cursor ব্যবহার করে batch করা হয়
-    ═══════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════
+       Memory Index
+    ═══════════════════════════════════════════════════ */
     async function buildMemoryIndex() {
         memoryIndex.clear();
-        return new Promise((resolve, reject) => {
-            if (!dbInstance) return resolve();
-            const tx = dbInstance.transaction([STORE_MAIN], "readonly");
-            const store = tx.objectStore(STORE_MAIN);
-            const req = store.openCursor();
-            req.onsuccess = function(e) {
-                const cursor = e.target.result;
-                if (cursor) {
-                    memoryIndex.set(cursor.key, cursor.value);
-                    cursor.continue();
-                } else {
-                    memoryIndexReady = true;
-                    resolve();
-                }
+        return new Promise(res => {
+            if (!dbInstance) return res();
+            const req = dbInstance.transaction([STORE_MAIN],"readonly").objectStore(STORE_MAIN).openCursor();
+            req.onsuccess = e => {
+                const cur = e.target.result;
+                if (cur) { memoryIndex.set(cur.key, cur.value); cur.continue(); }
+                else res();
             };
-            req.onerror = () => resolve(); // partial index still usable
+            req.onerror = () => res();
         });
     }
 
-    /* ═══════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════
        GitHub Chunked Storage
-       all_data_chunk_0.json, all_data_chunk_1.json …
-       meta.json → { totalRecords, totalChunks, lastUpdated }
-    ═══════════════════════════════════════════════════════════ */
-
+    ═══════════════════════════════════════════════════ */
     async function getFileSha(path) {
-        const res = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${path}`, {
-            headers: { "Authorization": `token ${githubToken}` }
-        });
-        if (res.ok) {
-            const data = await res.json();
-            return data.sha || "";
-        }
+        try {
+            const r = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${path}`, {
+                headers:{ "Authorization":`token ${githubToken}` }
+            });
+            if (r.ok) { const d = await r.json(); return d.sha || ""; }
+        } catch(e) {}
         return "";
     }
-
-    async function pushFileToGitHub(path, contentStr, message) {
-        const sha = await getFileSha(path);
-        const body = {
-            message,
-            content: btoa(unescape(encodeURIComponent(contentStr))),
-        };
+    async function pushFileToGitHub(path, content, msg) {
+        const sha  = await getFileSha(path);
+        const body = { message:msg, content:btoa(unescape(encodeURIComponent(content))) };
         if (sha) body.sha = sha;
-
-        const res = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${path}`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `token ${githubToken}`,
-                "Content-Type": "application/json"
-            },
+        const r = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${path}`, {
+            method:"PUT",
+            headers:{ "Authorization":`token ${githubToken}`, "Content-Type":"application/json" },
             body: JSON.stringify(body)
         });
-        return res.ok;
+        return r.ok;
     }
-
-    async function pushToGitHub(newKey, newValue) {
-        // শুধু affected chunk আপডেট করে — পুরো DB push করে না
-        if (!githubToken) return false;
-
-        try {
-            // meta পড়ো
-            let meta = await fetchGitHubMeta();
-            const totalRecords = (meta.totalRecords || 0) + 1;
-            const chunkIndex = Math.floor((totalRecords - 1) / CHUNK_SIZE);
-
-            // ঐ chunk পড়ো
-            let chunkData = await fetchChunk(chunkIndex) || {};
-            chunkData[newKey] = newValue;
-
-            // chunk push
-            const pushed = await pushFileToGitHub(
-                `chunks/chunk_${chunkIndex}.json`,
-                JSON.stringify(chunkData),
-                `📌 Add ${newKey}`
-            );
-
-            if (!pushed) return false;
-
-            // meta আপডেট
-            const totalChunks = Math.max(meta.totalChunks || 1, chunkIndex + 1);
-            await pushFileToGitHub(
-                'meta.json',
-                JSON.stringify({ totalRecords, totalChunks, lastUpdated: new Date().toISOString() }),
-                '📊 Update meta'
-            );
-
-            return true;
-        } catch(e) {
-            console.error("GitHub push error:", e);
-            return false;
-        }
-    }
-
     async function fetchGitHubMeta() {
         try {
-            const res = await fetch(`https://raw.githubusercontent.com/${githubRepo}/main/meta.json?t=${Date.now()}`);
-            if (res.ok) return await res.json();
+            const r = await fetch(`https://raw.githubusercontent.com/${githubRepo}/main/meta.json?t=${Date.now()}`);
+            if (r.ok) return await r.json();
         } catch(e) {}
-        return { totalRecords: 0, totalChunks: 0 };
+        return { totalRecords:0, totalChunks:0 };
     }
-
-    async function fetchChunk(index) {
+    async function fetchChunk(i) {
         try {
-            const res = await fetch(`https://raw.githubusercontent.com/${githubRepo}/main/chunks/chunk_${index}.json?t=${Date.now()}`);
-            if (res.ok) return await res.json();
+            const r = await fetch(`https://raw.githubusercontent.com/${githubRepo}/main/chunks/chunk_${i}.json?t=${Date.now()}`);
+            if (r.ok) return await r.json();
         } catch(e) {}
         return null;
     }
-
-    async function syncWithGitHub() {
-        const l = languages[currentLang] || languages['bn'];
-        const statusEl = document.getElementById('cloud-status');
-        statusEl.innerHTML = l.cloudSyncing;
-        showToast(l.cloudSyncing);
-
+    async function pushToGitHub(key, value) {
+        if (!githubToken) return false;
         try {
-            const meta = await fetchGitHubMeta();
-            const totalChunks = meta.totalChunks || 0;
-
-            if (totalChunks === 0) {
-                statusEl.innerHTML = l.cloudSuccess + " (0 records)";
-                showToast(l.cloudSuccess);
-                return;
-            }
-
-            // সব chunk download → IndexedDB তে ঢালো
-            let totalImported = 0;
-            for (let i = 0; i < totalChunks; i++) {
+            const meta       = await fetchGitHubMeta();
+            const total      = (meta.totalRecords||0) + 1;
+            const chunkIndex = Math.floor((total-1)/CHUNK_SIZE);
+            const chunk      = await fetchChunk(chunkIndex) || {};
+            chunk[key]       = value;
+            const pushed     = await pushFileToGitHub(`chunks/chunk_${chunkIndex}.json`, JSON.stringify(chunk), `📌 Add ${key}`);
+            if (!pushed) return false;
+            await pushFileToGitHub('meta.json',
+                JSON.stringify({ totalRecords:total, totalChunks:Math.max(meta.totalChunks||1,chunkIndex+1), lastUpdated:new Date().toISOString() }),
+                '📊 Update meta');
+            return true;
+        } catch(e) { return false; }
+    }
+    async function syncWithGitHub() {
+        const statusEl = document.getElementById('cloud-status');
+        statusEl.innerHTML = "⏳ সিঙ্ক হচ্ছে...";
+        showToast("⏳ সিঙ্ক হচ্ছে...");
+        try {
+            const meta   = await fetchGitHubMeta();
+            const chunks = meta.totalChunks || 0;
+            let imported = 0;
+            for (let i=0; i<chunks; i++) {
                 const chunk = await fetchChunk(i);
-                if (chunk && typeof chunk === 'object') {
+                if (chunk) {
                     await idbBulkPut(STORE_MAIN, chunk, null);
-                    // Memory index আপডেট করো
                     Object.keys(chunk).forEach(k => memoryIndex.set(k, chunk[k]));
-                    totalImported += Object.keys(chunk).length;
+                    imported += Object.keys(chunk).length;
                 }
-                statusEl.innerHTML = `⏳ ${i+1}/${totalChunks} chunks…`;
+                statusEl.innerHTML = `⏳ ${i+1}/${chunks} chunks…`;
             }
-
-            // offline queue flush করো
             await flushOfflineQueue();
-
             updateDataStats();
-            statusEl.innerHTML = `✅ ${totalImported.toLocaleString()} records synced`;
-            showToast(l.cloudSuccess);
+            statusEl.innerHTML = `✅ ${imported.toLocaleString()} records synced`;
+            showToast("✅ সিঙ্ক সম্পন্ন!");
             updateChunkInfo(meta);
         } catch(e) {
-            console.error(e);
-            statusEl.innerHTML = l.cloudStatusFail;
-            showToast(l.cloudFailed);
+            statusEl.innerHTML = "⚠️ সিঙ্ক ব্যর্থ";
+            showToast("❌ সিঙ্ক ব্যর্থ!");
         }
     }
-
     async function flushOfflineQueue() {
-        const queue = await getOfflineQueue();
-        if (queue.length === 0) return;
-
-        for (const item of queue) {
-            await pushToGitHub(item.key, item.location);
-        }
-        await clearOfflineQueue();
+        const q = await getOfflineQueue();
+        for (const item of q) await pushToGitHub(item.key, item.location);
+        await idbClear(STORE_QUEUE);
         updateQueueBadge();
     }
-
     async function updateQueueBadge() {
-        const queue = await getOfflineQueue();
+        const q     = await getOfflineQueue();
         const badge = document.getElementById('queue-badge');
-        if (queue.length > 0) {
-            badge.style.display = 'inline';
-            badge.textContent = queue.length + ' pending';
-        } else {
-            badge.style.display = 'none';
-        }
+        badge.style.display = q.length>0 ? 'inline' : 'none';
+        if (q.length>0) badge.textContent = q.length + ' pending';
     }
-
     async function updateChunkInfo(meta) {
         if (!meta) meta = await fetchGitHubMeta();
         const el = document.getElementById('chunk-info');
-        if (meta.totalChunks) {
-            el.textContent = `GitHub: ${meta.totalChunks} chunks × ${CHUNK_SIZE} = max ${(meta.totalChunks * CHUNK_SIZE).toLocaleString()} records | Last: ${meta.lastUpdated ? new Date(meta.lastUpdated).toLocaleString() : 'N/A'}`;
-        } else {
-            el.textContent = 'GitHub: meta.json পাওয়া যায়নি (প্রথম sync করুন)';
+        el.textContent = meta.totalChunks
+            ? `GitHub: ${meta.totalChunks} chunks | ${(meta.totalRecords||0).toLocaleString()} records | ${meta.lastUpdated ? new Date(meta.lastUpdated).toLocaleString() : ''}`
+            : 'GitHub: meta.json পাওয়া যায়নি';
+    }
+
+    /* ═══════════════════════════════════════════════════
+       Role System
+       userControlDatabase: { deviceId: { status, role, lastActive } }
+    ═══════════════════════════════════════════════════ */
+    function getUserDB() { return JSON.parse(localStorage.getItem('userControlDatabase') || '{}'); }
+    function setUserDB(db) { localStorage.setItem('userControlDatabase', JSON.stringify(db)); }
+
+    function getMyRole() {
+        const db  = getUserDB();
+        const rec = db[myDeviceId];
+        return rec ? (rec.role || "Viewer") : "Viewer";
+    }
+
+    function updateLastActive() {
+        const db = getUserDB();
+        if (db[myDeviceId]) {
+            db[myDeviceId].lastActive = new Date().toISOString();
+            setUserDB(db);
         }
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       Core App Functions
-    ═══════════════════════════════════════════════════════════ */
+    function applyRoleRestrictions() {
+        myRole = getMyRole();
+        // Add screen restriction
+        const viewerBlock = document.getElementById('viewer-block');
+        const addFormWrap = document.getElementById('add-form-wrap');
+        if (myRole === "Viewer") {
+            viewerBlock.style.display = 'block';
+            addFormWrap.style.display = 'none';
+        } else {
+            viewerBlock.style.display = 'none';
+            addFormWrap.style.display = 'block';
+        }
+        // Role banner
+        const banners = ['role-banner-search'];
+        banners.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const icons = { Admin:'👑', Editor:'✏️', Viewer:'👁️' };
+            el.textContent = `${icons[myRole]||''} আপনার Role: ${myRole}`;
+            el.className = `role-banner ${myRole.toLowerCase()}`;
+            el.style.display = 'block';
+        });
+    }
 
+    /* ═══════════════════════════════════════════════════
+       2-Step Auth
+    ═══════════════════════════════════════════════════ */
+    function showAuthStep(n) {
+        document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('active'));
+        document.getElementById(`auth-step-${n}`).classList.add('active');
+    }
+
+    function resetAuthFail() {
+        document.getElementById('auth-fail-msg').style.display='none';
+    }
+
+    function verifyPasswordStep() {
+        if (authLocked) { showToast("🔒 অনেকবার ভুল হয়েছে! পরে চেষ্টা করুন।"); return; }
+        const entered = document.getElementById('admin-password').value;
+        if (entered === getSavedPassword()) {
+            authFailCount = 0;
+            pwStepPassed  = true;
+            pinBuffer     = "";
+            updatePinDots();
+            document.getElementById('pin-fail-msg').style.display='none';
+            showAuthStep(2);
+        } else {
+            authFailCount++;
+            const left = Math.max(0, 3 - authFailCount);
+            const msgEl = document.getElementById('auth-fail-msg');
+            msgEl.style.display='block';
+            document.getElementById('fail-left').textContent = left;
+            document.getElementById('auth-step-1').classList.add('fail-shake');
+            setTimeout(()=>document.getElementById('auth-step-1').classList.remove('fail-shake'), 400);
+            if (authFailCount >= 3) {
+                authLocked = true;
+                setTimeout(()=>{ authLocked=false; authFailCount=0; }, 30000);
+                showToast("🔒 ৩০ সেকেন্ড অপেক্ষা করুন!");
+            }
+        }
+    }
+
+    function pinPress(d) {
+        if (pinBuffer.length >= 4) return;
+        pinBuffer += d;
+        updatePinDots();
+    }
+    function pinBack() {
+        pinBuffer = pinBuffer.slice(0,-1);
+        updatePinDots();
+    }
+    function updatePinDots() {
+        for (let i=0; i<4; i++) {
+            document.getElementById(`pd${i}`).classList.toggle('filled', i < pinBuffer.length);
+        }
+    }
+    function verifyPinStep() {
+        if (!pwStepPassed) { showAuthStep(1); return; }
+        if (pinBuffer === getSavedPin()) {
+            isAdminAuthenticated = true;
+            pwStepPassed = false;
+            pinBuffer = "";
+            updatePinDots();
+            switchScreen('settings-screen','nav-settings');
+        } else {
+            document.getElementById('pin-fail-msg').style.display='block';
+            document.getElementById('auth-step-2').classList.add('fail-shake');
+            setTimeout(()=>document.getElementById('auth-step-2').classList.remove('fail-shake'), 400);
+            pinBuffer = "";
+            updatePinDots();
+        }
+    }
+    function backToPasswordStep() {
+        pwStepPassed = false;
+        pinBuffer = "";
+        updatePinDots();
+        showAuthStep(1);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       Password Change
+    ═══════════════════════════════════════════════════ */
+    function checkPwStrength(val) {
+        const bar   = document.getElementById('pw-strength-bar');
+        const label = document.getElementById('pw-strength-label');
+        let score = 0;
+        if (val.length >= 6)  score++;
+        if (val.length >= 10) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        const levels = [
+            { pct:'20%', color:'#e74c3c', text:'খুব দুর্বল' },
+            { pct:'40%', color:'#e67e22', text:'দুর্বল' },
+            { pct:'60%', color:'#f1c40f', text:'মাঝারি' },
+            { pct:'80%', color:'#2ecc71', text:'শক্তিশালী' },
+            { pct:'100%',color:'#27ae60', text:'অনেক শক্তিশালী' },
+        ];
+        const lv = levels[Math.min(score, 4)];
+        bar.style.width      = val ? lv.pct : '0%';
+        bar.style.background = lv.color;
+        label.textContent    = val ? lv.text : '';
+        label.style.color    = lv.color;
+    }
+
+    function changeAdminPassword() {
+        const cur    = document.getElementById('pw-current').value;
+        const newPw  = document.getElementById('pw-new').value;
+        const newPin = document.getElementById('pw-new-pin').value;
+
+        if (cur !== getSavedPassword()) { showToast("❌ বর্তমান পাসওয়ার্ড ভুল!"); return; }
+        if (newPw.length < 6)           { showToast("❌ নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!"); return; }
+        if (!/^\d{4}$/.test(newPin))    { showToast("❌ PIN অবশ্যই ৪ সংখ্যার হতে হবে!"); return; }
+
+        localStorage.setItem('adminPassword', newPw);
+        localStorage.setItem('adminPin', newPin);
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value     = '';
+        document.getElementById('pw-new-pin').value = '';
+        checkPwStrength('');
+        showToast("✅ Password ও PIN সফলভাবে পরিবর্তন হয়েছে!");
+    }
+
+    /* ═══════════════════════════════════════════════════
+       User Control Panel — Role + Status + Last Active
+    ═══════════════════════════════════════════════════ */
+    function loadUserControlPanel() {
+        const db      = getUserDB();
+        const listEl  = document.getElementById('user-panel-list');
+        listEl.innerHTML = '';
+
+        const ids = Object.keys(db);
+        if (ids.length === 0) {
+            listEl.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:13px;">কোনো ডিভাইস নেই</div>';
+            return;
+        }
+
+        ids.forEach(id => {
+            const rec    = db[id];
+            const status = typeof rec === 'object' ? rec.status : rec;
+            const role   = typeof rec === 'object' ? (rec.role || 'Viewer') : 'Viewer';
+            const lastA  = typeof rec === 'object' ? rec.lastActive : null;
+            const isMe   = (id === myDeviceId);
+
+            const statusColor  = status==='Active' ? '#27ae60' : status==='Waiting' ? '#f39c12' : '#c0392b';
+            const toggleLabel  = status==='Active'
+                ? (currentLang==='bn' ? 'সাসপেন্ড' : 'Suspend')
+                : (currentLang==='bn' ? 'একটিভ করুন' : 'Activate');
+            const toggleBg     = status==='Active' ? '#e74c3c' : '#27ae60';
+
+            const lastActiveStr = lastA
+                ? `⏱ শেষ সক্রিয়: ${new Date(lastA).toLocaleString('bn-BD')}`
+                : '⏱ কখনো সক্রিয় হয়নি';
+
+            const row = document.createElement('div');
+            row.className = 'user-panel-row';
+            row.innerHTML = `
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <span class="user-id-text">${id}</span>
+                        ${isMe ? '<small style="color:#2b579a;font-weight:bold;white-space:nowrap;">(আপনি)</small>' : ''}
+                        <span class="role-badge role-${role.toLowerCase()}">${role}</span>
+                        <span class="badge" style="background:${statusColor}">${status}</span>
+                    </div>
+                    <div class="last-active-txt">${lastActiveStr}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+                    <select class="role-select" onchange="changeDeviceRole('${id}',this.value)" ${isMe?'disabled':''}>
+                        <option value="Admin"  ${role==='Admin'  ?'selected':''}>👑 Admin</option>
+                        <option value="Editor" ${role==='Editor' ?'selected':''}>✏️ Editor</option>
+                        <option value="Viewer" ${role==='Viewer' ?'selected':''}>👁️ Viewer</option>
+                    </select>
+                    <button class="status-toggle" style="background:${toggleBg};color:white;"
+                        onclick="toggleDeviceStatus('${id}')" ${isMe?'disabled':''}>
+                        ${toggleLabel}
+                    </button>
+                </div>
+            `;
+            listEl.appendChild(row);
+        });
+    }
+
+    function changeDeviceRole(id, newRole) {
+        const db = getUserDB();
+        if (!db[id]) return;
+        if (typeof db[id] === 'string') db[id] = { status: db[id], role:'Viewer' };
+        db[id].role = newRole;
+        setUserDB(db);
+        showToast(`✅ ${id.slice(0,10)}... → ${newRole}`);
+        loadUserControlPanel();
+        applyRoleRestrictions(); // নিজের role পাল্টালে তাৎক্ষণিক effect
+    }
+
+    function toggleDeviceStatus(id) {
+        const db = getUserDB();
+        if (!db[id]) return;
+        if (typeof db[id] === 'string') db[id] = { status: db[id], role:'Viewer' };
+        db[id].status = db[id].status === 'Active' ? 'Suspended' : 'Active';
+        setUserDB(db);
+        loadUserControlPanel();
+        checkSuspensionStatus();
+    }
+
+    /* ═══════════════════════════════════════════════════
+       App Init
+    ═══════════════════════════════════════════════════ */
     window.onload = async function() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
-
-        if (!localStorage.getItem('userControlDatabase'))
-            localStorage.setItem('userControlDatabase', JSON.stringify({}));
+        if (localStorage.getItem('theme')==='dark') document.body.setAttribute('data-theme','dark');
+        if (!localStorage.getItem('userControlDatabase')) setUserDB({});
 
         try {
             await initIndexedDB();
-            document.getElementById('cloud-status').innerHTML = languages[currentLang].indexBuilding;
+            document.getElementById('cloud-status').innerHTML = "⏳ সার্চ ইনডেক্স তৈরি হচ্ছে...";
             await buildMemoryIndex();
-            document.getElementById('cloud-status').innerHTML = languages[currentLang].cloudReady;
-        } catch(e) {
-            console.error("Init error:", e);
-        }
+            document.getElementById('cloud-status').innerHTML = "☁️ গিটহাব ক্লাউড ডাটাবেজ রেডি";
+        } catch(e) { console.error(e); }
 
         generateDeviceFingerprint();
         updateDataStats();
         updateQueueBadge();
+        applyRoleRestrictions();
 
-        // background online listener → auto flush queue
         window.addEventListener('online', async () => {
-            showToast('🌐 নেটওয়ার্ক পাওয়া গেছে! Queue flush হচ্ছে...');
+            showToast('🌐 নেটওয়ার্ক পাওয়া গেছে! Sync হচ্ছে...');
             await flushOfflineQueue();
         });
+
+        // প্রতি ৩০ সেকেন্ডে last active আপডেট
+        setInterval(updateLastActive, 30000);
     };
 
-    function formatSubscription(input) {
-        let val = input.value.replace(/[^0-9.]/g, '');
-        let parts = val.split('.');
-        if (parts.length > 2) { val = parts[0] + '.' + parts.slice(1).join(''); parts = val.split('.'); }
-        let mainPart = parts[0].replace(/\D/g, '');
-        if (mainPart.length > 8) mainPart = mainPart.substr(0, 8);
-        let formatted = "";
-        if (mainPart.length > 0) formatted += mainPart.substr(0, 3);
-        if (mainPart.length > 3) formatted += '/' + mainPart.substr(3, 2);
-        if (mainPart.length > 5) formatted += '/' + mainPart.substr(5, 3);
-        if (parts.length === 2) {
-            let extraPart = parts[1].replace(/\D/g, '');
-            if (extraPart.length > 3) extraPart = extraPart.substr(0, 3);
-            formatted += '.' + extraPart;
-        }
-        input.value = formatted;
-    }
-
-    async function handleSearchInput(input) {
-        formatSubscription(input);
-        const query = input.value.trim();
-        const suggestionsContainer = document.getElementById('search-suggestions');
-        if (!query) { suggestionsContainer.style.display = 'none'; return; }
-
-        // Memory index থেকে instant search
-        const matched = [];
-        for (const [key] of memoryIndex) {
-            if (key.includes(query)) {
-                matched.push(key);
-                if (matched.length >= SEARCH_LIMIT) break;
-            }
-        }
-
-        if (matched.length > 0) {
-            suggestionsContainer.innerHTML = '';
-            for (const key of matched) {
-                const loc = memoryIndex.get(key) || '';
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerHTML = `<span>${key}</span><span class="suggestion-loc">${loc}</span>`;
-                div.onclick = function() {
-                    input.value = key;
-                    suggestionsContainer.style.display = 'none';
-                    searchLocation();
-                };
-                suggestionsContainer.appendChild(div);
-            }
-            suggestionsContainer.style.display = 'block';
-        } else {
-            suggestionsContainer.style.display = 'none';
-        }
-    }
-
-    document.addEventListener('click', function(e) {
-        const container = document.getElementById('search-suggestions');
-        const input = document.getElementById('search-input');
-        if (e.target !== container && e.target !== input) container.style.display = 'none';
-    });
-
+    /* ═══════════════════════════════════════════════════
+       Device & Suspension
+    ═══════════════════════════════════════════════════ */
     function generateDeviceFingerprint() {
         let id = localStorage.getItem('myTrackerDeviceId');
         if (!id) {
-            id = "DEV-" + window.screen.width + "x" + window.screen.height + "-" + (Math.floor(Math.random() * 9000) + 1000);
+            id = "DEV-" + screen.width + "x" + screen.height + "-" + (Math.floor(Math.random()*9000)+1000);
             localStorage.setItem('myTrackerDeviceId', id);
         }
         myDeviceId = id;
-        let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
-        if (!userDb[id]) { userDb[id] = "Waiting"; localStorage.setItem('userControlDatabase', JSON.stringify(userDb)); }
+        const db = getUserDB();
+        if (!db[id]) {
+            db[id] = { status:"Waiting", role:"Viewer", lastActive: new Date().toISOString() };
+            setUserDB(db);
+        } else if (typeof db[id]==='string') {
+            // migrate old format
+            db[id] = { status:db[id], role:"Viewer", lastActive: new Date().toISOString() };
+            setUserDB(db);
+        }
         checkSuspensionStatus();
     }
 
     function checkSuspensionStatus() {
-        let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
-        let status = userDb[myDeviceId];
-        if (status === "Suspended" || status === "Waiting") {
-            document.getElementById('block-screen').style.display = "flex";
-            const l = languages[currentLang] || languages['bn'];
-            if (status === "Waiting") {
-                document.getElementById('lbl-block-title').innerText = l.blockTitle;
-                document.getElementById('lbl-block-desc').innerText = l.blockDesc;
-            } else {
-                document.getElementById('lbl-block-title').innerText = currentLang === 'en' ? "🚫 Device Suspended" : "🚫 আপনার এই ডিভাইসটি সাসপেন্ড করা হয়েছে!";
-                document.getElementById('lbl-block-desc').innerText = currentLang === 'en' ? "Please contact admin." : "দয়া করে আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।";
-            }
+        const db  = getUserDB();
+        const rec = db[myDeviceId];
+        const status = typeof rec==='object' ? rec.status : rec;
+        if (status==="Suspended"||status==="Waiting") {
+            document.getElementById('block-screen').style.display="flex";
+            document.getElementById('lbl-block-title').innerText = status==="Waiting"
+                ? "এই ডিভাইসটি এখনো একটিভ করা হয়নি!"
+                : "🚫 আপনার ডিভাইস সাসপেন্ড করা হয়েছে!";
+            document.getElementById('lbl-block-desc').innerText = status==="Waiting"
+                ? "এডমিন পাসওয়ার্ড দিয়ে ডিভাইসটি একটিভ করুন।"
+                : "আপনার অ্যাডমিনের সাথে যোগাযোগ করুন।";
         } else {
-            document.getElementById('block-screen').style.display = "none";
+            document.getElementById('block-screen').style.display="none";
         }
     }
 
     function goToAuthFromLockScreen() {
-        document.getElementById('admin-password').value = "";
-        document.getElementById('block-screen').style.display = "none";
-        switchScreen('auth-screen', 'nav-settings');
+        document.getElementById('admin-password').value="";
+        document.getElementById('block-screen').style.display="none";
+        pinBuffer=""; updatePinDots(); showAuthStep(1);
+        switchScreen('auth-screen','nav-settings');
     }
-
     function cancelAuthRedirect() {
         checkSuspensionStatus();
-        switchScreen('search-screen', 'nav-search');
+        switchScreen('search-screen','nav-search');
     }
 
+    /* ═══════════════════════════════════════════════════
+       Screen Switching
+    ═══════════════════════════════════════════════════ */
     function switchScreen(screenId, navId) {
-        if (document.getElementById('settings-screen').classList.contains('active') && screenId !== 'settings-screen')
+        if (document.getElementById('settings-screen').classList.contains('active') && screenId!=='settings-screen')
             isAdminAuthenticated = false;
 
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         if (navId) document.getElementById(navId).classList.add('active');
 
-        if (screenId === 'settings-screen') {
+        if (screenId==='settings-screen') {
             document.getElementById('github-repo-input').value = githubRepo;
             document.getElementById('github-token-input').value = githubToken;
-            updateDataStats();
-            loadRecordTable();
-            loadUserControlPanel();
-            updateChunkInfo(null);
+            updateDataStats(); loadRecordTable(); loadUserControlPanel(); updateChunkInfo(null);
         }
-        if (screenId === 'add-screen') setTimeout(initializeManualPickerMap, 200);
-    }
-
-    function initializeManualPickerMap() {
-        if (!pickerMap) {
-            const defaultLat = 24.7136, defaultLng = 46.6753;
-            pickerMap = L.map('manual-picker-map').setView([defaultLat, defaultLng], 11);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(pickerMap);
-            pickerMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(pickerMap);
-            pickerMarker.on('dragend', e => updateLocationInputField(pickerMarker.getLatLng().lat, pickerMarker.getLatLng().lng));
-            pickerMap.on('click', e => { pickerMarker.setLatLng(e.latlng); updateLocationInputField(e.latlng.lat, e.latlng.lng); });
-        } else {
-            pickerMap.invalidateSize();
+        if (screenId==='add-screen') {
+            applyRoleRestrictions();
+            setTimeout(initializeManualPickerMap, 200);
         }
-    }
-
-    function updateLocationInputField(lat, lng) {
-        document.getElementById('sub-location').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    }
-
-    function getCurrentLocation() {
-        if (!navigator.geolocation) return alert("GPS সাপোর্ট নেই!");
-        navigator.geolocation.getCurrentPosition(
-            pos => {
-                updateLocationInputField(pos.coords.latitude, pos.coords.longitude);
-                if (pickerMap && pickerMarker) {
-                    pickerMarker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
-                    pickerMap.setView([pos.coords.latitude, pos.coords.longitude], 15);
-                }
-                showToast(currentLang === 'en' ? "Location updated!" : "কারেন্ট লোকেশন নেওয়া হয়েছে!");
-            },
-            err => alert("GPS Error: " + err.message),
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
+        if (screenId==='auth-screen') {
+            pinBuffer=""; updatePinDots(); showAuthStep(1);
+            document.getElementById('auth-fail-msg').style.display='none';
+            document.getElementById('pin-fail-msg').style.display='none';
+        }
     }
 
     function handleSettingsNavigation() {
-        if (isAdminAuthenticated) switchScreen('settings-screen', 'nav-settings');
-        else { document.getElementById('admin-password').value = ""; switchScreen('auth-screen', 'nav-settings'); }
+        if (isAdminAuthenticated) switchScreen('settings-screen','nav-settings');
+        else switchScreen('auth-screen','nav-settings');
     }
 
-    function verifyAdminPassword() {
-        if (document.getElementById('admin-password').value === 'admin123') {
-            isAdminAuthenticated = true;
-            switchScreen('settings-screen', 'nav-settings');
-        } else {
-            alert(languages[currentLang].wrongPass);
-            checkSuspensionStatus();
-        }
+    /* ═══════════════════════════════════════════════════
+       Map
+    ═══════════════════════════════════════════════════ */
+    function initializeManualPickerMap() {
+        if (!pickerMap) {
+            pickerMap = L.map('manual-picker-map').setView([24.7136, 46.6753], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(pickerMap);
+            pickerMarker = L.marker([24.7136,46.6753],{draggable:true}).addTo(pickerMap);
+            pickerMarker.on('dragend',()=>updateLocField(pickerMarker.getLatLng().lat, pickerMarker.getLatLng().lng));
+            pickerMap.on('click',e=>{ pickerMarker.setLatLng(e.latlng); updateLocField(e.latlng.lat, e.latlng.lng); });
+        } else { pickerMap.invalidateSize(); }
+    }
+    function updateLocField(lat,lng) { document.getElementById('sub-location').value=`${lat.toFixed(5)}, ${lng.toFixed(5)}`; }
+    function getCurrentLocation() {
+        if (!navigator.geolocation) return alert("GPS সাপোর্ট নেই!");
+        navigator.geolocation.getCurrentPosition(pos=>{
+            updateLocField(pos.coords.latitude, pos.coords.longitude);
+            if (pickerMap&&pickerMarker) { pickerMarker.setLatLng([pos.coords.latitude,pos.coords.longitude]); pickerMap.setView([pos.coords.latitude,pos.coords.longitude],15); }
+            showToast("📍 লোকেশন আপডেট হয়েছে!");
+        }, err=>alert("GPS Error: "+err.message), {enableHighAccuracy:true,timeout:10000});
     }
 
-    let currentActiveLocation = "";
-
-    async function searchLocation() {
-        const subInput = document.getElementById('search-input').value.trim();
-        const stationInput = document.getElementById('search-station-input').value.trim();
-        const queryKey = subInput || stationInput;
-
-        if (!queryKey) { showToast(languages[currentLang].emptyAlert); return; }
-
-        // Memory index → instant O(1)
-        let matchedLocation = memoryIndex.get(queryKey);
-
-        // fallback: direct IndexedDB (যদি index না থাকে)
-        if (!matchedLocation) {
-            matchedLocation = await idbGet(STORE_MAIN, queryKey);
-            if (matchedLocation) memoryIndex.set(queryKey, matchedLocation); // cache
-        }
-
-        if (matchedLocation) {
-            currentActiveLocation = matchedLocation;
-            document.getElementById('res-num').innerText = queryKey;
-            document.getElementById('res-loc').innerText = currentActiveLocation;
-            document.getElementById('result-box').style.display = 'block';
-            document.getElementById('not-found').style.display = 'none';
-            document.getElementById('map-frame').src = "https://maps.google.com/maps?q=" + encodeURIComponent(currentActiveLocation) + "&t=&z=14&ie=UTF8&iwloc=&output=embed";
-            document.getElementById('map-area').style.display = 'block';
-        } else {
-            document.getElementById('result-box').style.display = 'none';
-            document.getElementById('not-found').innerText = languages[currentLang].notFound;
-            document.getElementById('not-found').style.display = 'block';
-        }
+    /* ═══════════════════════════════════════════════════
+       Search
+    ═══════════════════════════════════════════════════ */
+    function formatSubscription(input) {
+        let val=input.value.replace(/[^0-9.]/g,'');
+        let parts=val.split('.');
+        if(parts.length>2){val=parts[0]+'.'+parts.slice(1).join('');parts=val.split('.');}
+        let m=parts[0].replace(/\D/g,'').substr(0,8);
+        let f='';
+        if(m.length>0)f+=m.substr(0,3);
+        if(m.length>3)f+='/'+m.substr(3,2);
+        if(m.length>5)f+='/'+m.substr(5,3);
+        if(parts.length===2){let e=parts[1].replace(/\D/g,'').substr(0,3);f+='.'+e;}
+        input.value=f;
     }
 
-    async function saveDataAndPushToGitHub() {
-        const num = document.getElementById('sub-number').value.trim();
-        const station = document.getElementById('station-number').value.trim();
-        const loc = document.getElementById('sub-location').value.trim();
-
-        if ((!num && !station) || !loc) { showToast(languages[currentLang].emptyAlert); return; }
-        const key = num || station;
-
-        // ১. IndexedDB তে সেভ করো — সবসময়
-        await idbPut(STORE_MAIN, key, loc);
-        memoryIndex.set(key, loc); // memory index আপডেট
-
-        if (navigator.onLine) {
-            showToast(currentLang === 'en' ? "Uploading to Cloud..." : "⏳ অনলাইনে আপলোড হচ্ছে...");
-            const ok = await pushToGitHub(key, loc);
-            if (ok) {
-                showToast(languages[currentLang].saveAlert);
-            } else {
-                await enqueueOfflineWrite(key, loc);
-                showToast("⚠️ Cloud upload failed. Saved locally & queued.");
-                updateQueueBadge();
+    async function handleSearchInput(input) {
+        formatSubscription(input);
+        const q     = input.value.trim();
+        const sugEl = document.getElementById('search-suggestions');
+        if (!q) { sugEl.style.display='none'; return; }
+        const matched=[];
+        for (const [key] of memoryIndex) {
+            if (key.includes(q)) { matched.push(key); if(matched.length>=SEARCH_LIMIT) break; }
+        }
+        if (matched.length>0) {
+            sugEl.innerHTML='';
+            for (const key of matched) {
+                const loc=memoryIndex.get(key)||'';
+                const div=document.createElement('div');
+                div.className='suggestion-item';
+                div.innerHTML=`<span>${key}</span><span class="suggestion-loc">${loc}</span>`;
+                div.onclick=()=>{ input.value=key; sugEl.style.display='none'; searchLocation(); };
+                sugEl.appendChild(div);
             }
+            sugEl.style.display='block';
+        } else { sugEl.style.display='none'; }
+    }
+
+    document.addEventListener('click', e => {
+        const c=document.getElementById('search-suggestions');
+        const i=document.getElementById('search-input');
+        if(e.target!==c&&e.target!==i) c.style.display='none';
+    });
+
+    let currentActiveLocation="";
+    async function searchLocation() {
+        const sub     = document.getElementById('search-input').value.trim();
+        const station = document.getElementById('search-station-input').value.trim();
+        const key     = sub||station;
+        if (!key) { showToast("দয়া করে নাম্বার দিন!"); return; }
+        let loc = memoryIndex.get(key) || await idbGet(STORE_MAIN, key);
+        if (loc) { memoryIndex.set(key, loc); }
+        if (loc) {
+            currentActiveLocation=loc;
+            document.getElementById('res-num').innerText=key;
+            document.getElementById('res-loc').innerText=loc;
+            document.getElementById('result-box').style.display='block';
+            document.getElementById('not-found').style.display='none';
+            document.getElementById('map-frame').src="https://maps.google.com/maps?q="+encodeURIComponent(loc)+"&t=&z=14&ie=UTF8&iwloc=&output=embed";
+            document.getElementById('map-area').style.display='block';
+            updateLastActive();
         } else {
-            // Offline: queue করো
+            document.getElementById('result-box').style.display='none';
+            document.getElementById('not-found').innerText="এই নাম্বারের কোনো লোকেশন পাওয়া যায়নি!";
+            document.getElementById('not-found').style.display='block';
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       Save Data
+    ═══════════════════════════════════════════════════ */
+    async function saveDataAndPushToGitHub() {
+        if (myRole==="Viewer") { showToast("🚫 Viewer হিসেবে ডাটা Add করা যাবে না!"); return; }
+        const num     = document.getElementById('sub-number').value.trim();
+        const station = document.getElementById('station-number').value.trim();
+        const loc     = document.getElementById('sub-location').value.trim();
+        if ((!num&&!station)||!loc) { showToast("ফিল্ড পূরণ করুন!"); return; }
+        const key = num||station;
+        await idbPut(STORE_MAIN, key, loc);
+        memoryIndex.set(key, loc);
+        updateLastActive();
+        if (navigator.onLine) {
+            showToast("⏳ আপলোড হচ্ছে...");
+            const ok = await pushToGitHub(key, loc);
+            showToast(ok ? "✅ সফলভাবে সেভ ও আপলোড হয়েছে!" : "⚠️ লোকালে সেভ হয়েছে, cloud ব্যর্থ।");
+            if (!ok) { await enqueueOfflineWrite(key, loc); updateQueueBadge(); }
+        } else {
             await enqueueOfflineWrite(key, loc);
-            showToast("📴 Offline — saved locally. Will sync when online.");
+            showToast("📴 Offline — লোকালে সেভ, নেট এলে sync হবে।");
             updateQueueBadge();
         }
-
-        document.getElementById('sub-number').value = "";
-        document.getElementById('station-number').value = "";
-        document.getElementById('sub-location').value = "";
-        switchScreen('search-screen', 'nav-search');
+        document.getElementById('sub-number').value='';
+        document.getElementById('station-number').value='';
+        document.getElementById('sub-location').value='';
+        switchScreen('search-screen','nav-search');
         updateDataStats();
     }
 
+    /* ═══════════════════════════════════════════════════
+       Import / Export
+    ═══════════════════════════════════════════════════ */
     async function handleFileImport(event) {
-        const file = event.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        showToast(currentLang === 'bn' ? "⏳ প্রসেসিং হচ্ছে..." : "⏳ Processing...");
-
-        reader.onload = async function(e) {
+        const file=event.target.files[0]; if(!file) return;
+        showToast("⏳ প্রসেসিং হচ্ছে...");
+        const reader=new FileReader();
+        reader.onload=async function(e){
             try {
-                let extracted = {};
-                if (file.name.endsWith('.json')) {
-                    let raw = JSON.parse(e.target.result);
-                    extracted = raw.locations || raw.Locations || raw;
-                } else if (file.name.match(/\.(xlsx|xls|csv)$/i)) {
-                    const data = new Uint8Array(e.target.result);
-                    const wb = XLSX.read(data, { type: 'array' });
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                    for (let i = 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        if (row[0] && row[1]) extracted[String(row[0]).trim()] = String(row[1]).trim();
-                    }
-                } else {
-                    showToast(languages[currentLang].invalidAlert); return;
-                }
-
-                const total = Object.keys(extracted).length;
-                if (total === 0) { showToast("কোনো ডাটা পাওয়া যায়নি!"); return; }
-
-                // Progress bar দেখাও
-                const pw = document.getElementById('progress-wrap');
-                const pb = document.getElementById('progress-bar-fill');
-                const pl = document.getElementById('progress-label');
-                pw.style.display = 'block';
-
-                // STORE_MAIN এ bulk insert
-                await idbBulkPut(STORE_MAIN, extracted, (done, total) => {
-                    const pct = Math.round(done / total * 100);
-                    pb.style.width = pct + '%';
-                    pl.textContent = `${pct}% (${done.toLocaleString()}/${total.toLocaleString()})`;
+                let extracted={};
+                if(file.name.endsWith('.json')){
+                    const raw=JSON.parse(e.target.result);
+                    extracted=raw.locations||raw.Locations||raw;
+                } else if(file.name.match(/\.(xlsx|xls|csv)$/i)){
+                    const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+                    const ws=wb.Sheets[wb.SheetNames[0]];
+                    const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+                    for(let i=1;i<rows.length;i++){if(rows[i][0]&&rows[i][1]) extracted[String(rows[i][0]).trim()]=String(rows[i][1]).trim();}
+                } else { showToast("ভুল ফরম্যাট!"); return; }
+                const total=Object.keys(extracted).length;
+                if(!total){showToast("কোনো ডাটা নেই!"); return;}
+                const pw=document.getElementById('progress-wrap');
+                const pb=document.getElementById('progress-bar-fill');
+                const pl=document.getElementById('progress-label');
+                pw.style.display='block';
+                await idbBulkPut(STORE_MAIN, extracted, (done,total)=>{
+                    const p=Math.round(done/total*100);
+                    pb.style.width=p+'%'; pl.textContent=`${p}% (${done.toLocaleString()}/${total.toLocaleString()})`;
                 });
-
-                // STORE_LOCAL এ marker রাখো (শুধু keys)
-                const localMarkers = {};
-                Object.keys(extracted).forEach(k => localMarkers[k] = 1);
-                await idbBulkPut(STORE_LOCAL, localMarkers, null);
-
-                // Memory index আপডেট
-                Object.keys(extracted).forEach(k => memoryIndex.set(k, extracted[k]));
-
-                pw.style.display = 'none';
-                showToast(languages[currentLang].importAlert);
-                updateDataStats();
-                loadRecordTable();
-            } catch(err) {
-                console.error(err);
-                alert(languages[currentLang].invalidAlert);
-            }
+                const markers={};
+                Object.keys(extracted).forEach(k=>markers[k]=1);
+                await idbBulkPut(STORE_LOCAL, markers, null);
+                Object.keys(extracted).forEach(k=>memoryIndex.set(k,extracted[k]));
+                pw.style.display='none';
+                showToast("✅ ডাটা ইম্পোর্ট সম্পন্ন!");
+                updateDataStats(); loadRecordTable();
+            } catch(err){ console.error(err); alert("ভুল ফাইল ফরম্যাট!"); }
         };
-
-        if (file.name.endsWith('.json')) reader.readAsText(file);
-        else reader.readAsArrayBuffer(file);
-        event.target.value = "";
+        file.name.endsWith('.json') ? reader.readAsText(file) : reader.readAsArrayBuffer(file);
+        event.target.value="";
     }
 
     async function exportData() {
-        // সব IndexedDB ডাটা export
-        const allData = await idbGetAll(STORE_MAIN);
-        const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `full_backup_${Date.now()}.json`;
-        a.click();
+        const all=await idbGetAll(STORE_MAIN);
+        const blob=new Blob([JSON.stringify(all,null,2)],{type:"application/json"});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`full_backup_${Date.now()}.json`; a.click();
     }
 
     async function exportLocalAppEntries() {
-        const localKeys = await idbGetAllKeys(STORE_LOCAL);
-        if (localKeys.length === 0) { showToast("কোনো লোকাল ডাটা নেই!"); return; }
-        const out = {};
-        for (const key of localKeys) {
-            const val = memoryIndex.get(key) || await idbGet(STORE_MAIN, key);
-            if (val) out[key] = val;
-        }
-        const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `local_app_backup.json`; a.click();
-        showToast(currentLang === 'bn' ? "লোকাল ডেটা এক্সপোর্ট সম্পন্ন!" : "Local Data Exported!");
+        const keys=await idbGetAllKeys(STORE_LOCAL);
+        if(!keys.length){showToast("কোনো লোকাল ডাটা নেই!");return;}
+        const out={};
+        for(const k of keys){const v=memoryIndex.get(k)||await idbGet(STORE_MAIN,k); if(v) out[k]=v;}
+        const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`local_backup.json`; a.click();
+        showToast("✅ লোকাল ডাটা এক্সপোর্ট সম্পন্ন!");
     }
 
     async function deleteRecord(key) {
-        if (!confirm(languages[currentLang].deleteConfirm)) return;
+        if(!confirm("ডাটাটি ডিলিট করতে চান?")) return;
         await idbDelete(STORE_MAIN, key);
         await idbDelete(STORE_LOCAL, key);
         memoryIndex.delete(key);
-        // GitHub থেকে ডিলিট: পরের sync এ affected chunk rebuild হবে
-        showToast(languages[currentLang].deleteAlert);
-        updateDataStats();
-        loadRecordTable();
+        showToast("✅ ডিলিট সম্পন্ন!");
+        updateDataStats(); loadRecordTable();
     }
 
     async function clearMemory() {
-        if (!confirm(currentLang === 'en' ? "Clear all storage data?" : "আপনি কি নিশ্চিতভাবে সব মেমোরি ডাটা মুছে ফেলবেন?")) return;
-        await idbClearStore(STORE_MAIN);
-        await idbClearStore(STORE_LOCAL);
-        await idbClearStore(STORE_QUEUE);
+        if(!confirm("সব ডাটা মুছে ফেলবেন?")) return;
+        await idbClear(STORE_MAIN); await idbClear(STORE_LOCAL); await idbClear(STORE_QUEUE);
         memoryIndex.clear();
-        showToast(languages[currentLang].clearAlert);
-        updateDataStats();
-        loadRecordTable();
-        updateQueueBadge();
+        showToast("✅ সব ডাটা মুছে ফেলা হয়েছে!");
+        updateDataStats(); loadRecordTable(); updateQueueBadge();
     }
 
     async function updateDataStats() {
-        const mainCount = memoryIndex.size;
-        const localKeys = await idbGetAllKeys(STORE_LOCAL);
-        document.getElementById('stats-box').innerText = `${languages[currentLang].statsText}${mainCount.toLocaleString()}${currentLang === 'bn' ? ' টি' : ''}`;
-        document.getElementById('app-stats-box').innerText = currentLang === 'en'
-            ? `📱 Local Imported Data: ${localKeys.length.toLocaleString()}`
-            : `📱 শুধুমাত্র লোকাল ইম্পোর্ট করা ডাটা: ${localKeys.length.toLocaleString()} টি`;
+        const localKeys=await idbGetAllKeys(STORE_LOCAL);
+        document.getElementById('stats-box').innerText=`📊 মোট IndexedDB ডাটা: ${memoryIndex.size.toLocaleString()} টি`;
+        document.getElementById('app-stats-box').innerText=`📱 লোকাল ইম্পোর্ট করা ডাটা: ${localKeys.length.toLocaleString()} টি`;
     }
 
     function loadRecordTable() {
-        const tbody = document.getElementById('record-table-body');
-        tbody.innerHTML = '';
-        let count = 0;
-        for (const [key, val] of memoryIndex) {
-            if (count++ >= TABLE_PAGE_SIZE) break;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong style="font-family:'IBM Plex Mono',monospace;">${key}</strong></td><td>${val}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
+        const tbody=document.getElementById('record-table-body');
+        tbody.innerHTML=''; let count=0;
+        for(const [key,val] of memoryIndex){
+            if(count++>=TABLE_PAGE) break;
+            const tr=document.createElement('tr');
+            tr.innerHTML=`<td><strong style="font-family:'IBM Plex Mono',monospace;">${key}</strong></td><td>${val}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
             tbody.appendChild(tr);
         }
     }
 
     function filterRecordTable() {
-        const val = document.getElementById('table-search-input').value.trim();
-        const tbody = document.getElementById('record-table-body');
-        tbody.innerHTML = '';
-        if (!val) { loadRecordTable(); return; }
-        let count = 0;
-        for (const [key, loc] of memoryIndex) {
-            if (!key.includes(val)) continue;
-            if (count++ >= TABLE_PAGE_SIZE) break;
-            const tr = document.createElement('tr');
-            tr.style.backgroundColor = "rgba(39,174,96,0.1)";
-            tr.innerHTML = `<td><strong style="font-family:'IBM Plex Mono',monospace;">${key}</strong></td><td>${loc}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
+        const val=document.getElementById('table-search-input').value.trim();
+        const tbody=document.getElementById('record-table-body');
+        tbody.innerHTML='';
+        if(!val){loadRecordTable();return;}
+        let count=0;
+        for(const [key,loc] of memoryIndex){
+            if(!key.includes(val)) continue;
+            if(count++>=TABLE_PAGE) break;
+            const tr=document.createElement('tr');
+            tr.style.backgroundColor="rgba(39,174,96,0.1)";
+            tr.innerHTML=`<td><strong style="font-family:'IBM Plex Mono',monospace;">${key}</strong></td><td>${loc}</td><td style="text-align:center;"><button class="btn-delete-row" onclick="deleteRecord('${key.replace(/'/g,"\\'")}')">ডিলিট</button></td>`;
             tbody.appendChild(tr);
         }
     }
 
-    function loadUserControlPanel() {
-        let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
-        let tbody = document.getElementById('user-table-body');
-        tbody.innerHTML = "";
-        Object.keys(userDb).forEach(id => {
-            let status = userDb[id];
-            let isMe = (id === myDeviceId);
-            let badgeClass = status === "Active" ? "badge-active" : (status === "Waiting" ? "badge-waiting" : "badge-suspended");
-            let actionText = status === "Active" ? (currentLang === 'bn' ? "সাসপেন্ড" : "Suspend") : (currentLang === 'bn' ? "অ্যাক্টিভ করুন" : "Activate");
-            let tr = document.createElement('tr');
-            tr.innerHTML = `<td><span style="font-family:monospace;font-size:11px;">${id}</span> ${isMe ? '<small style="color:#2b579a;font-weight:bold;">(You)</small>' : ''}</td><td><span class="badge ${badgeClass}">${status}</span></td><td><span class="action-link" onclick="toggleDeviceStatus('${id}')">${actionText}</span></td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function toggleDeviceStatus(id) {
-        let userDb = JSON.parse(localStorage.getItem('userControlDatabase') || '{}');
-        userDb[id] = userDb[id] === "Active" ? "Suspended" : "Active";
-        localStorage.setItem('userControlDatabase', JSON.stringify(userDb));
-        loadUserControlPanel();
-        checkSuspensionStatus();
-    }
-
+    /* ═══════════════════════════════════════════════════
+       Settings & Theme
+    ═══════════════════════════════════════════════════ */
     function saveGithubSettings() {
-        let inputRepo = document.getElementById('github-repo-input').value.trim();
-        let inputToken = document.getElementById('github-token-input').value.trim();
-        if (inputRepo) { localStorage.setItem('githubRepo', inputRepo); githubRepo = inputRepo; }
-        localStorage.setItem('githubToken', inputToken); githubToken = inputToken;
-        showToast(currentLang === 'en' ? "Configuration Saved!" : "কনফিগারেশন সংরক্ষিত!");
+        const r=document.getElementById('github-repo-input').value.trim();
+        const t=document.getElementById('github-token-input').value.trim();
+        if(r){localStorage.setItem('githubRepo',r); githubRepo=r;}
+        localStorage.setItem('githubToken',t); githubToken=t;
+        showToast("✅ GitHub সেটিংস সেভ হয়েছে!");
     }
 
     function toggleTheme() {
-        const cur = document.body.getAttribute('data-theme');
-        if (cur === 'dark') { document.body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
-        else { document.body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+        const cur=document.body.getAttribute('data-theme');
+        if(cur==='dark'){document.body.removeAttribute('data-theme');localStorage.setItem('theme','light');}
+        else{document.body.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');}
     }
 
-    function openMap() {
-        if (currentActiveLocation) window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(currentActiveLocation), '_blank');
-    }
-
+    function openMap() { if(currentActiveLocation) window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(currentActiveLocation),'_blank'); }
     function copyLocation() {
-        const num = document.getElementById('res-num').innerText;
-        const mapLink = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(currentActiveLocation);
-        const txt = `ID/Sub No: ${num}\nLocation: ${currentActiveLocation}\nMap Link: ${mapLink}`;
-        const el = document.createElement("textarea"); el.value = txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-        showToast(languages[currentLang].copyAlert);
+        const num=document.getElementById('res-num').innerText;
+        const link="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(currentActiveLocation);
+        const txt=`ID: ${num}\nLocation: ${currentActiveLocation}\nMap: ${link}`;
+        const el=document.createElement("textarea"); el.value=txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+        showToast("📋 কপি হয়েছে!");
     }
-
     function shareLocation() {
-        const num = document.getElementById('res-num').innerText;
-        const mapLink = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(currentActiveLocation);
-        window.open(`https://wa.me/?text=${encodeURIComponent('ID/Sub No: ' + num + ' | Link: ' + mapLink)}`, '_blank');
+        const num=document.getElementById('res-num').innerText;
+        const link="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(currentActiveLocation);
+        window.open(`https://wa.me/?text=${encodeURIComponent('ID: '+num+' | Link: '+link)}`,'_blank');
     }
-
     function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg; t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 3000);
+        const t=document.getElementById('toast'); t.innerText=msg; t.style.display='block';
+        setTimeout(()=>t.style.display='none',3000);
     }
 
     function changeLanguage(lang) {
-        currentLang = lang;
-        const l = languages[lang] || languages['bn'];
-        document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-        document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-        document.getElementById('app-title').innerText = l.title;
-        document.getElementById('lbl-search-title').innerText = l.searchTitle;
-        document.getElementById('lbl-search-sub').innerText = lang === 'en' ? "By Subscription Number:" : (lang === 'ar' ? "بواسطة رقم الاشتراك:" : "সাবস্ক্রিপশন নাম্বারের মাধ্যমে:");
-        document.getElementById('lbl-search-station').innerText = lang === 'en' ? "By Station Number:" : (lang === 'ar' ? "بواسطة رقم المحطة:" : "স্টেশন নাম্বারের মাধ্যমে:");
-        document.getElementById('search-input').placeholder = l.searchPlaceholder;
-        document.getElementById('btn-search').innerText = l.searchBtn;
-        document.getElementById('lbl-res-num').innerText = l.resNum;
-        document.getElementById('lbl-res-loc').innerText = l.resLoc;
-        document.getElementById('btn-map').innerText = l.btnMap;
-        document.getElementById('btn-copy').innerText = l.btnCopy;
-        document.getElementById('btn-share').innerText = l.btnShare;
-        document.getElementById('lbl-add-title').innerText = l.addTitle;
-        document.getElementById('lbl-sub-num-field').innerText = l.subNumField;
-        document.getElementById('lbl-station-field').innerText = lang === 'en' ? "Station ID (Digits Only)" : (lang === 'ar' ? "رقم المحطة (أرقام فقط)" : "স্টেশন আইডি (শুধুমাত্র সংখ্যা)");
-        document.getElementById('lbl-loc-field').innerText = l.locField;
-        document.getElementById('btn-current-loc').innerText = l.currentLocBtn;
-        document.getElementById('btn-save').innerText = l.saveBtn;
-        document.getElementById('lbl-settings-title').innerText = l.settingsTitle;
-        document.getElementById('lbl-git-path-title').innerText = l.gitPathTitle;
-        document.getElementById('btn-git-update').innerText = l.btnGitUpdate;
-        document.getElementById('lbl-table-search').innerText = l.lblTableSearch;
-        document.getElementById('table-search-input').placeholder = l.tableSearchPlaceholder;
-        document.getElementById('th-sub').innerText = l.thSub;
-        document.getElementById('th-loc').innerText = l.thLoc;
-        document.getElementById('th-action').innerText = l.thAction;
-        document.getElementById('lbl-user-manage-title').innerText = l.userManageTitle;
-        document.getElementById('th-dev-id').innerText = l.thDevId;
-        document.getElementById('th-dev-status').innerText = l.thDevStatus;
-        document.getElementById('th-dev-action').innerText = l.thDevAction;
-        document.getElementById('btn-export-local').innerText = l.btnExportLocalText;
-        document.getElementById('btn-import-trigger').innerText = lang === 'en' ? "📂 Import Local File (.xlsx / .json)" : (lang === 'ar' ? "📂 استيراد ملف محلي" : "📂 লোকাল ফাইল ইম্পোর্ট (.xlsx / .json)");
-        document.getElementById('btn-clear-mem').innerText = lang === 'en' ? "🗑️ Clear All Storage Data" : (lang === 'ar' ? "🗑️ مسح كل البيانات" : "🗑️ মেমোরি সম্পূর্ণ ক্লিয়ার করুন");
-        document.getElementById('nav-search').innerText = l.navSearch;
-        document.getElementById('nav-add').innerText = l.navAdd;
-        document.getElementById('nav-settings').innerText = l.navSettings;
-        document.getElementById('lbl-auth-title').innerText = l.authTitle;
-        document.getElementById('admin-password').placeholder = l.adminPasswordPlace;
-        document.getElementById('btn-auth-confirm').innerText = l.authConfirm;
-        document.getElementById('btn-auth-cancel').innerText = l.authCancel;
-        document.getElementById('lbl-manual-map-title').innerText = l.lblManualMap;
-        updateDataStats();
-        loadRecordTable();
+        currentLang=lang;
+        document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');
+        document.body.setAttribute('dir',lang==='ar'?'rtl':'ltr');
+        applyRoleRestrictions();
         loadUserControlPanel();
     }
 </script>
