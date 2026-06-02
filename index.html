@@ -292,6 +292,9 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 
       <!-- ══ USER CONTROL PANEL ══ -->
       <h3 style="font-size:14px;color:var(--pc);margin:0 0 10px">👥 ডিভাইস কন্ট্রোল প্যানেল</h3>
+      <button class="btn" style="margin-bottom:10px;padding:9px;font-size:13px;background:#8e44ad" onclick="syncDevicePanel()">
+        🔄 সব ডিভাইস লোড করুন (GitHub Sync)
+      </button>
       <div id="up-list" style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:14px"></div>
 
       <hr class="div">
@@ -553,6 +556,9 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
       for (const it of q) await pushOne(it.key, it.location);
       await iClear(SQ);
       refreshQBadge();
+      // ✅ Device registry sync
+      await syncUDB();
+      loadUserPanel();
       updateStats();
       el.textContent = `✅ ${imp.toLocaleString()} records synced`;
       showToast("✅ সিঙ্ক সম্পন্ন!");
@@ -662,6 +668,11 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     applyRole();
     updateStats();
     refreshQBadge();
+    // নিজের device GitHub registry তে push করো
+    setTimeout(async () => {
+      const udb = getUDB();
+      await pushUDBtoGitHub(udb);
+    }, 2000);
     window.addEventListener('online', async ()=>{
       showToast('🌐 নেটওয়ার্ক পাওয়া গেছে!');
       const q = await getQueue();
@@ -800,44 +811,100 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
   }
 
   // ─── User Control Panel ───────────────────────────────────
+  // GitHub-এ udb সিঙ্ক করা হয় যাতে সব device একে অপরকে দেখতে পায়
+  const UDB_GH_PATH = 'device_registry.json';
+
+  async function pushUDBtoGitHub(udb) {
+    if (!GH_TOK || !GH_REPO) return;
+    try {
+      await ghPush(UDB_GH_PATH, JSON.stringify(udb, null, 2), '👥 Update device registry');
+    } catch(e) { console.warn("UDB push failed:", e); }
+  }
+
+  async function pullUDBfromGitHub() {
+    if (!GH_TOK || !GH_REPO) return null;
+    try {
+      const r = await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/${UDB_GH_PATH}?t=${Date.now()}`);
+      if (r.ok) return await r.json();
+    } catch(e) {}
+    return null;
+  }
+
+  async function syncUDB() {
+    // GitHub থেকে পড়ো, merge করো, push করো
+    const remote = await pullUDBfromGitHub();
+    if (!remote) return;
+    const local  = getUDB();
+    // Merge: remote entries + local entries (local lastActive বেশি হলে local জিতবে)
+    const merged = { ...remote };
+    Object.keys(local).forEach(id => {
+      if (!merged[id]) {
+        merged[id] = local[id];
+      } else {
+        // lastActive তুলনা করে newer রাখো
+        const rTime = merged[id].lastActive ? new Date(merged[id].lastActive).getTime() : 0;
+        const lTime = local[id].lastActive  ? new Date(local[id].lastActive).getTime()  : 0;
+        if (lTime > rTime) merged[id] = { ...merged[id], ...local[id] };
+        else merged[id] = { ...local[id], ...merged[id] };
+      }
+    });
+    setUDB(merged);
+    await pushUDBtoGitHub(merged);
+  }
+
   function loadUserPanel() {
     const udb  = getUDB();
     const el   = document.getElementById('up-list');
     el.innerHTML = '';
     const ids  = Object.keys(udb);
     if (!ids.length) {
-      el.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:13px">কোনো ডিভাইস নেই</div>';
+      el.innerHTML = `
+        <div style="padding:14px;text-align:center;color:#aaa;font-size:13px">
+          কোনো ডিভাইস নেই<br>
+          <small style="font-size:11px">GitHub Repo ও Token সেট করে Sync করুন</small>
+        </div>`;
       return;
     }
-    ids.forEach(id => {
+
+    // নিজেরটা আগে দেখাও, তারপর বাকিগুলো
+    const sorted = [devId, ...ids.filter(id => id !== devId)];
+
+    sorted.forEach(id => {
+      if (!udb[id]) return;
       const rec    = migrateRec(udb[id]);
       const status = getStatus(rec);
       const role   = getRole(rec);
       const lastA  = rec.lastActive;
-      const isMe   = id===devId;
+      const isMe   = id === devId;
       const sBg    = status==='Active'?'#27ae60':status==='Waiting'?'#f39c12':'#c0392b';
-      const togLbl = status==='Active'?'সাসপেন্ড':'একটিভ করুন';
-      const togBg  = status==='Active'?'#e74c3c':'#27ae60';
-      const lastTx = lastA ? `⏱ ${new Date(lastA).toLocaleString()}` : '⏱ কখনো সক্রিয় হয়নি';
-      const row    = document.createElement('div');
+      const togLbl = status==='Active' ? 'সাসপেন্ড' : 'একটিভ করুন';
+      const togBg  = status==='Active' ? '#e74c3c' : '#27ae60';
+      const lastTx = lastA
+        ? `⏱ ${new Date(lastA).toLocaleString('bn-BD')}`
+        : '⏱ কখনো সক্রিয় হয়নি';
+
+      const row = document.createElement('div');
       row.className = 'up-row';
+      // ✅ Fix: isMe হলেও Role dropdown enabled — শুধু Status toggle disabled
       row.innerHTML = `
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
             <span class="up-id">${id}</span>
-            ${isMe?'<span style="color:var(--pc);font-weight:700;font-size:11px">(আপনি)</span>':''}
+            ${isMe ? '<span style="color:var(--pc);font-weight:700;font-size:11px;white-space:nowrap">(আপনি)</span>' : ''}
             <span class="badge b-${role.toLowerCase()}">${role==='Admin'?'👑':role==='Editor'?'✏️':'👁️'} ${role}</span>
             <span class="badge" style="background:${sBg}">${status}</span>
           </div>
           <div class="up-meta">${lastTx}</div>
         </div>
         <div class="up-controls">
-          <select class="rs" onchange="changeRole('${id}',this.value)" ${isMe?'disabled':''}>
+          <select class="rs" onchange="changeRole('${id}',this.value)">
             <option value="Admin"  ${role==='Admin' ?'selected':''}>👑 Admin</option>
             <option value="Editor" ${role==='Editor'?'selected':''}>✏️ Editor</option>
             <option value="Viewer" ${role==='Viewer'?'selected':''}>👁️ Viewer</option>
           </select>
-          <button class="stbtn" style="background:${togBg}" onclick="toggleStatus('${id}')" ${isMe?'disabled':''}>
+          <button class="stbtn" style="background:${togBg}"
+            onclick="toggleStatus('${id}')"
+            ${isMe ? 'disabled title="নিজের status পরিবর্তন করা যাবে না"' : ''}>
             ${togLbl}
           </button>
         </div>`;
@@ -845,27 +912,36 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     });
   }
 
-  function changeRole(id, role) {
+  function changeRole(id, newRole) {
     const udb = getUDB();
     if (!udb[id]) return;
     udb[id] = migrateRec(udb[id]);
-    udb[id].role = role;
+    udb[id].role = newRole;
     setUDB(udb);
-    showToast(`✅ Role → ${role}`);
+    pushUDBtoGitHub(udb); // GitHub এ push
+    showToast(`✅ ${id===devId?'আপনার':'Device'} Role → ${newRole}`);
     loadUserPanel();
-    if (id===devId) applyRole();
+    if (id === devId) applyRole();
   }
 
   function toggleStatus(id) {
-    if (id===devId) { showToast("❌ নিজের status পরিবর্তন করা যাবে না!"); return; }
+    if (id === devId) { showToast("❌ নিজের Status পরিবর্তন করা যাবে না!"); return; }
     const udb = getUDB();
     if (!udb[id]) return;
     udb[id] = migrateRec(udb[id]);
-    udb[id].status = udb[id].status==='Active' ? 'Suspended' : 'Active';
+    udb[id].status = udb[id].status === 'Active' ? 'Suspended' : 'Active';
     setUDB(udb);
+    pushUDBtoGitHub(udb); // GitHub এ push
     loadUserPanel();
     checkBlock();
     showToast(`✅ Status → ${udb[id].status}`);
+  }
+
+  async function syncDevicePanel() {
+    showToast("⏳ ডিভাইস তালিকা লোড হচ্ছে...");
+    await syncUDB();
+    loadUserPanel();
+    showToast("✅ ডিভাইস তালিকা আপডেট হয়েছে!");
   }
 
   // ─── Search ───────────────────────────────────────────────
