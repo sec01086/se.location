@@ -2,6 +2,11 @@
   "DEV-360x780-7809": {
     "status": "Active",
     "role": "Editor",
-    "lastActive": "2026-06-03T11:35:50.502Z"
+    "lastActive": "2026-06-02T15:21:34.296Z"
+  },
+  "DEV-412x915-5928": {
+    "status": "Active",
+    "role": "Admin",
+    "lastActive": "2026-06-03T14:20:21.247Z"
   }
 }
