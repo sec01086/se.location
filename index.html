@@ -105,6 +105,20 @@ th{background:var(--pc);color:#fff;position:sticky;top:0;z-index:1}
 /* viewer block */
 .vblock{background:rgba(231,76,60,.08);border:1px solid #e74c3c;border-radius:8px;padding:12px;text-align:center;color:#e74c3c;font-weight:700;margin-bottom:12px}
 hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
+/* ── Nearby Map ── */
+.nearby-card{background:var(--card);border-radius:12px;box-shadow:0 4px 12px var(--sh);margin-bottom:18px;overflow:hidden}
+.nearby-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bd)}
+.nearby-header h3{margin:0;font-size:15px;color:var(--pc)}
+.nearby-controls{display:flex;gap:6px;align-items:center}
+.radius-sel{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+#nearby-map{width:100%;height:340px}
+.nearby-count{font-size:11px;color:#888;padding:6px 14px;border-top:1px solid var(--bd);text-align:center}
+/* Custom Leaflet pin */
+.sub-pin{background:var(--pc);color:#fff;border-radius:50% 50% 50% 0;width:28px;height:28px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);font-size:8px;font-weight:700;font-family:'IBM Plex Mono',monospace;cursor:pointer}
+.sub-pin-inner{transform:rotate(45deg);text-align:center;line-height:1.1;max-width:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-pin{background:#e74c3c}
+.pin-popup{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--pc);line-height:1.4}
+.pin-popup .pl{font-size:11px;color:#555;font-family:'Segoe UI',sans-serif;font-weight:400}
 </style>
 </head>
 <body>
@@ -165,6 +179,27 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
         <div id="map-box" class="map-box"><iframe id="map-fr" src="" loading="lazy" allowfullscreen></iframe></div>
       </div>
       <p id="not-found" style="text-align:center;color:#e74c3c;display:none;margin-top:12px"></p>
+    </div>
+
+    <!-- ══ NEARBY MAP ══ -->
+    <div class="nearby-card">
+      <div class="nearby-header">
+        <h3>📍 আশেপাশের সাবস্ক্রিপশন</h3>
+        <div class="nearby-controls">
+          <select class="radius-sel" id="radius-sel" onchange="refreshNearbyMap()">
+            <option value="300">300m</option>
+            <option value="500" selected>500m</option>
+            <option value="1000">1 km</option>
+            <option value="2000">2 km</option>
+            <option value="5000">5 km</option>
+          </select>
+          <button class="btn" style="width:auto;margin:0;padding:5px 10px;font-size:12px" onclick="locateAndLoad()">
+            📡 লোকেট
+          </button>
+        </div>
+      </div>
+      <div id="nearby-map"></div>
+      <div class="nearby-count" id="nearby-count">📡 "লোকেট" বাটন চাপুন — আশেপাশের সাবস্ক্রিপশন দেখুন</div>
     </div>
   </div>
 
@@ -1174,6 +1209,164 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     const id=document.getElementById('res-id').textContent;
     const lnk="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(curLoc);
     window.open(`https://wa.me/?text=${encodeURIComponent('ID: '+id+' | '+lnk)}`,'_blank');
+  }
+
+  // ─── Nearby Map ───────────────────────────────────────────
+  let nearbyMap    = null;
+  let nearbyLayers = null;
+  let myLocMarker  = null;
+  let myLat = null, myLng = null;
+
+  function initNearbyMap(lat, lng) {
+    if (!nearbyMap) {
+      nearbyMap = L.map('nearby-map', { zoomControl: true, attributionControl: false })
+        .setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(nearbyMap);
+      nearbyLayers = L.layerGroup().addTo(nearbyMap);
+      // Attribution ছোট করো
+      L.control.attribution({ prefix: '© OSM' }).addTo(nearbyMap);
+    } else {
+      nearbyMap.setView([lat, lng], 15);
+      nearbyLayers.clearLayers();
+    }
+  }
+
+  function haversineDistance(la1, ln1, la2, ln2) {
+    const R = 6371000;
+    const dLat = (la2 - la1) * Math.PI / 180;
+    const dLng = (ln2 - ln1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(la1*Math.PI/180) * Math.cos(la2*Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.asin(Math.sqrt(a));
+  }
+
+  function parseCoords(locStr) {
+    if (!locStr) return null;
+    // "24.70568, 46.7177" or "24.70568,46.7177"
+    const m = locStr.match(/(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)/);
+    if (!m) return null;
+    const la = parseFloat(m[1]), ln = parseFloat(m[2]);
+    // বৈধ range চেক
+    if (la < -90 || la > 90 || ln < -180 || ln > 180) return null;
+    return { lat: la, lng: ln };
+  }
+
+  function makePinIcon(label, isMe) {
+    return L.divIcon({
+      className: '',
+      html: `<div class="sub-pin${isMe?' my-pin':''}">
+               <div class="sub-pin-inner">${isMe ? '★' : label}</div>
+             </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -30]
+    });
+  }
+
+  function loadNearbyPins(lat, lng, radiusM) {
+    nearbyLayers.clearLayers();
+
+    // আমার লোকেশন মার্কার
+    if (myLocMarker) nearbyLayers.removeLayer(myLocMarker);
+    myLocMarker = L.marker([lat, lng], { icon: makePinIcon('', true), zIndexOffset: 1000 })
+      .bindPopup('<div class="pin-popup">📍 আপনার অবস্থান</div>', { maxWidth: 180 })
+      .addTo(nearbyLayers);
+
+    // radius circle
+    L.circle([lat, lng], {
+      radius: radiusM,
+      color: '#2b579a',
+      fillColor: '#2b579a',
+      fillOpacity: 0.06,
+      weight: 1.5,
+      dashArray: '5,5'
+    }).addTo(nearbyLayers);
+
+    // MEM থেকে coordinates parse করে nearby filter
+    let found = 0;
+    const nearby = [];
+
+    for (const [key, locStr] of MEM) {
+      const coords = parseCoords(locStr);
+      if (!coords) continue;
+      const dist = haversineDistance(lat, lng, coords.lat, coords.lng);
+      if (dist <= radiusM) {
+        nearby.push({ key, locStr, coords, dist });
+      }
+    }
+
+    // দূরত্ব অনুযায়ী sort
+    nearby.sort((a, b) => a.dist - b.dist);
+
+    nearby.forEach(({ key, locStr, coords, dist }) => {
+      const shortKey = key.length > 10 ? key.slice(-6) : key;
+      const distTx   = dist < 1000
+        ? `${Math.round(dist)} মিটার`
+        : `${(dist/1000).toFixed(2)} কিমি`;
+
+      L.marker([coords.lat, coords.lng], { icon: makePinIcon(shortKey, false) })
+        .bindPopup(`
+          <div class="pin-popup">
+            ${key}
+            <div class="pl">📍 ${locStr}</div>
+            <div class="pl">📏 ${distTx} দূরে</div>
+            <div style="margin-top:6px">
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}"
+                 target="_blank"
+                 style="color:#2b579a;font-size:11px;font-weight:700">🗺️ Google Maps এ দেখুন</a>
+            </div>
+          </div>`, { maxWidth: 200 })
+        .addTo(nearbyLayers);
+      found++;
+    });
+
+    // Count info
+    const cEl = document.getElementById('nearby-count');
+    if (found === 0) {
+      cEl.innerHTML = `⚠️ ${radiusM >= 1000 ? (radiusM/1000)+'km' : radiusM+'m'} এর মধ্যে কোনো সাবস্ক্রিপশন পাওয়া যায়নি`;
+    } else {
+      cEl.innerHTML = `✅ ${found} টি সাবস্ক্রিপশন পাওয়া গেছে — ব্লু pin এ ক্লিক করুন`;
+    }
+
+    // সব marker দেখা যাচ্ছে কিনা নিশ্চিত করো
+    if (nearby.length > 0) {
+      const bounds = L.latLngBounds([[lat, lng], ...nearby.map(n => [n.coords.lat, n.coords.lng])]);
+      nearbyMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 17 });
+    }
+  }
+
+  function locateAndLoad() {
+    const cEl = document.getElementById('nearby-count');
+    cEl.innerHTML = '⏳ GPS লোকেশন নেওয়া হচ্ছে...';
+
+    if (!navigator.geolocation) {
+      cEl.innerHTML = '❌ এই ব্রাউজারে GPS সাপোর্ট নেই';
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        myLat = pos.coords.latitude;
+        myLng = pos.coords.longitude;
+        initNearbyMap(myLat, myLng);
+        const radius = parseInt(document.getElementById('radius-sel').value);
+        loadNearbyPins(myLat, myLng, radius);
+        // ম্যাপ resize ঠিক করো
+        setTimeout(() => nearbyMap && nearbyMap.invalidateSize(), 300);
+      },
+      err => {
+        cEl.innerHTML = `❌ GPS Error: ${err.message}`;
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
+  }
+
+  function refreshNearbyMap() {
+    if (myLat === null) return; // এখনো locate করা হয়নি
+    const radius = parseInt(document.getElementById('radius-sel').value);
+    loadNearbyPins(myLat, myLng, radius);
   }
 
   // ─── Theme & Toast ────────────────────────────────────────
