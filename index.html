@@ -147,6 +147,18 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 .bulk-preview{font-size:12px;font-weight:700;color:var(--pc);text-align:center;margin-top:8px;min-height:16px}
 .bulk-preview-box{max-height:180px;overflow-y:auto;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;white-space:pre-line;background:var(--bg);color:var(--tx)}
 .btn-out.on{background:var(--pc);color:#fff}
+/* ── Offline Mode ── */
+.offline-bar{display:none;align-items:center;justify-content:space-between;gap:12px;background:#2c3e50;color:#fff;padding:12px 14px;border-radius:12px;margin-bottom:14px}
+.offline-bar.active{background:#e67e22}
+.offline-bar-text{display:flex;flex-direction:column;gap:2px}
+#offline-bar-title{font-size:13px;font-weight:700}
+#offline-bar-sub{font-size:11px;opacity:.85}
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.3);border-radius:26px;transition:.2s}
+.switch .slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider:before{transform:translateX(20px)}
+.switch input:checked + .slider{background:rgba(255,255,255,.5)}
 </style>
 </head>
 <body>
@@ -227,6 +239,16 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 
   <!-- ══ ADD ══ -->
   <div id="s-add" class="screen">
+    <div id="offline-mode-bar" class="offline-bar">
+      <div class="offline-bar-text">
+        <span id="offline-bar-title">🔌 Offline / Local-Only Mode</span>
+        <span id="offline-bar-sub">Saves skip GitHub instantly — sync later when back online</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="offline-mode-toggle" onchange="toggleOfflineMode()">
+        <span class="slider"></span>
+      </label>
+    </div>
     <div class="card" style="position:relative">
       <h2 id="add-title">Set New Location</h2>
       <button id="btn-step-toggle" class="bulk-toggle" style="left:14px;right:auto;display:none" onclick="toggleStepPanel()" title="Step / interval settings">🎚️</button>
@@ -442,6 +464,44 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 
       <hr class="div">
 
+      <!-- ══ BULK DELETE BY RANGE ══ -->
+      <h3 id="bulk-del-title" style="font-size:14px;color:#c0392b;margin:0 0 8px">🗑️ Bulk Delete by Range</h3>
+      <div class="bulk-hint" id="bulk-del-hint" style="margin-bottom:10px">Permanently delete a range of subscription numbers from GitHub and this device — useful for fixing a typo (e.g. a wrong end number) in one click.</div>
+      <div class="ig">
+        <label id="lbl-del-prefix">Subscription Prefix</label>
+        <input type="text" id="del-prefix" class="mono" placeholder="123/45/" inputmode="numeric" maxlength="8" oninput="fmtDelPrefix(this)">
+      </div>
+      <div class="bulk-row">
+        <div class="ig">
+          <label id="lbl-del-start">Start (last 3 digits)</label>
+          <input type="text" id="del-start" class="mono" placeholder="001" inputmode="numeric" maxlength="3" oninput="sanitizeDelDigits(this,3)">
+        </div>
+        <div class="ig">
+          <label id="lbl-del-end">End (last 3 digits)</label>
+          <input type="text" id="del-end" class="mono" placeholder="050" inputmode="numeric" maxlength="3" oninput="sanitizeDelDigits(this,3)">
+        </div>
+      </div>
+      <div class="ig" style="margin-top:10px">
+        <label id="lbl-del-step">Step (interval)</label>
+        <select id="del-step" onchange="onDelStepPreset(this)" style="font-family:'IBM Plex Mono',monospace;font-weight:700">
+          <option value="1">1 — every number (1,2,3,4,5…)</option>
+          <option value="2:odd">2 — odd only (1,3,5,7…)</option>
+          <option value="2:even">2 — even only (2,4,6,8…)</option>
+          <option value="custom">Custom step…</option>
+        </select>
+        <input type="text" id="del-step-custom" class="mono" placeholder="e.g. 3" inputmode="numeric" maxlength="2" style="display:none;margin-top:8px" oninput="sanitizeDelDigits(this,2); updateDelPreview();">
+        <div class="bulk-hint" id="bulk-hint-del-step">Use "odd"/"even" to delete only one side of a range without touching the other.</div>
+      </div>
+      <div class="bulk-preview" id="del-preview"></div>
+      <div class="bulk-preview-box" id="del-preview-list" style="display:none"></div>
+      <div class="prog-wrap" id="del-prog-wrap">
+        <div class="prog-bg"><div class="prog-fill" id="del-prog-fill"></div></div>
+        <div class="prog-lbl" id="del-prog-lbl">0%</div>
+      </div>
+      <button id="btn-bulk-delete" class="btn btn-red" style="margin-top:8px" onclick="bulkDeleteRange()">🗑️ Permanently Delete This Range</button>
+
+      <hr class="div">
+
       <!-- Data buttons -->
       <button id="btn-export-all" class="btn btn-out" onclick="exportAll()">📤 Full Backup Export (JSON)</button>
       <button id="btn-export-local" class="btn btn-out" style="border-color:#27ae60;color:#27ae60;margin-top:8px" onclick="exportLocal()">📤 Export Local Data</button>
@@ -502,6 +562,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
   // ─── State ───────────────────────────────────────────────
   let GH_REPO  = ls('ghRepo')  || "";
   let GH_TOK   = ls('ghTok')   || "";
+  let offlineMode = ls('offlineMode') === '1'; // Admin-only: force local-only saves, skip network entirely
   let LANG     = 'en';
   let isAdmin  = false;
   let devId    = "";
@@ -982,6 +1043,28 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     const af = document.getElementById('add-form');
     if (myRole==='Viewer') { vb.style.display='block'; af.style.display='none'; }
     else                    { vb.style.display='none';  af.style.display='block'; }
+    updateOfflineBarVisibility();
+  }
+
+  // ─── Offline / Local-Only Mode (Admin only) ─────────────────
+  // Skips the network round-trip entirely at save time and queues locally —
+  // for working in low/no-network areas without every save hanging while it
+  // times out. Persists across sessions until manually turned off.
+  function updateOfflineBarVisibility() {
+    const bar = document.getElementById('offline-mode-bar');
+    if (!bar) return;
+    bar.style.display = (myRole === 'Admin') ? 'flex' : 'none';
+    const toggle = document.getElementById('offline-mode-toggle');
+    if (toggle) toggle.checked = offlineMode;
+    bar.classList.toggle('active', offlineMode);
+  }
+  function toggleOfflineMode() {
+    offlineMode = document.getElementById('offline-mode-toggle').checked;
+    lss('offlineMode', offlineMode ? '1' : '0');
+    document.getElementById('offline-mode-bar').classList.toggle('active', offlineMode);
+    showToast(offlineMode
+      ? '🔌 Offline mode ON — saves will be instant & queued locally'
+      : '✅ Offline mode OFF — saves will sync to GitHub live again');
   }
 
   function touchActive() {
@@ -1640,7 +1723,12 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     keys.forEach(k => MEM.set(k, data[k]));
     touchActive();
 
-    if (navigator.onLine) {
+    if (offlineMode) {
+      pl.textContent = '🔌 Queuing locally…';
+      for (const k of keys) await enqueue(k, data[k]);
+      refreshQBadge();
+      showToast(`🔌 ${keys.length} saved locally (Offline Mode) — will sync when you turn it off`);
+    } else if (navigator.onLine) {
       let up=0;
       for (const k of keys) {
         up++;
@@ -1852,7 +1940,11 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     await iPut(SM,key,loc);
     MEM.set(key,loc);
     touchActive();
-    if (navigator.onLine) {
+    if (offlineMode) {
+      await enqueue(key,loc);
+      refreshQBadge();
+      showToast('🔌 Saved locally (Offline Mode) — will sync when you turn it off');
+    } else if (navigator.onLine) {
       showToast(t("toastUploading"));
       const ok = await pushOne(key,loc);
       if (!ok) { await enqueue(key,loc); refreshQBadge(); showToast(t("toastQueued")); }
@@ -1930,10 +2022,156 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     updateStats(); loadTable();
     showToast(t("toastCleared"));
   }
+  // ─── Delete (local + GitHub) ────────────────────────────────
+  // Removes matching keys from every GitHub chunk they're found in (via the
+  // local key→chunk map built during Sync/push), then repairs meta.json's
+  // record count. If a key's chunk location isn't known locally (e.g. this
+  // device never synced it), it's reported back so the person knows to run
+  // Sync first for full cleanup.
+  async function deleteFromGitHub(keys) {
+    if (!GH_TOK || !navigator.onLine) return { removed:0, failed:0, unknown:keys.length, skipped:true };
+    const byChunk = {};
+    let unknown = 0;
+    for (const k of keys) {
+      const idx = await iGet(SC, k);
+      if (idx === null) { unknown++; continue; }
+      (byChunk[idx] = byChunk[idx] || []).push(k);
+    }
+    let removed = 0, failed = 0;
+    for (const idxStr in byChunk) {
+      const idx = parseInt(idxStr, 10);
+      try {
+        const f = await ghGetFile(`chunks/chunk_${idx}.json`);
+        if (!f.content) { failed += byChunk[idxStr].length; continue; }
+        const chunkData = JSON.parse(f.content);
+        let changed = 0;
+        byChunk[idxStr].forEach(k => { if (k in chunkData) { delete chunkData[k]; changed++; } });
+        if (changed > 0) {
+          const ok = await ghPush(`chunks/chunk_${idx}.json`, JSON.stringify(chunkData), `Delete ${changed} record(s)`, f.sha);
+          if (ok) removed += changed; else failed += changed;
+        }
+      } catch(e) { failed += byChunk[idxStr].length; }
+    }
+    if (removed > 0) {
+      try {
+        const meta = await ghMeta();
+        await ghPush('meta.json', JSON.stringify({
+          totalRecords: Math.max(0, (meta.totalRecords||0) - removed),
+          totalChunks:  meta.totalChunks || 1,
+          lastUpdated:  new Date().toISOString()
+        }), 'Update meta after delete');
+      } catch(e) {}
+    }
+    return { removed, failed, unknown, skipped:false };
+  }
+
   async function deleteRec(key) {
     if(!confirm(t("confirmDelete"))) return;
     await iDel(SM,key); await iDel(SL,key); MEM.delete(key);
-    showToast(t("toastDeleted")); updateStats(); loadTable();
+    updateStats(); loadTable();
+    const r = await deleteFromGitHub([key]);
+    await iDel(SC,key);
+    if (r.skipped)        showToast('✅ Deleted locally — offline/no GitHub, run Sync later to remove it there too');
+    else if (r.removed)   showToast(t("toastDeleted") + ' (removed from GitHub too)');
+    else if (r.unknown)   showToast(t("toastDeleted") + ' (unknown GitHub location — Sync first for full cleanup)');
+    else                  showToast(t("toastDeleted") + (r.failed ? ' (GitHub removal failed — try again)' : ''));
+  }
+
+  // ─── Bulk Delete by Range (Settings) ────────────────────────
+  function fmtDelPrefix(inp) {
+    const v = inp.value.replace(/\D/g,'').substr(0,5);
+    let f='';
+    if (v.length>0) f += v.substr(0,3);
+    if (v.length>3) f += '/'+v.substr(3,2);
+    if (v.length>=5) f += '/';
+    inp.value = f;
+    updateDelPreview();
+  }
+  function sanitizeDelDigits(inp, maxLen) {
+    inp.value = inp.value.replace(/\D/g,'').substr(0,maxLen);
+    updateDelPreview();
+  }
+  function onDelStepPreset(sel) {
+    document.getElementById('del-step-custom').style.display = sel.value==='custom' ? 'block' : 'none';
+    updateDelPreview();
+  }
+  function buildDeleteList() {
+    const prefix = document.getElementById('del-prefix').value.trim();
+    const start  = document.getElementById('del-start').value.trim();
+    const end    = document.getElementById('del-end').value.trim();
+    if (!/^\d{3}\/\d{2}\/$/.test(prefix)) return { keys:[], error: '❌ Enter the full prefix (xxx/xx/)' };
+    if (start==='' || end==='') return { keys:[], error: '❌ Enter both Start and End' };
+    let s = parseInt(start,10); const e = parseInt(end,10);
+    if (isNaN(s) || isNaN(e) || s>e) return { keys:[], error: '❌ Invalid range (start ≤ end)' };
+
+    const stepSel = document.getElementById('del-step') ? document.getElementById('del-step').value : '1';
+    let step = 1, parity = null;
+    if (stepSel === '2:odd')       { step = 2; parity = 'odd'; }
+    else if (stepSel === '2:even') { step = 2; parity = 'even'; }
+    else if (stepSel === 'custom') { step = Math.max(1, parseInt(document.getElementById('del-step-custom').value,10) || 1); }
+    if (parity === 'odd'  && s % 2 === 0) s++;
+    if (parity === 'even' && s % 2 !== 0) s++;
+    if (s > e) return { keys:[], error: '❌ Invalid range (start ≤ end)' };
+    if (Math.floor((e-s)/step)+1 > 2000) return { keys:[], error: '❌ Max 2000 numbers at once' };
+
+    const keys = [];
+    for (let i=s;i<=e;i+=step) keys.push(prefix+String(i).padStart(3,'0'));
+    return { keys, error:null };
+  }
+  function updateDelPreview() {
+    const el   = document.getElementById('del-preview');
+    const list = document.getElementById('del-preview-list');
+    if (!el || !list) return;
+    const prefix = document.getElementById('del-prefix').value.trim();
+    if (!prefix) { el.textContent=''; list.style.display='none'; list.textContent=''; return; }
+    const { keys, error } = buildDeleteList();
+    if (error) { el.style.color='#e74c3c'; el.textContent=error; list.style.display='none'; list.textContent=''; return; }
+    const knownLocally = keys.filter(k=>MEM.has(k)).length;
+    el.style.color = '#c0392b';
+    el.textContent = `⚠️ ${keys.length} number(s) will be targeted for deletion` +
+      (knownLocally < keys.length ? ` — ${knownLocally} confirmed on this device (others may still exist on GitHub only — Sync first to check)` : '');
+    list.textContent = keys.join('\n');
+    list.style.display = 'block';
+  }
+  async function bulkDeleteRange() {
+    if (myRole !== 'Admin') { showToast('🚫 Only Admin can bulk delete'); return; }
+    const { keys, error } = buildDeleteList();
+    if (error) { showToast(error); return; }
+    // Attempt every generated key, not just ones this device already knows
+    // about locally — a key might exist on GitHub without having been synced
+    // to this device yet. Deleting a non-existent key is a harmless no-op.
+    if (!confirm(`Permanently delete up to ${keys.length} record(s) (${keys[0]} → ${keys[keys.length-1]})? This cannot be undone.`)) return;
+
+    const pw=document.getElementById('del-prog-wrap');
+    const pf=document.getElementById('del-prog-fill');
+    const pl=document.getElementById('del-prog-lbl');
+    pw.style.display='block'; pf.style.width='20%'; pl.textContent='Deleting locally…';
+
+    for (const k of keys) { await iDel(SM,k); await iDel(SL,k); MEM.delete(k); }
+    updateStats(); loadTable();
+
+    pf.style.width='60%'; pl.textContent='⏳ Removing from GitHub…';
+    const r = await deleteFromGitHub(keys);
+    for (const k of keys) await iDel(SC, k);
+
+    pf.style.width='100%';
+    pw.style.display='none';
+
+    let msg = `✅ Processed ${keys.length} number(s) locally`;
+    if (GH_TOK) {
+      if (r.skipped) msg += ' — offline, GitHub not updated (Sync later)';
+      else msg += ` — ${r.removed} removed from GitHub` + (r.failed?`, ${r.failed} failed`:'') + (r.unknown?`, ${r.unknown} unknown location (Sync first next time)`:'');
+    }
+    showToast(msg);
+
+    document.getElementById('del-prefix').value='';
+    document.getElementById('del-start').value='';
+    document.getElementById('del-end').value='';
+    document.getElementById('del-step').value='1';
+    document.getElementById('del-step-custom').value='';
+    document.getElementById('del-step-custom').style.display='none';
+    updateDelPreview();
+    refreshChunkInfo();
   }
 
   // ─── Table ────────────────────────────────────────────────
