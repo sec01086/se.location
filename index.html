@@ -147,18 +147,15 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 .bulk-preview{font-size:12px;font-weight:700;color:var(--pc);text-align:center;margin-top:8px;min-height:16px}
 .bulk-preview-box{max-height:180px;overflow-y:auto;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;white-space:pre-line;background:var(--bg);color:var(--tx)}
 .btn-out.on{background:var(--pc);color:#fff}
-/* ── Offline Mode ── */
-.offline-bar{display:none;align-items:center;justify-content:space-between;gap:12px;background:#2c3e50;color:#fff;padding:12px 14px;border-radius:12px;margin-bottom:14px}
-.offline-bar.active{background:#e67e22}
-.offline-bar-text{display:flex;flex-direction:column;gap:2px}
-#offline-bar-title{font-size:13px;font-weight:700}
-#offline-bar-sub{font-size:11px;opacity:.85}
-.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.switch .slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.3);border-radius:26px;transition:.2s}
-.switch .slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
-.switch input:checked + .slider:before{transform:translateX(20px)}
-.switch input:checked + .slider{background:rgba(255,255,255,.5)}
+/* ── Offline Mode (header icon + compact global status strip) ── */
+.ib.on{background:#e67e22}
+.offline-status-bar{display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--pc);color:#fff;padding:5px 14px;font-size:10.5px;font-weight:600;line-height:1.4}
+.offline-status-retry-btn{background:#e67e22;color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* ── Slot A/B Switch ── */
+.slot-switch{display:flex;gap:8px;margin-bottom:16px}
+.slot-btn{flex:1;padding:10px;border-radius:8px;border:2px solid var(--bd);background:var(--card);color:var(--tx);font-weight:700;font-size:13px;cursor:pointer}
+.slot-btn.active-slot{background:var(--pc);color:#fff;border-color:var(--pc)}
 </style>
 </head>
 <body>
@@ -174,10 +171,16 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 <header>
   <h1 id="app-title">Subscription Tracker Pro</h1>
   <div class="hc">
-    <button id="btn-install-app" class="ib" style="display:none" onclick="installApp()" title="Install App">📲</button>
-    <button class="ib" onclick="toggleTheme()">🌙</button>
+    <button id="btn-install-app" class="ib" style="display:none" onclick="installApp()">📲<span class="sr-only">Install App</span></button>
+    <button id="btn-offline-toggle" class="ib" style="display:none" onclick="toggleOfflineMode()">🔌<span class="sr-only">Offline / Local-Only Mode</span></button>
+    <button class="ib" onclick="toggleTheme()">🌙<span class="sr-only">Toggle theme</span></button>
+    <button id="n-set" class="ib" onclick="navSettings()">⚙️<span class="sr-only"></span></button>
   </div>
 </header>
+<div id="offline-status-bar" class="offline-status-bar">
+  <span id="offline-status-text">📦 0 pending · ✅ 0 sent</span>
+  <button id="offline-status-retry" class="offline-status-retry-btn" style="display:none" onclick="retryQueueNow()">🔁 Retry</button>
+</div>
 
 <div class="wrap">
 
@@ -239,22 +242,16 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 
   <!-- ══ ADD ══ -->
   <div id="s-add" class="screen">
-    <div id="offline-mode-bar" class="offline-bar">
-      <div class="offline-bar-text">
-        <span id="offline-bar-title">🔌 Offline / Local-Only Mode</span>
-        <span id="offline-bar-sub">Saves skip GitHub instantly — sync later when back online</span>
-      </div>
-      <label class="switch">
-        <input type="checkbox" id="offline-mode-toggle" onchange="toggleOfflineMode()">
-        <span class="slider"></span>
-      </label>
-    </div>
     <div class="card" style="position:relative">
       <h2 id="add-title">Set New Location</h2>
-      <button id="btn-step-toggle" class="bulk-toggle" style="left:14px;right:auto;display:none" onclick="toggleStepPanel()" title="Step / interval settings">🎚️</button>
-      <button id="btn-bulk-toggle" class="bulk-toggle" onclick="toggleBulkMode()" title="Add multiple numbers at once">🔢</button>
+      <button id="btn-step-toggle" class="bulk-toggle" style="left:14px;right:auto;display:none" onclick="toggleStepPanel()">🎚️<span class="sr-only">Step / interval settings</span></button>
+      <button id="btn-bulk-toggle" class="bulk-toggle" onclick="toggleBulkMode()">🔢<span class="sr-only">Add multiple numbers at once</span></button>
       <div id="vblock" class="vblock" style="display:none">🚫 Your Role: Viewer — You cannot add data.</div>
       <div id="add-form">
+        <div class="slot-switch" id="slot-switch" title="Keep two separate ready-to-save setups (e.g. odd side / even side of a road)">
+          <button type="button" id="slot-a-btn" class="slot-btn active-slot" onclick="switchAddSlot('A')">🅰️ Slot A</button>
+          <button type="button" id="slot-b-btn" class="slot-btn" onclick="switchAddSlot('B')">🅱️ Slot B</button>
+        </div>
         <div class="ig" id="single-sub-group"><label id="lbl-sub-f">Subscription Number</label>
           <input type="text" id="f-sub" class="mono" placeholder="xxx/xx/xxx" inputmode="decimal" oninput="fmtSub(this)"></div>
         <div class="ig" id="single-st-group"><label id="lbl-st-f">Station ID</label>
@@ -516,7 +513,6 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 <div class="bnav">
   <div id="n-search" class="ni active" onclick="go('s-search','n-search')">🔍 Search</div>
   <div id="n-add"    class="ni"        onclick="go('s-add','n-add')">➕ Add New</div>
-  <div id="n-set"    class="ni"        onclick="navSettings()">⚙️ Settings</div>
 </div>
 <div id="toast" class="toast"></div>
 
@@ -912,17 +908,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     report.style.display = 'block';
     report.innerHTML = '⏳ Checking…';
 
-    const localTotal = MEM.size;
-    const scKeys    = new Set(await iKeys(SC));
-    const queue     = await getQueue();
-    const queueKeys = new Set(queue.map(q=>q.key));
-
-    let confirmed = 0, pending = 0, unknown = 0;
-    for (const [k] of MEM) {
-      if (queueKeys.has(k)) pending++;
-      else if (scKeys.has(k)) confirmed++;
-      else unknown++;
-    }
+    const { localTotal, confirmed, pending, unknown } = await computeSyncStats();
 
     let html = `
       <div style="font-weight:700;color:var(--pc);margin-bottom:4px">📊 Sync Status Report</div>
@@ -969,6 +955,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     else if (fail > 0) showToast(`⚠️ ${ok}/${total} uploaded — ${fail} still failed`);
     else showToast(`✅ ${ok} record(s) uploaded to GitHub`);
     checkSyncStatus();
+    refreshOfflineStatusBar();
   }
   async function refreshChunkInfo(meta) {
     if (!meta) { try { meta = await ghMeta(); } catch(e) { meta = {totalRecords:0, totalChunks:0}; } }
@@ -1043,28 +1030,54 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     const af = document.getElementById('add-form');
     if (myRole==='Viewer') { vb.style.display='block'; af.style.display='none'; }
     else                    { vb.style.display='none';  af.style.display='block'; }
-    updateOfflineBarVisibility();
+    updateOfflineToggleVisibility();
   }
 
   // ─── Offline / Local-Only Mode (Admin only) ─────────────────
   // Skips the network round-trip entirely at save time and queues locally —
   // for working in low/no-network areas without every save hanging while it
   // times out. Persists across sessions until manually turned off.
-  function updateOfflineBarVisibility() {
-    const bar = document.getElementById('offline-mode-bar');
-    if (!bar) return;
-    bar.style.display = (myRole === 'Admin') ? 'flex' : 'none';
-    const toggle = document.getElementById('offline-mode-toggle');
-    if (toggle) toggle.checked = offlineMode;
-    bar.classList.toggle('active', offlineMode);
+  function updateOfflineToggleVisibility() {
+    const btn = document.getElementById('btn-offline-toggle');
+    if (!btn) return;
+    btn.style.display = (myRole === 'Admin') ? 'flex' : 'none';
+    btn.classList.toggle('on', offlineMode);
+    const showBar = offlineMode && myRole === 'Admin';
+    document.getElementById('offline-status-bar').style.display = showBar ? 'flex' : 'none';
+    if (showBar) refreshOfflineStatusBar();
   }
   function toggleOfflineMode() {
-    offlineMode = document.getElementById('offline-mode-toggle').checked;
+    offlineMode = !offlineMode;
     lss('offlineMode', offlineMode ? '1' : '0');
-    document.getElementById('offline-mode-bar').classList.toggle('active', offlineMode);
+    updateOfflineToggleVisibility();
     showToast(offlineMode
       ? '🔌 Offline mode ON — saves will be instant & queued locally'
       : '✅ Offline mode OFF — saves will sync to GitHub live again');
+  }
+
+  // Shared by the Settings "Check Sync Status" report and this compact
+  // header strip, so both always agree on the numbers.
+  async function computeSyncStats() {
+    const localTotal = MEM.size;
+    const scKeys    = new Set(await iKeys(SC));
+    const queue     = await getQueue();
+    const queueKeys = new Set(queue.map(q=>q.key));
+    let confirmed = 0, pending = 0, unknown = 0;
+    for (const [k] of MEM) {
+      if (queueKeys.has(k)) pending++;
+      else if (scKeys.has(k)) confirmed++;
+      else unknown++;
+    }
+    return { localTotal, confirmed, pending, unknown };
+  }
+  async function refreshOfflineStatusBar() {
+    const bar = document.getElementById('offline-status-bar');
+    if (!bar || bar.style.display === 'none') return;
+    const s = await computeSyncStats();
+    document.getElementById('offline-status-text').textContent =
+      `📦 ${s.pending} pending · ✅ ${s.confirmed} sent · 📱 ${s.localTotal} total`;
+    document.getElementById('offline-status-retry').style.display =
+      (s.pending > 0 && navigator.onLine) ? 'inline-block' : 'none';
   }
 
   function touchActive() {
@@ -1095,8 +1108,10 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     window.addEventListener('online', async ()=>{
       showToast(t('toastNetwork'));
       await flushQueue();
+      refreshOfflineStatusBar();
     });
     setInterval(touchActive, 30000);
+    setInterval(()=>{ if (offlineMode) refreshOfflineStatusBar(); }, 8000);
   };
 
   // ─── PWA: install prompt + service worker ──────────────────
@@ -1402,6 +1417,82 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     inp.value=f;
   }
 
+  // ─── Slot A/B (two independent ready-to-save Add configs) ──
+  // Lets a field worker prep two separate setups (e.g. odd side / even side
+  // of a road — different prefix, range, GPS points) and flip between them
+  // instantly without retyping anything, since it's one screen at a time.
+  let addSlots   = { A: null, B: null };
+  let activeSlot = 'A';
+
+  function captureAddFormState() {
+    return {
+      bulkMode, bulkDistanceMode,
+      fSub: document.getElementById('f-sub').value,
+      fSt:  document.getElementById('f-st').value,
+      fLoc: document.getElementById('f-loc').value,
+      bPrefix: document.getElementById('b-prefix').value,
+      bStart:  document.getElementById('b-start').value,
+      bEnd:    document.getElementById('b-end').value,
+      bExtra:  document.getElementById('b-extra').value,
+      bStep:       document.getElementById('b-step').value,
+      bStepCustom: document.getElementById('b-step-custom').value,
+      bStartLoc: document.getElementById('b-start-loc').value,
+      bEndLoc:   document.getElementById('b-end-loc').value,
+      distStart: distStart ? {...distStart} : null,
+      distEnd:   distEnd   ? {...distEnd}   : null
+    };
+  }
+
+  function restoreAddFormState(s) {
+    s = s || { bulkMode:false, bulkDistanceMode:false, fSub:'', fSt:'', fLoc:'',
+               bPrefix:'', bStart:'', bEnd:'', bExtra:'', bStep:'1', bStepCustom:'',
+               bStartLoc:'', bEndLoc:'', distStart:null, distEnd:null };
+
+    document.getElementById('f-sub').value = s.fSub;
+    document.getElementById('f-st').value  = s.fSt;
+    document.getElementById('f-loc').value = s.fLoc;
+    document.getElementById('b-prefix').value = s.bPrefix;
+    document.getElementById('b-start').value  = s.bStart;
+    document.getElementById('b-end').value    = s.bEnd;
+    document.getElementById('b-extra').value  = s.bExtra;
+    document.getElementById('b-step').value   = s.bStep || '1';
+    document.getElementById('b-step-custom').value = s.bStepCustom;
+    document.getElementById('b-step-custom').style.display = (s.bStep==='custom') ? 'block' : 'none';
+    document.getElementById('b-start-loc').value = s.bStartLoc;
+    document.getElementById('b-end-loc').value   = s.bEndLoc;
+
+    if (bulkMode !== !!s.bulkMode) toggleBulkMode();
+
+    const dt = document.getElementById('b-dist-toggle');
+    const wantDist = !!s.bulkDistanceMode;
+    if (dt.checked !== wantDist) { dt.checked = wantDist; toggleDistanceMode(); }
+
+    distStart = s.distStart ? {...s.distStart} : null;
+    distEnd   = s.distEnd   ? {...s.distEnd}   : null;
+    if (distMap) {
+      if (distMarkerStart) distMarkerStart.setOpacity(distStart ? 1 : 0);
+      if (distMarkerEnd)   distMarkerEnd.setOpacity(distEnd ? 1 : 0);
+      if (distStart) distMarkerStart.setLatLng([distStart.lat, distStart.lng]);
+      if (distEnd)   distMarkerEnd.setLatLng([distEnd.lat, distEnd.lng]);
+      if (distStart && distEnd) distMap.fitBounds([[distStart.lat,distStart.lng],[distEnd.lat,distEnd.lng]], {padding:[40,40]});
+    }
+    updateBulkPreview();
+  }
+
+  function updateSlotUI() {
+    document.getElementById('slot-a-btn').classList.toggle('active-slot', activeSlot==='A');
+    document.getElementById('slot-b-btn').classList.toggle('active-slot', activeSlot==='B');
+  }
+
+  function switchAddSlot(slot) {
+    if (slot === activeSlot) return;
+    addSlots[activeSlot] = captureAddFormState();
+    activeSlot = slot;
+    restoreAddFormState(addSlots[slot]);
+    updateSlotUI();
+    showToast(`🔀 Switched to Slot ${slot}${addSlots[slot] ? '' : ' (empty)'}`);
+  }
+
   // ─── Bulk Add ─────────────────────────────────────────────
   let bulkMode = false;
   function toggleBulkMode() {
@@ -1554,7 +1645,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     const ctl = L.control({ position: 'topright' });
     ctl.onAdd = function() {
       const div = L.DomUtil.create('div');
-      div.innerHTML = `<button type="button" style="width:36px;height:36px;border-radius:6px;border:2px solid #555;background:#fff;font-size:17px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)" title="Toggle satellite view">🛰️</button>`;
+      div.innerHTML = `<button type="button" style="width:36px;height:36px;border-radius:6px;border:2px solid #555;background:#fff;font-size:17px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)">🛰️<span class="sr-only">Toggle satellite view</span></button>`;
       L.DomEvent.disableClickPropagation(div);
       const btn = div.querySelector('button');
       btn.onclick = () => {
@@ -1727,6 +1818,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
       pl.textContent = '🔌 Queuing locally…';
       for (const k of keys) await enqueue(k, data[k]);
       refreshQBadge();
+      refreshOfflineStatusBar();
       showToast(`🔌 ${keys.length} saved locally (Offline Mode) — will sync when you turn it off`);
     } else if (navigator.onLine) {
       let up=0;
@@ -1943,6 +2035,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     if (offlineMode) {
       await enqueue(key,loc);
       refreshQBadge();
+      refreshOfflineStatusBar();
       showToast('🔌 Saved locally (Offline Mode) — will sync when you turn it off');
     } else if (navigator.onLine) {
       showToast(t("toastUploading"));
