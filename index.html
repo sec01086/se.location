@@ -289,7 +289,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
           </div>
           <div class="ig" id="bulk-extra-group" style="margin-top:12px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-              <label id="lbl-bulk-extra" style="margin:0">Extra scattered numbers (optional)</label>
+              <label id="lbl-bulk-extra" style="margin:0">Extra numbers (optional)</label>
               <label for="b-extra-order-toggle" style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--pc);margin:0;white-space:nowrap;cursor:pointer">
                 <input type="checkbox" id="b-extra-order-toggle" onchange="refreshRangeLabels(); updateBulkPreview();" style="width:16px;height:16px;flex-shrink:0">
                 <span id="lbl-extra-order">🔀 Keep typed order</span>
@@ -297,7 +297,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
             </div>
             <input type="text" id="b-extra" class="mono" placeholder="e.g. 5.12.99" inputmode="numeric" oninput="sanitizeExtra(this)">
             <div class="bulk-hint" id="bulk-hint-extra">Separate each number with a full stop (.)</div>
-            <div class="bulk-hint" id="bulk-hint-extra-order">☑️ Checked: scattered numbers keep the order you typed them — location is placed along the distance line in that exact order (e.g. 010.003.075.001). ☐ Unchecked: saved in ascending serial order.</div>
+            <div class="bulk-hint" id="bulk-hint-extra-order">☑️ Checked: (e.g. 010.003.075.001).</div>
           </div>
 
           <!-- ══ DISTANCE MODE TOGGLE ══ -->
