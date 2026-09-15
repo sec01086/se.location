@@ -151,7 +151,6 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 .ib.on{background:#e67e22}
 .offline-status-bar{display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--pc);color:#fff;padding:5px 14px;font-size:10.5px;font-weight:600;line-height:1.4}
 .offline-status-retry-btn{background:#e67e22;color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 /* ── Slot A/B Switch ── */
 .slot-switch{display:flex;gap:8px;margin-bottom:16px}
 .slot-btn{flex:1;padding:10px;border-radius:8px;border:2px solid var(--bd);background:var(--card);color:var(--tx);font-weight:700;font-size:13px;cursor:pointer}
@@ -171,10 +170,10 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 <header>
   <h1 id="app-title">Subscription Tracker Pro</h1>
   <div class="hc">
-    <button id="btn-install-app" class="ib" style="display:none" onclick="installApp()">📲<span class="sr-only">Install App</span></button>
-    <button id="btn-offline-toggle" class="ib" style="display:none" onclick="toggleOfflineMode()">🔌<span class="sr-only">Offline / Local-Only Mode</span></button>
-    <button class="ib" onclick="toggleTheme()">🌙<span class="sr-only">Toggle theme</span></button>
-    <button id="n-set" class="ib" onclick="navSettings()">⚙️<span class="sr-only"></span></button>
+    <button id="btn-install-app" class="ib" style="display:none" onclick="installApp()" title="Install App">📲</button>
+    <button id="btn-offline-toggle" class="ib" style="display:none" onclick="toggleOfflineMode()" title="Offline / Local-Only Mode">🔌</button>
+    <button class="ib" onclick="toggleTheme()">🌙</button>
+    <button id="n-set" class="ib" onclick="navSettings()" title="Settings">⚙️</button>
   </div>
 </header>
 <div id="offline-status-bar" class="offline-status-bar">
@@ -244,8 +243,8 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
   <div id="s-add" class="screen">
     <div class="card" style="position:relative">
       <h2 id="add-title">Set New Location</h2>
-      <button id="btn-step-toggle" class="bulk-toggle" style="left:14px;right:auto;display:none" onclick="toggleStepPanel()">🎚️<span class="sr-only">Step / interval settings</span></button>
-      <button id="btn-bulk-toggle" class="bulk-toggle" onclick="toggleBulkMode()">🔢<span class="sr-only">Add multiple numbers at once</span></button>
+      <button id="btn-step-toggle" class="bulk-toggle" style="left:14px;right:auto;display:none" onclick="toggleStepPanel()" title="Step / interval settings">🎚️</button>
+      <button id="btn-bulk-toggle" class="bulk-toggle" onclick="toggleBulkMode()" title="Add multiple numbers at once">🔢</button>
       <div id="vblock" class="vblock" style="display:none">🚫 Your Role: Viewer — You cannot add data.</div>
       <div id="add-form">
         <div class="slot-switch" id="slot-switch" title="Keep two separate ready-to-save setups (e.g. odd side / even side of a road)">
@@ -289,9 +288,16 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
             </div>
           </div>
           <div class="ig" id="bulk-extra-group" style="margin-top:12px">
-            <label id="lbl-bulk-extra">Extra scattered numbers (optional)</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+              <label id="lbl-bulk-extra" style="margin:0">Extra scattered numbers (optional)</label>
+              <label for="b-extra-order-toggle" style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--pc);margin:0;white-space:nowrap;cursor:pointer">
+                <input type="checkbox" id="b-extra-order-toggle" onchange="refreshRangeLabels(); updateBulkPreview();" style="width:16px;height:16px;flex-shrink:0">
+                <span id="lbl-extra-order">🔀 Keep typed order</span>
+              </label>
+            </div>
             <input type="text" id="b-extra" class="mono" placeholder="e.g. 5.12.99" inputmode="numeric" oninput="sanitizeExtra(this)">
             <div class="bulk-hint" id="bulk-hint-extra">Separate each number with a full stop (.)</div>
+            <div class="bulk-hint" id="bulk-hint-extra-order">☑️ Checked: scattered numbers keep the order you typed them — location is placed along the distance line in that exact order (e.g. 010.003.075.001). ☐ Unchecked: saved in ascending serial order.</div>
           </div>
 
           <!-- ══ DISTANCE MODE TOGGLE ══ -->
@@ -1434,6 +1440,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
       bStart:  document.getElementById('b-start').value,
       bEnd:    document.getElementById('b-end').value,
       bExtra:  document.getElementById('b-extra').value,
+      bExtraOrder: document.getElementById('b-extra-order-toggle').checked,
       bStep:       document.getElementById('b-step').value,
       bStepCustom: document.getElementById('b-step-custom').value,
       bStartLoc: document.getElementById('b-start-loc').value,
@@ -1445,7 +1452,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
 
   function restoreAddFormState(s) {
     s = s || { bulkMode:false, bulkDistanceMode:false, fSub:'', fSt:'', fLoc:'',
-               bPrefix:'', bStart:'', bEnd:'', bExtra:'', bStep:'1', bStepCustom:'',
+               bPrefix:'', bStart:'', bEnd:'', bExtra:'', bExtraOrder:false, bStep:'1', bStepCustom:'',
                bStartLoc:'', bEndLoc:'', distStart:null, distEnd:null };
 
     document.getElementById('f-sub').value = s.fSub;
@@ -1455,6 +1462,8 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     document.getElementById('b-start').value  = s.bStart;
     document.getElementById('b-end').value    = s.bEnd;
     document.getElementById('b-extra').value  = s.bExtra;
+    document.getElementById('b-extra-order-toggle').checked = !!s.bExtraOrder;
+    refreshRangeLabels();
     document.getElementById('b-step').value   = s.bStep || '1';
     document.getElementById('b-step-custom').value = s.bStepCustom;
     document.getElementById('b-step-custom').style.display = (s.bStep==='custom') ? 'block' : 'none';
@@ -1525,12 +1534,32 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     updateBulkPreview();
   }
   function sanitizeExtra(inp) {
-    inp.value = inp.value.replace(/[^0-9.]/g,'');
+    // Auto-insert a "." after every complete 3-digit group (e.g. "597" →
+    // "597."), same as the Prefix field's auto-slash. 1–2 digit numbers
+    // are left alone — the person types "." manually to separate those.
+    let raw = inp.value.replace(/[^0-9.]/g,'').replace(/\.{2,}/g,'.');
+    let out = '', groupLen = 0;
+    for (const ch of raw) {
+      if (ch === '.') { out += '.'; groupLen = 0; }
+      else {
+        out += ch; groupLen++;
+        if (groupLen === 3) { out += '.'; groupLen = 0; }
+      }
+    }
+    inp.value = out.replace(/\.{2,}/g,'.');
     updateBulkPreview();
   }
   function onStepPreset(sel) {
     document.getElementById('b-step-custom').style.display = sel.value==='custom' ? 'block' : 'none';
     updateBulkPreview();
+  }
+  // "Keep typed order" ON means the range boxes are optional (a person can
+  // rely purely on the Extra scattered numbers list) — reflect that on the
+  // Start/End labels.
+  function refreshRangeLabels() {
+    const keep = document.getElementById('b-extra-order-toggle').checked;
+    setTx('lbl-bulk-start', keep ? t('lblBulkStartOpt') : t('lblBulkStart'));
+    setTx('lbl-bulk-end',   keep ? t('lblBulkEndOpt')   : t('lblBulkEnd'));
   }
   function toggleStepPanel() {
     const panel = document.getElementById('step-panel');
@@ -1542,7 +1571,8 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     const prefix = document.getElementById('b-prefix').value.trim();
     const start  = document.getElementById('b-start').value.trim();
     const end    = document.getElementById('b-end').value.trim();
-    const extra  = bulkDistanceMode ? '' : document.getElementById('b-extra').value.trim();
+    const extra  = document.getElementById('b-extra').value.trim();
+    const keepTypedOrder = document.getElementById('b-extra-order-toggle').checked;
 
     const stepSel = document.getElementById('b-step') ? document.getElementById('b-step').value : '1';
     let step = 1, parity = null;
@@ -1571,7 +1601,12 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     }
     if (!nums.size) return { keys:[], error: t('bulkErrEmpty') };
     if (nums.size > 1000) return { keys:[], error: t('bulkErrTooMany') };
-    const keys = Array.from(nums).sort().map(n => prefix+n);
+    // "Keep typed order" ON → keep insertion order (range ascending, then
+    // extras exactly as typed) so scattered numbers like 010.003.075.001
+    // interpolate along the distance line in that physical order.
+    // OFF (default) → ascending serial order, same as before.
+    const ordered = keepTypedOrder ? Array.from(nums) : Array.from(nums).sort();
+    const keys = ordered.map(n => prefix+n);
     return { keys, error: null };
   }
   function updateBulkPreview() {
@@ -1605,7 +1640,9 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
   function toggleDistanceMode() {
     bulkDistanceMode = document.getElementById('b-dist-toggle').checked;
     document.getElementById('dist-mode-panel').style.display  = bulkDistanceMode ? 'block' : 'none';
-    document.getElementById('bulk-extra-group').style.display = bulkDistanceMode ? 'none'  : 'block';
+    // Extra scattered numbers stay usable in Distance mode too — the
+    // "Keep typed order" checkbox next to it controls how they get placed.
+    document.getElementById('bulk-extra-group').style.display = 'block';
     document.getElementById('common-loc-group').style.display = bulkDistanceMode ? 'none'  : 'block';
     document.getElementById('map-pick-group').style.display   = bulkDistanceMode ? 'none'  : 'block';
     if (bulkDistanceMode) setTimeout(initDistMap, 200);
@@ -1645,7 +1682,7 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     const ctl = L.control({ position: 'topright' });
     ctl.onAdd = function() {
       const div = L.DomUtil.create('div');
-      div.innerHTML = `<button type="button" style="width:36px;height:36px;border-radius:6px;border:2px solid #555;background:#fff;font-size:17px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)">🛰️<span class="sr-only">Toggle satellite view</span></button>`;
+      div.innerHTML = `<button type="button" style="width:36px;height:36px;border-radius:6px;border:2px solid #555;background:#fff;font-size:17px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)" title="Toggle satellite view">🛰️</button>`;
       L.DomEvent.disableClickPropagation(div);
       const btn = div.querySelector('button');
       btn.onclick = () => {
@@ -1840,6 +1877,8 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     document.getElementById('b-start').value='';
     document.getElementById('b-end').value='';
     document.getElementById('b-extra').value='';
+    document.getElementById('b-extra-order-toggle').checked=false;
+    refreshRangeLabels();
     document.getElementById('b-step').value='1';
     document.getElementById('b-step-custom').value='';
     document.getElementById('b-step-custom').style.display='none';
@@ -2662,9 +2701,13 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     bulkPrefixHint: "The (/) is added automatically after 3 digits — e.g. 123/45",
     lblBulkStart:   "Start (last 3 digits)",
     lblBulkEnd:     "End (last 3 digits)",
+    lblBulkStartOpt:"Start (last 3 digits) — optional",
+    lblBulkEndOpt:  "End (last 3 digits) — optional",
     bulkRangeHint:  "All numbers from start to end will be created (same location)",
     lblBulkExtra:   "Extra scattered numbers (optional)",
     bulkExtraHint:  "Separate each number with a full stop (.)",
+    lblExtraOrder:  "🔀 Keep typed order",
+    bulkExtraOrderHint: "☑️ Checked: scattered numbers keep the order you typed them — location is placed along the distance line in that exact order (e.g. 010.003.075.001). ☐ Unchecked: saved in ascending serial order.",
     bulkErrPrefix:  "❌ Enter the full prefix (xxx/xx)",
     bulkErrRangeBoth:"❌ Fill in both range boxes",
     bulkErrRangeOrder:"❌ Enter a valid range (start ≤ end)",
@@ -2721,11 +2764,12 @@ hr.div{border:0;border-top:1px solid var(--bd);margin:18px 0}
     if (vb) vb.textContent = t('viewerBlock');
     setTx('lbl-bulk-prefix',  t('lblBulkPrefix'));
     setTx('bulk-hint-prefix', t('bulkPrefixHint'));
-    setTx('lbl-bulk-start',   t('lblBulkStart'));
-    setTx('lbl-bulk-end',     t('lblBulkEnd'));
+    refreshRangeLabels();
     setTx('bulk-hint-range',  t('bulkRangeHint'));
     setTx('lbl-bulk-extra',   t('lblBulkExtra'));
     setTx('bulk-hint-extra',  t('bulkExtraHint'));
+    setTx('lbl-extra-order',  t('lblExtraOrder'));
+    setTx('bulk-hint-extra-order', t('bulkExtraOrderHint'));
     setTx('share-sheet-title',t('shareSheetTitle'));
     setTx('share-sheet-close',t('shareSheetClose'));
     // ── Auth screen ──
