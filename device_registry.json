@@ -1,27 +1,7 @@
 {
-  "DEV-384x832-9391": {
-    "status": "Active",
-    "role": "Editor",
-    "lastActive": "2026-09-09T04:11:53.431Z"
-  },
-  "DEV-360x780-7809": {
-    "status": "Active",
-    "role": "Editor",
-    "lastActive": "2026-09-01T09:23:11.283Z"
-  },
-  "DEV-412x915-5928": {
+  "DEV-384x832-3419": {
     "status": "Active",
     "role": "Admin",
-    "lastActive": "2026-09-09T04:34:20.639Z"
-  },
-  "DEV-412x915-6086": {
-    "status": "Active",
-    "role": "Admin",
-    "lastActive": "2026-09-15T13:43:42.803Z"
-  },
-  "DEV-360x802-2845": {
-    "status": "Active",
-    "role": "Admin",
-    "lastActive": "2026-10-27T06:24:07.937Z"
+    "lastActive": "2026-10-31T10:20:04.339Z"
   }
 }
